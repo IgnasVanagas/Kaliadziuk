@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-white text-black font-sans antialiased;
+}
+
+::selection {
+  background: #DCF41E;
+  color: #000;
+}
+
+.feature-bullet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.5rem;
+  width: 2.5rem;
+  border-radius: 9999px;
+  background: #DCF41E;
+  color: #000;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.feature-dot {
+  display: inline-flex;
+  height: 0.65rem;
+  width: 0.65rem;
+  border-radius: 9999px;
+  background: #DCF41E;
+}
