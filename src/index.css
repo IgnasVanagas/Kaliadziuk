@@ -35,3 +35,68 @@ body {
   border-radius: 9999px;
   background: #DCF41E;
 }
+
+/* Custom scrollbar - uses the site's green and a dark or light track option */
+:root {
+  --accent-green: #DCF41E; /* primary green used across the site */
+  --scrollbar-track: #000; /* default track (dark) */
+}
+
+/* Prevent accidental horizontal scroll on the page. If a component needs
+   horizontal scrolling (carousels), add the utility `allow-horizontal` to its
+   container to opt in. */
+html,
+body {
+  overflow-x: hidden;
+}
+
+.allow-horizontal {
+  overflow-x: auto !important;
+}
+
+/* WebKit-based browsers (Chrome, Edge, Safari) */
+*::-webkit-scrollbar {
+  width: 24px; /* doubled from 12px */
+  height: 24px; /* doubled from 12px */
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 9999px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--accent-green);
+  border-radius: 9999px;
+  border: 4px solid var(--scrollbar-track); /* slightly larger border to match size */
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  filter: brightness(0.9);
+}
+
+/* Firefox: exact pixel sizing isn't supported; use 'auto' to get a thicker thumb */
+* {
+  scrollbar-width: auto;
+  scrollbar-color: var(--accent-green) var(--scrollbar-track);
+}
+
+/* Utility classes to switch scrollbar track between dark (black) and light (white).
+   Apply one of these to the <html> or <body> element to change the look site-wide. */
+.scrollbar-dark {
+  --scrollbar-track: #000;
+  color-scheme: dark;
+}
+
+.scrollbar-light {
+  --scrollbar-track: #ffffff;
+  color-scheme: light;
+}
+
+/* Accessibility: provide enough contrast on very small screens by slightly enlarging the thumb */
+@media (max-width: 420px) {
+  *::-webkit-scrollbar {
+    width: 28px;
+    height: 28px;
+  }
+}

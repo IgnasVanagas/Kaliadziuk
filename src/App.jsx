@@ -536,8 +536,8 @@ function App() {
     AOS.init({ once: true, duration: 700, easing: 'ease-out-cubic' });
   }, []);
 
-  const headerClass = `sticky top-0 z-40 border-b transition-all duration-300 backdrop-blur-sm ${
-    scrolled ? 'bg-black/90 text-white border-black' : 'bg-white/60 text-black border-black'
+  const headerClass = `sticky top-0 z-50 border-b transition-all duration-300 backdrop-blur-md backdrop-saturate-150 ${
+    scrolled ? 'bg-black/90 text-white border-black' : 'bg-white/50 text-black border-black'
   }`;
   const desktopLinkClass = `transition ${scrolled ? 'text-white hover:text-accent' : 'text-black hover:text-accent'}`;
   const desktopCtaClass = `inline-flex items-center justify-center rounded-full px-6 py-2 text-sm font-semibold transition ${
@@ -626,8 +626,7 @@ function App() {
         <section id="programos" className="bg-white py-24 text-black">
           <div className="mx-auto max-w-7xl px-6">
             <div className="mx-auto max-w-3xl space-y-4 text-center" data-aos="fade-up">
-              <span className="text-xs font-semibold uppercase tracking-[0.4em] text-accent">Programos</span>
-              <h2 className="text-4xl font-black leading-tight sm:text-5xl">Treniruočių ir mitybos planai</h2>
+              <h2 className="text-4xl font-black uppercase">Treniruočių ir mitybos planai</h2>
               <p className="text-base text-black/70">
                 Pasirinkite programą pagal savo tikslus – kiekviena sudaroma individualiai, atsižvelgiant į jūsų poreikius ir galimybes.
               </p>
@@ -652,7 +651,6 @@ function App() {
                   <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/80 via-black/60 to-black/80" />
                   <div className="relative z-20 flex flex-col h-full justify-between p-8">
                     <div>
-                      <span className="inline-block mb-4 rounded-full border border-white/40 bg-black/40 px-4 py-2 text-xs font-semibold">{item.title}</span>
                       <h3 className="mb-2 text-3xl font-black leading-tight">{item.title}</h3>
                       <p className="mb-6 text-base text-white/90">{item.description}</p>
                     </div>
@@ -689,7 +687,7 @@ function App() {
                 </figure>
               </div>
               <div>
-                <h3 className="text-3xl font-bold mb-4">Apie mane</h3>
+                <h3 className="text-4xl font-black uppercase">Apie mane</h3>
                 <p className="text-base text-black/70">
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut
                   labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
@@ -711,6 +709,9 @@ function App() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_60%)]" />
           </div>
           <div className="relative mx-auto max-w-7xl px-6">
+            <div className="mx-auto max-w-3xl text-center mb-8" data-aos="fade-up">
+              <h2 className="text-4xl font-black uppercase text-white">Klientų istorijos</h2>
+            </div>
             <div className="relative" data-aos="fade-up">
               <div ref={transformationsRef} className="keen-slider">
                 {transformations.map((item, index) => {
@@ -727,10 +728,7 @@ function App() {
                     >
                       <div className="flex flex-col gap-8 lg:flex-row lg:items-stretch">
                         <div className="flex-1 space-y-6">
-                          <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.3em] text-white/60">
-                            <span>Kliento istorija {storyNumber.toString().padStart(2, '0')}</span>
-                            <span className="text-accent">Asmeninis planas</span>
-                          </div>
+                          {/* removed: Kliento istorija and Asmeninis planas as requested */}
                           <h3 className="text-3xl font-black tracking-tight text-white">{item.name}</h3>
                           <dl className="space-y-3 text-sm text-white">
                             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -760,7 +758,7 @@ function App() {
                                 loading="lazy"
                               />
                               <figcaption className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/70 px-4 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-white">
-                                <span>{photo.label}</span>
+                                <span>{photo.label.replace(/Foto\s*/i, '')}</span>
                                 <span className="text-sm tracking-normal">{photo.weight}</span>
                               </figcaption>
                             </figure>
@@ -795,13 +793,13 @@ function App() {
           className="relative overflow-hidden py-36 sm:py-48 lg:py-80 bg-cover"
           style={{ backgroundImage: `url(${fromUploads('IMG_0469-scaled.jpg')})`, backgroundPosition: 'center 83%', minHeight: 'clamp(520px, 135vw, 920px)' }}
         >
-          {/* subtle dark overlay so text stays readable */}
-          <div className="absolute inset-0 -z-10 bg-black/50" aria-hidden="true" />
+          {/* subtle dark overlay so text stays readable; increased slightly for better contrast */}
+          <div className="absolute inset-0 -z-10 bg-black/60" aria-hidden="true" />
           <div className="relative z-10">
             <div className="mx-auto max-w-6xl px-6 text-white" data-aos="fade-up">
               <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.6fr)] lg:items-center">
                 <div className="space-y-5">
-                  <h3 className="text-3xl font-semibold leading-tight sm:text-4xl">
+                  <h3 className="text-4xl font-black uppercase">
                     Padovanok geresnę savijautą artimiesiems be papildomo streso.
                   </h3>
                   <p className="text-base text-white/90">
@@ -931,8 +929,8 @@ function App() {
 
         <section id="paslaugos" className="bg-black text-white">
           <div className="mx-auto max-w-6xl px-6 py-24">
-            <div className="flex flex-col gap-6 text-center" data-aos="fade-up">
-              <h2 className="text-4xl font-black uppercase sm:text-5xl">
+              <div className="flex flex-col gap-6 text-center" data-aos="fade-up">
+              <h2 className="text-4xl font-black uppercase">
                 Teikiu įvairias sporto paslaugas, pritaikytas pagal jūsų poreikius ir iškeltus tikslus.
               </h2>
             </div>
@@ -999,7 +997,7 @@ function App() {
           {/* On phones, show the form first then the descriptive text. On lg+ keep original order. */}
           <div className="order-2 lg:order-1 space-y-8 text-black">
                 <div className="space-y-4">
-                  <h2 className="text-4xl font-black uppercase">Rezervuokite savo startą dabar</h2>
+                  <h2 className="text-4xl font-black uppercase">Susisiekite dabar</h2>
                   <p className="text-base text-black">
                     Įveskite savo kontaktus ir per 24 valandas suderinsime individualų susitikimo laiką bei aptarsime jūsų tikslus.
                   </p>
@@ -1115,7 +1113,7 @@ function App() {
                   type="submit"
                   className="w-full rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-accent hover:text-black"
                 >
-                  Siusti uzklausa
+                  Siųsti užklausą
                 </button>
               </form>
             </div>
