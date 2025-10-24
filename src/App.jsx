@@ -536,7 +536,10 @@ function App() {
     AOS.init({ once: true, duration: 700, easing: 'ease-out-cubic' });
   }, []);
 
-  const headerClass = `sticky top-0 z-50 border-b transition-all duration-300 backdrop-blur-md backdrop-saturate-150 ${
+  // Use fixed header (works reliably across browsers/containers). We keep
+  // the visual scrolled vs default states, and a high z-index so the header
+  // stays above other content.
+  const headerClass = `fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300 backdrop-blur-md backdrop-saturate-150 ${
     scrolled ? 'bg-black/90 text-white border-black' : 'bg-white/50 text-black border-black'
   }`;
   const desktopLinkClass = `transition ${scrolled ? 'text-white hover:text-accent' : 'text-black hover:text-accent'}`;
@@ -618,7 +621,9 @@ function App() {
             Išbandyti nemokamai
           </a>
         </nav>
-      </header>
+  </header>
+  {/* spacer equal to header height to prevent content jump when header is fixed */}
+  <div aria-hidden="true" className="h-16 md:h-20" />
 
       <main>
         <Hero stats={heroStats} backgroundDesktop={heroImageDesktop} backgroundMobile={heroImageMobile} />
@@ -794,7 +799,7 @@ function App() {
           style={{ backgroundImage: `url(${fromUploads('IMG_0469-scaled.jpg')})`, backgroundPosition: 'center 83%', minHeight: 'clamp(520px, 135vw, 920px)' }}
         >
           {/* subtle dark overlay so text stays readable; increased slightly for better contrast */}
-          <div className="absolute inset-0 -z-10 bg-black/60" aria-hidden="true" />
+          <div className="absolute inset-0 -z-10 bg-black/70" aria-hidden="true" />
           <div className="relative z-10">
             <div className="mx-auto max-w-6xl px-6 text-white" data-aos="fade-up">
               <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.6fr)] lg:items-center">
