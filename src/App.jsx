@@ -26,13 +26,14 @@ const heroStats = [
 ];
 
 const Hero = ({ stats, backgroundDesktop, backgroundMobile }) => (
-  <section id="hero" className="relative min-h-screen overflow-hidden bg-black text-white">
+  <section id="hero" className="relative min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)] lg:min-h-[calc(100vh-6rem)] overflow-hidden bg-black text-white">
     <picture className="pointer-events-none absolute inset-0 z-0">
       {backgroundMobile ? <source media="(max-width: 768px)" srcSet={backgroundMobile} /> : null}
       <img
         src={backgroundDesktop}
         alt=""
-        className="h-full w-full object-cover object-center"
+        className="h-full w-full object-cover"
+        style={{ objectPosition: 'center 30%' }}
         aria-hidden="true"
         loading="eager"
       />
@@ -49,15 +50,15 @@ const Hero = ({ stats, backgroundDesktop, backgroundMobile }) => (
       aria-hidden="true"
       style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 60%)' }}
     />
-  <div className="relative z-20 mx-auto flex min-h-screen w-full max-w-7xl flex-col items-start px-6 pt-72 pb-20 sm:pt-80 sm:pb-24 lg:pt-[28rem]">
+  <div className="relative z-20 mx-auto flex min-h-full w-full max-w-7xl flex-col items-start px-6 pt-60 pb-20 sm:pt-72 sm:pb-24 lg:pt-80 lg:pb-28">
   <div className="max-w-4xl mx-auto text-center space-y-8" data-aos="fade-up">
-        <h1 className="text-4xl font-extrabold leading-tight sm:text-6xl md:text-7xl lg:text-8xl drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)]">
+        <h1 className="text-3xl font-extrabold leading-tight sm:text-4xl md:text-5xl lg:text-6xl drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)]">
           Asmeninės treniruotės, kurios keičia jūsų kūną ir mąstymą per 30 dienų
         </h1>
         <div className="flex w-full justify-center flex-col gap-4 sm:w-auto sm:flex-row">
           <a
             href="#programos"
-            className="inline-flex items-center justify-center rounded-full bg-accent px-7 py-4 text-base font-extrabold text-black shadow-lg transition-transform duration-150 hover:-translate-y-1 sm:px-8 sm:text-lg"
+            className="inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 text-xl font-extrabold text-black shadow-lg transition-transform duration-150 hover:-translate-y-1 sm:px-8 sm:py-4 sm:text-2xl"
           >
             Peržiūrėti planus
           </a>
@@ -65,7 +66,7 @@ const Hero = ({ stats, backgroundDesktop, backgroundMobile }) => (
       </div>
 
       {/* Stats — de-emphasized visually but visible for trust */}
-      <div className="mt-16 w-full flex flex-col gap-4 text-sm sm:mt-24 sm:flex-row sm:gap-10 items-center justify-center" data-aos="fade-up" data-aos-delay="150">
+  <div className="mt-20 w-full flex flex-col gap-4 text-sm sm:mt-28 sm:flex-row sm:gap-10 items-center justify-center" data-aos="fade-up" data-aos-delay="150">
         {stats.map(stat => (
           <div
             key={stat.label}
