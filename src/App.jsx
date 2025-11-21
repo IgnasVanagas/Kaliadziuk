@@ -26,7 +26,7 @@ const heroStats = [
 ];
 
 const Hero = ({ stats, backgroundDesktop, backgroundMobile }) => (
-  <section id="hero" className="relative min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)] lg:min-h-[calc(100vh-6rem)] overflow-hidden bg-black text-white">
+  <section id="hero" className="relative min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)] lg:min-h-[calc(100vh-6rem)] overflow-hidden text-white">
     <picture className="pointer-events-none absolute inset-0 z-0">
       {backgroundMobile ? <source media="(max-width: 768px)" srcSet={backgroundMobile} /> : null}
       <img
@@ -86,31 +86,115 @@ const Hero = ({ stats, backgroundDesktop, backgroundMobile }) => (
 const programs = [
   {
     title: 'Svorio metimo',
-    description: 'Intensyvi programa skirta nereikalingo papildomo svorio metimui ir kūno stiprinimui',
+    subtitle: 'Lengvesnis kūnas ir daugiau energijos',
+    description:
+      'Aštuonių savaičių kelionė, kuri derina švelniai agresyvią mitybos strategiją, riebalų deginimo treniruotes ir emocinį palaikymą. Kiekvieną savaitę peržiūrime žingsnius, miego higieną ir kraujo žymenis, kad korekcijos būtų tikslios, o motyvacija – stabili.',
     price: '100€',
+    duration: '8 savaitės',
     image: fromUploads('IMG_0481-scaled.jpg'),
-    features: ['Personalizuotas mitybos planas', 'Kasdienė treniruočių rutina', 'Pažangos stebėjimas'],
+    highlights: [
+      {
+        title: 'Personalizuota mitybos architektūra',
+        detail: 'Sudarau makroelementų paskirstymą pagal hormonų balansą ir darbų ritmą, pridedu receptus su realistiška prep trukme.',
+      },
+      {
+        title: 'Kintančios treniruočių fazės',
+        detail: 'HIIT ir žemo pulso blokai rotuojami kas dvi savaites, kad kūnas nuolat gautų naują stimulą be perdegimo.',
+      },
+      {
+        title: 'Mindset ir atsistatymas',
+        detail: 'Kvėpavimo protokolai, limfodrenažiniai tempimai ir trumpi audio įrašai, padedantys laikytis plano net stresinėmis dienomis.',
+      },
+    ],
+    extras: [
+      'Savaitinis progreso „health report“ su korekcijomis',
+      'Receptų biblioteka ir apsipirkimo sąrašai kiekvienai savaitei',
+      'WhatsApp palaikymas darbo dienomis 9–18 val.',
+    ],
   },
   {
     title: 'Raumenų auginimo',
-    description: 'Dinamiška programa, orientuota į jėgos ir galios didinimą per tikslines treniruotes',
+    subtitle: 'Didesnė jėga ir aiškiai matoma forma',
+    description:
+      'Programa sukurta žmonėms, kurie nori ne tik priaugti svorio, bet ir jaustis funkcionaliai stiprūs. Dirbame ciklais – nuo nervų sistemos adaptacijos iki progresuojančių apkrovų, kartu prižiūrint hormonų ir baltymų balansą.',
     price: '100€',
+    duration: '10 savaičių',
     image: fromUploads('IMG_0443-scaled.jpg'),
-    features: ['Pritaikyta jėgos treniruotė', 'Didelės energijos reikalaujančios treniruotės', 'Pažangos stebėjimas'],
+    highlights: [
+      {
+        title: 'Jėgos ir hipertrofijos blokai',
+        detail: 'Periodizuotas split planas su RPE gairėmis ir technikos video analizėmis kas dvi savaites.',
+      },
+      {
+        title: 'Mityba testosterono palaikymui',
+        detail: 'Didinu kalorijų kiekį laipsniškai, kad augtų švarūs raumenys, o virškinimo sistema suspėtų prisitaikyti.',
+      },
+      {
+        title: 'Pažangos laboratorija',
+        detail: 'Naudojame skenavimus ir mobilųjį žurnalą, kuris vizualiai rodo apimčių ir svorių pokytį.',
+      },
+    ],
+    extras: [
+      'Kas savaitę koreguojamas darbo svorių grafikas',
+      'Papildų protokolas (nebūtinas, bet rekomenduojamas)',
+      'Prieiga prie trumpo mobilumo „primer“ prieš kiekvieną sesiją',
+    ],
   },
   {
     title: 'Namų treniruotė',
-    description: 'Lanksti mokymo programa, skirta tiems, kurie nori treniruotis namuose',
+    subtitle: 'Studijos kokybė tavo svetainėje',
+    description:
+      'Jei neturi galimybės lankytis sporto klube, visa programa atkeliauja pas tave – nuo dviem hanteliais atliekamų kompleksų iki kūno peso blokų su tempimo ritualais. Vaizdo įrašai ir gyvos korekcijos leidžia jaustis taip, lyg treneris būtų šalia.',
     price: '100€',
+    duration: '6 savaitės',
     image: fromUploads('IMG_0462-scaled-e1750332801471.jpg'),
-    features: ['Namų treniruočių planai', 'Minimalios įrangos poreikis', 'Vaizdo įrašai'],
+    highlights: [
+      {
+        title: 'Adaptuota įrangai, kurią turi',
+        detail: 'Nesvarbu, ar tai pasipriešinimo gumos, ar vienas kettlebellis – planą pritaikau tavo realiam inventorui.',
+      },
+      {
+        title: 'Gyvi „form-check“ skambučiai',
+        detail: 'Kas dvi savaites prisijungiame trumpam video skambučiui, kad pakoreguotume techniką ir atsakytume į klausimus.',
+      },
+      {
+        title: 'Regeneracijos ritualai',
+        detail: 'Įtraukta trumpa mobilumo seka kiekvienai dienai ir savaitgalio „reset“ sesija stuburui.',
+      },
+    ],
+    extras: [
+      'Priminimų sistema telefone, kad nepraleistum treniruotės',
+      'Spotify grojaraščiai pagal treniruotės intensyvumą',
+      'Prisijungimas prie bendruomenės pokalbių kambario',
+    ],
   },
   {
     title: 'Mobilumo lavinimo',
-    description: 'Specializuota programa skirta lankstumui ir mobilumui gerinti',
+    subtitle: 'Lengvas kūnas kasdieniame judesyje',
+    description:
+      'Skirta žmonėms, kurie nori išmanyti savo kūną, atsikratyti įtampos ir pagerinti laikyseną. Dirbame lėtai, bet tikslingai – deriname fascijų atpalaidavimą, aktyvius tempimus ir funkcinį stabilizavimą.',
     price: '100€',
+    duration: '5 savaitės',
     image: fromUploads('IMG_0441-modified-scaled-e1750335226133.jpg'),
-    features: ['Tempimo pratimai', 'Funkciniai pratimai', 'Laikysenos korekcija'],
+    highlights: [
+      {
+        title: 'Tempimo ir kvėpavimo duetai',
+        detail: 'Kiekviena seka turi audio instrukcijas, kad žinotum, kur turi jaustis tempimas ir kaip kvėpuoti.',
+      },
+      {
+        title: 'Funkciniai pratimai',
+        detail: 'Stipriname stabilizuojančius raumenis aplink klubus, pečius ir stuburą, kad laikysena išliktų natūrali.',
+      },
+      {
+        title: 'Laikysenos diagnostika',
+        detail: 'Prieš pradedant gauni video analizę bei individualius pataisymus, kuriuos peržiūrime kurso pabaigoje.',
+      },
+    ],
+    extras: [
+      'Kas savaitę – trumpas vakarinis ritualas sąnariams',
+      'Darbo vietos ergonomikos gidas',
+      'Praktinių užrašų knygutė su progreso žymomis',
+    ],
   },
 ];
 
@@ -285,45 +369,76 @@ const notHelpList = [
 
 const services = [
   {
-    title: 'Asmeninės treniruotės',
+    title: 'Testavimo treniruotė su kūno analize ir programos sudarymu',
+    image: fromUploads('IMG_0481-scaled.jpg'),
+    description:
+      'Pirmas žingsnis į aiškius rezultatus! Atliekame išsamią kūno analizę ir paruošiame programą pagal tavo tikslus.',
+    features: [
+      'Raumenų balanso, laikysenos ir kūno sudėties įvertinimas',
+      'Išryškinamos stiprybės ir silpnosios vietos',
+      'Asmeninė treniruočių programa',
+      'Puikiai tinka pradedantiesiems ir pažengusiems',
+    ],
+  },
+  {
+    title: 'Treniruotės jūsų įmonėje',
+    image: fromUploads('IMG_0458-scaled.jpg'),
+    description:
+      'Suteikite komandai daugiau energijos ir geresnę savijautą. Trumpi, efektyvūs užsiėmimai darbo metu motyvuoja ir sutelkia.',
+    features: [
+      'Treniruočių grafikas derinamas su jūsų komanda',
+      'Trumpi, bet intensyvūs užsiėmimai',
+      'Skatinamas produktyvumas ir komandiškumas',
+    ],
+  },
+  {
+    title: 'Asmeninės treniruotės – Vilniuje ir Varėnoje',
     image: fromUploads('IMG_0451-scaled.jpg'),
     description:
-      'Individualios treniruotės, pritaikytos tavo tikslams (norintiems išmokti sportuoti, numesti ar priaugti svorio, padidinti raumenų masę).',
-    features: ['Individualus planas', 'Technikos korekcija realiu laiku', 'Nuolatinis motyvacinis palaikymas'],
+      'Individualus dėmesys, aiškus planas ir realūs rezultatai. Gauk profesionalų palaikymą kiekviename žingsnyje.',
+    features: ['100 % dėmesio vienam klientui', 'Aiškios treniruočių struktūros', 'Motyvacija ir atsakomybė'],
   },
   {
-    title: 'Treniruočių programos',
-    image: fromUploads('IMG_0458-scaled.jpg'),
+    title: 'Online coaching',
+    image: fromUploads('IMG_0469-scaled.jpg'),
     description:
-      'Individualiai sudaroma programa, atsižvelgiant į tavo tikslus, patirtį, laiką ir turimą inventorių. Kiekviename pratime pateikiamos raumenų darbo schemos ir paaiškinami variantai.',
-    features: ['Prisijungimas prie pratimų bibliotekos', 'Pažangos stebėjimo sistemos', 'Planai pagal turimą inventorių'],
+      'Sportuok bet kur – gautas planas, palaikymas ir atskaitomybė padeda išlikti kelyje į tikslą net kelionėje.',
+    features: ['Individualus nuotolinis planas', 'Reguliarus palaikymas ir grįžtamasis ryšys', 'Treniruočių korekcijos pagal progresą'],
   },
   {
-    title: 'Mitybos planas + atsistatymo planas',
-    image: fromUploads('IMG_0458-scaled.jpg'),
-    description:
-      'Individualus planas, įvertinant sveikatos būklę, gyvenimo būdą ir fizinio aktyvumo lygį. Plane rasite kalorijų kiekį, makroelementų paskirstymą, 7 dienų valgiaraštį ir net 28 receptus.',
-    features: ['7 dienų valgiaraštis', 'Kalorijų ir makroelementų analizė', 'Atsistatymo rekomendacijos'],
-  },
-  {
-    title: 'Moterims po gimdymo',
+    title: 'Treniruotės jūsų namuose',
     image: fromUploads('IMG_0488-scaled.jpg'),
     description:
-      'Treniruotės po gimdymo, siekiant atstatyti kūną ar pasiruošti gimdymui. Programos sudarytos pagal galimas negalavimų rizikas (įvertinamos pilvo sienelės, laikysena ir dubens dugnas).',
-    features: ['Dubens dugno stiprinimas', 'Laipsniškas krūvio didinimas', 'Treniruočių grafikai namuose'],
+      'Treneris atvyksta pas jus! Patogus ir saugus sportas, pritaikytas jūsų erdvei, tikslams ir galimybėms.',
+    features: ['Inventoriaus pritaikymas namų erdvei', 'Treniruočių grafikas pagal jūsų laiką', 'Asmeninis dėmesys ir saugumas'],
   },
   {
-    title: 'Konsultacijos',
-    image: fromUploads('IMG_0469-scaled.jpg'),
-    description: 'Asmenines konsultacijos internetu ar gyvai. Aptariami tikslai, sporto strategija ir plano sudarymo galimybes.',
-    features: ['Tikslų analizė', 'Prioritetų nustatymas', 'Aiškus veiksmų planas'],
-  },
-  {
-    title: 'Nuotolinės treniruotės',
-    image: fromUploads('IMG_0451-scaled.jpg'),
+    title: 'Grupinės treniruotės – Varėnoje ir Vilniuje',
+    image: fromUploads('IMG_0443-scaled.jpg'),
     description:
-      'Treniruotės nuotoliniu būdu su profesionalia priežiūra ir korekcijomis realiu laiku. Idealios tiems, kurie gyvena užsienyje arba negali reguliariai atvykti į sporto klubą.',
-    features: ['Gyvos virtualios sesijos', 'Asmeninė grįžtamoji informacija', 'Patogus laiko pasirinkimas'],
+      'Energija, kuri užkrečia! Sportuokite mažose ar didelėse grupėse, jauskite palaikymą ir bendrumą.',
+    features: ['Skirtingo dydžio grupės', 'Motyvuojanti ir pozityvi atmosfera', 'Idealiai tinka socialiai motyvuotiems sportui'],
+  },
+  {
+    title: 'Sportas poroje',
+    image: fromUploads('IMG_0481-scaled.jpg'),
+    description:
+      'Labai populiarus pasirinkimas! Dviguba motyvacija ir bendras tikslas stiprina kūną bei santykį.',
+    features: ['Planai pritaikyti dviem žmonėms', 'Bendro progreso sekimas', 'Treniruotės, kurios stiprina ryšį'],
+  },
+  {
+    title: 'Paauglių grupinės treniruotės – Varėnoje',
+    image: fromUploads('IMG_0462-scaled-e1750332801471.jpg'),
+    description:
+      'Saugi, smagi ir lavinanti aplinka jauniems sportininkams. Stiprėk, gerink laikyseną, pasitikėjimą ir fizinį pasirengimą!',
+    features: ['Amžiui pritaikyti pratimai', 'Dėmesys laikysenai ir fiziniam pasirengimui', 'Palaikanti ir draugiška bendruomenė'],
+  },
+  {
+    title: 'Senjorų treniruotės – sporto salėje ir baseine',
+    image: fromUploads('IMG_0441-modified-scaled-e1750335226133.jpg'),
+    description:
+      'Švelnios, bet veiksmingos treniruotės geresnei savijautai, lankstumui ir gyvenimo džiaugsmui. Judėjimas tinka visiems!',
+    features: ['Mažo poveikio pratimai salėje ir baseine', 'Gerina lankstumą ir balansą', 'Pritaikoma individualioms galimybėms'],
   },
 ];
 const groupServices = [
@@ -541,16 +656,18 @@ function App() {
   // the visual scrolled vs default states, and a high z-index so the header
   // stays above other content.
   const headerClass = `fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300 backdrop-blur-md backdrop-saturate-150 ${
-    scrolled ? 'bg-black/90 text-white border-black' : 'bg-white/50 text-black border-black'
+    scrolled ? 'bg-slate-900/90 text-white border-slate-900/50' : 'bg-white/60 text-black border-slate-200'
   }`;
   const desktopLinkClass = `transition ${scrolled ? 'text-white hover:text-accent' : 'text-black hover:text-accent'}`;
   const desktopCtaClass = `inline-flex items-center justify-center rounded-full px-6 py-2 text-sm font-semibold transition ${
-    scrolled ? 'bg-accent text-black hover:bg-black hover:text-white' : 'bg-black text-white hover:bg-accent hover:text-black'
+    scrolled ? 'bg-accent text-black hover:bg-slate-900 hover:text-white' : 'bg-slate-900 text-white hover:bg-accent hover:text-black'
   }`;
-  const mobileMenuBaseClass = scrolled ? 'border border-black bg-black text-white' : 'border border-black bg-white text-black';
+  const mobileMenuBaseClass = scrolled
+    ? 'border border-slate-900/40 bg-slate-900 text-white'
+    : 'border border-slate-200 bg-white text-black';
   const mobileLinkClass = `transition ${scrolled ? 'text-white hover:text-accent' : 'text-black hover:text-accent'}`;
   const mobileCtaClass = `mt-6 inline-flex w-full items-center justify-center rounded-full px-6 py-3 text-sm font-semibold transition ${
-    scrolled ? 'bg-accent text-black hover:bg-black hover:text-white' : 'bg-black text-white hover:bg-accent hover:text-black'
+    scrolled ? 'bg-accent text-black hover:bg-slate-900 hover:text-white' : 'bg-slate-900 text-white hover:bg-accent hover:text-black'
   }`;
   const mobileToggleClass = `inline-flex items-center justify-center rounded-full border p-2 md:hidden ${
     scrolled ? 'border-white text-white' : 'border-black text-black'
@@ -637,45 +754,63 @@ function App() {
                 Pasirinkite programą pagal savo tikslus – kiekviena sudaroma individualiai, atsižvelgiant į jūsų poreikius ir galimybes.
               </p>
             </div>
-            {/* Use a single-row grid that fits the full container width. We set grid-auto-columns to the card width so cards align in one row without causing page overflow. */}
-            {/* Programs: stack on phones (single column), switch to one-row flow at large screens */}
-            <div className="mt-16 flex flex-col gap-6 pb-6 lg:grid lg:grid-flow-col lg:auto-cols-[minmax(0,1fr)] lg:gap-6">
-              {programs.map((item, index) => (
+            <div className="mt-16 grid gap-10 pb-6 xl:grid-cols-2">
+              {programs.map((plan, index) => (
                 <article
-                  key={item.title}
-                  className="relative flex w-full lg:max-w-[360px] flex-col justify-between overflow-hidden rounded-[32px] bg-black text-white shadow-[0_20px_60px_rgba(0,0,0,0.18)] transition duration-300 hover:-translate-y-2"
-                  style={{ minHeight: '520px' }}
+                  key={plan.title}
+                  className="overflow-hidden rounded-[40px] border border-slate-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.1)] transition duration-500 hover:-translate-y-2"
                   data-aos="fade-up"
                   data-aos-delay={index * 80}
                 >
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="absolute inset-0 h-full w-full object-cover z-0"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/80 via-black/60 to-black/80" />
-                  <div className="relative z-20 flex flex-col h-full justify-between p-8">
-                    <div>
-                      <h3 className="mb-2 text-3xl font-black leading-tight">{item.title}</h3>
-                      <p className="mb-6 text-base text-white/90">{item.description}</p>
+                  <div className="relative h-[320px] sm:h-[360px]">
+                    <img src={plan.image} alt={plan.title} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/60 to-black/90" />
+                    <div className="relative z-10 flex h-full flex-col justify-between p-8 sm:p-10 text-white">
+                      <div className="space-y-3">
+                        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/70">{plan.subtitle}</p>
+                        <h3 className="text-3xl font-black leading-tight sm:text-4xl">{plan.title}</h3>
+                      </div>
+                      <div className="flex flex-wrap gap-3 text-sm font-semibold">
+                        <span className="rounded-full border border-white/40 px-4 py-2 text-white/90">{plan.duration}</span>
+                        <span className="rounded-full border border-white/30 bg-white/10 px-4 py-2 text-white">{plan.price}</span>
+                      </div>
                     </div>
-                    <div>
-                      <ul className="mb-6 flex flex-wrap gap-3 text-sm">
-                        {item.features.map(feature => (
-                          <li key={feature} className="rounded-full bg-black/60 px-4 py-2 text-white/90 border border-white/20">{feature}</li>
+                  </div>
+                  <div className="grid gap-8 bg-white p-8 sm:p-10 text-slate-900">
+                    <p className="text-lg leading-relaxed text-slate-600">{plan.description}</p>
+                    <div className="grid gap-6 md:grid-cols-2">
+                      {plan.highlights.map(highlight => (
+                        <div
+                          key={highlight.title}
+                          className="rounded-3xl border border-slate-100 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.08)]"
+                        >
+                          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">{highlight.title}</p>
+                          <p className="mt-3 text-sm text-slate-600">{highlight.detail}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="space-y-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Į paketą įeina</p>
+                      <ul className="space-y-3">
+                        {plan.extras.map(extra => (
+                          <li key={extra} className="flex items-start gap-3 text-sm text-slate-600">
+                            <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-accent/30 text-xs font-bold text-slate-900">
+                              &bull;
+                            </span>
+                            <span>{extra}</span>
+                          </li>
                         ))}
                       </ul>
-                      <div className="mb-6 flex items-center justify-between">
-                        <span className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/90 px-4 py-2 text-sm font-bold text-black">{item.price}</span>
-                        <a
-                          href="#kontaktai"
-                          className="inline-flex items-center gap-2 rounded-full bg-accent px-7 py-3 text-base font-semibold text-black transition hover:bg-black hover:text-accent"
-                        >
-                          Pirkti
-                          <span className="inline-block text-xl">&rarr;</span>
-                        </a>
-                      </div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-4 pt-2">
+                      <a
+                        href="#kontaktai"
+                        className="inline-flex items-center gap-2 rounded-full bg-accent px-7 py-3 text-base font-semibold text-black transition hover:bg-slate-900 hover:text-white"
+                      >
+                        Pirkti
+                        <span className="inline-block text-xl">&rarr;</span>
+                      </a>
+                      <span className="text-xs uppercase tracking-[0.3em] text-slate-400">Nemokama konsultacija prieš startą</span>
                     </div>
                   </div>
                 </article>
@@ -709,10 +844,11 @@ function App() {
           </div>
         </section>
 
-        <section id="sekmes" className="relative overflow-hidden bg-black py-28 text-white">
+        <section id="sekmes" className="relative overflow-hidden py-28 text-white">
           <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-            <div className="h-full w-full bg-gradient-to-br from-black via-black to-black/90" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_60%)]" />
+            <img src={successImage} alt="" className="h-full w-full object-cover" loading="lazy" />
+            <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/70 to-black/80" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.15),_transparent_60%)]" />
           </div>
           <div className="relative mx-auto max-w-7xl px-6">
             <div className="mx-auto max-w-3xl text-center mb-8" data-aos="fade-up">
@@ -845,16 +981,18 @@ function App() {
           </div>
         </section>
 
-        <section id="istorijos" className="bg-black text-white">
+        <section id="istorijos" className="bg-gradient-to-b from-white via-slate-50 to-slate-100 text-slate-900">
           <div className="mx-auto max-w-6xl px-6 py-24">
-            <div className="flex flex-col gap-4 text-center" data-aos="fade-up">
-              <h2 className="text-4xl font-black uppercase">Klientų atsiliepimai</h2>
+            <div className="flex flex-col gap-3 text-center" data-aos="fade-up">
+              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Gyvos patirtys</p>
+              <h2 className="text-4xl font-black uppercase text-slate-900">Klientų atsiliepimai</h2>
+              <p className="text-base text-slate-600">Tikros istorijos iš žmonių, kurie jaučiasi stipresni, sveikesni ir labiau pasitikintys savimi.</p>
             </div>
             <div ref={testimonialsRef} className="keen-slider mt-16 h-auto overflow-visible">
               {stories.map(story => (
                 <article
                   key={story.name}
-                  className="keen-slider__slide rounded-[32px] border border-white bg-black p-8 h-auto"
+                  className="keen-slider__slide h-auto rounded-[32px] border border-slate-200 bg-white/90 p-8 shadow-[0_30px_90px_rgba(15,23,42,0.08)]"
                 >
                   <div className="flex items-center gap-4">
                     <img
@@ -864,7 +1002,7 @@ function App() {
                       loading="lazy"
                     />
                     <div>
-                      <h3 className="text-lg font-semibold text-white">{story.name}</h3>
+                      <h3 className="text-lg font-semibold text-slate-900">{story.name}</h3>
                       <p className="text-xs uppercase tracking-wide text-accent">Programa</p>
                     </div>
                   </div>
@@ -881,7 +1019,7 @@ function App() {
                     ))}
                     <span className="sr-only">5 iš 5 žvaigždučių</span>
                   </div>
-                  <p className="mt-6 text-sm leading-relaxed text-white">{story.quote}</p>
+                  <p className="mt-6 text-sm leading-relaxed text-slate-600">{story.quote}</p>
                 </article>
               ))}
             </div>
@@ -889,14 +1027,14 @@ function App() {
               <button
                 type="button"
                 onClick={() => testimonials?.current?.prev()}
-                className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white text-white transition hover:border-accent hover:text-accent"
+                className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-400 bg-white text-slate-600 transition hover:border-accent hover:text-accent"
               >
                 &lt;
               </button>
               <button
                 type="button"
                 onClick={() => testimonials?.current?.next()}
-                className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white text-white transition hover:border-accent hover:text-accent"
+                className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-400 bg-white text-slate-600 transition hover:border-accent hover:text-accent"
               >
                 &gt;
               </button>
@@ -923,7 +1061,7 @@ function App() {
               <ul className="grid gap-3 text-base text-black">
                 {notHelpList.map(item => (
                   <li key={item} className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black text-white">-</span>
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-white">-</span>
 
                     {item}
                   </li>
@@ -933,19 +1071,24 @@ function App() {
           </div>
         </section>
 
-        <section id="paslaugos" className="bg-black text-white">
+        <section id="paslaugos" className="bg-gradient-to-tr from-white via-slate-50 to-white text-slate-900">
           <div className="mx-auto max-w-6xl px-6 py-24">
-              <div className="flex flex-col gap-6 text-center" data-aos="fade-up">
-              <h2 className="text-4xl font-black uppercase">
-                Teikiu įvairias sporto paslaugas, pritaikytas pagal jūsų poreikius ir iškeltus tikslus.
-              </h2>
+            <div className="flex flex-col gap-3 text-center" data-aos="fade-up">
+              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Paslaugos</p>
+              <h2 className="text-4xl font-black uppercase text-slate-900">Treniruotės ir sveikatingumo paslaugos</h2>
+              <p className="text-base text-slate-600 sm:text-lg">
+                Judėjimas, kuris keičia kūną, nuotaiką ir energiją!
+              </p>
+              <p className="text-base text-slate-600 sm:text-lg">
+                Rask tau tinkamiausią būdą sportuoti – individualiai, su pora, grupe ar visa komanda.
+              </p>
             </div>
             <div className="relative mt-16" data-aos="fade-up">
               <div ref={servicesRef} className="keen-slider">
                 {services.map(service => (
                   <article
                     key={service.title}
-                    className="keen-slider__slide flex h-full flex-col overflow-hidden rounded-[32px] border border-white/15 bg-black"
+                    className="keen-slider__slide flex h-full flex-col overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-[0_25px_90px_rgba(15,23,42,0.08)]"
                   >
                     <figure className="relative h-56 w-full sm:h-64">
                       <img
@@ -954,15 +1097,21 @@ function App() {
                         className="h-full w-full object-cover"
                         loading="lazy"
                       />
-                    </figure>
-                    <div className="flex h-full flex-col justify-between gap-6 p-8">
-                      <div>
-                        <h3 className="text-2xl font-semibold text-white">{service.title}</h3>
-                        <p className="mt-4 text-sm text-white/90">{service.description}</p>
+                      <div className="absolute inset-x-6 bottom-6 rounded-full bg-white/90 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">
+                        Fokusas
                       </div>
-                      <ul className="space-y-2 text-sm text-white/90">
+                    </figure>
+                    <div className="flex h-full flex-col justify-between gap-6 p-8 text-slate-700">
+                      <div>
+                        <h3 className="text-2xl font-semibold text-slate-900">{service.title}</h3>
+                        <p className="mt-4 text-sm leading-relaxed">{service.description}</p>
+                      </div>
+                      <ul className="space-y-2 text-sm">
                         {service.features.map(feature => (
-                          <li key={feature}>{feature}</li>
+                          <li key={feature} className="flex items-start gap-2">
+                            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
+                            <span>{feature}</span>
+                          </li>
                         ))}
                       </ul>
                     </div>
@@ -973,14 +1122,14 @@ function App() {
                 <button
                   type="button"
                   onClick={() => servicesSlider?.current?.prev()}
-                  className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white text-white transition hover:border-accent hover:text-accent"
+                  className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-400 bg-white text-slate-600 transition hover:border-accent hover:text-accent"
                 >
                   &lt;
                 </button>
                 <button
                   type="button"
                   onClick={() => servicesSlider?.current?.next()}
-                  className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white text-white transition hover:border-accent hover:text-accent"
+                  className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-400 bg-white text-slate-600 transition hover:border-accent hover:text-accent"
                 >
                   &gt;
                 </button>
@@ -1030,7 +1179,7 @@ function App() {
                   {partnerLogos.map(partner => (
                     <div
                       key={partner.name}
-                      className="flex items-center justify-between gap-4 rounded-3xl border border-black bg-white px-6 py-4 shadow-sm"
+                      className="flex items-center justify-between gap-4 rounded-3xl border border-slate-200 bg-white px-6 py-4 shadow-sm"
                     >
                       <img
                         src={partner.logo}
@@ -1065,7 +1214,7 @@ function App() {
                     name="name"
                     type="text"
                     placeholder="Įrašykite savo vardą"
-                    className="mt-2 w-full rounded-2xl border border-black bg-white px-4 py-3 text-sm text-black placeholder-black focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+                    className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-black placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
                     required
                   />
                 </div>
@@ -1078,7 +1227,7 @@ function App() {
                     name="phone"
                     type="tel"
                     placeholder="Pageidaujamas kontaktinis numeris"
-                    className="mt-2 w-full rounded-2xl border border-black bg-white px-4 py-3 text-sm text-black placeholder-black focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+                    className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-black placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                 </div>
                 <div>
@@ -1090,7 +1239,7 @@ function App() {
                     name="email"
                     type="email"
                     placeholder="Susisieksiu su jumis čia"
-                    className="mt-2 w-full rounded-2xl border border-black bg-white px-4 py-3 text-sm text-black placeholder-black focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+                    className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-black placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
                     required
                   />
                 </div>
@@ -1103,21 +1252,21 @@ function App() {
                     name="message"
                     rows="5"
                     placeholder="Aprašykite savo tikslus arba klausimus"
-                    className="mt-2 w-full rounded-2xl border border-black bg-white px-4 py-3 text-sm text-black placeholder-black focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+                    className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-black placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
                     required
                   />
                 </div>
                 <label className="flex items-start gap-3 text-sm text-black">
                   <input
                     type="checkbox"
-                    className="mt-1 h-5 w-5 rounded border border-black bg-black text-black focus:ring-accent"
+                    className="mt-1 h-5 w-5 rounded border border-slate-400 bg-white text-accent focus:ring-accent"
                     required
                   />
                   <span>Sutinku su privatumo politika</span>
                 </label>
                 <button
                   type="submit"
-                  className="w-full rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-accent hover:text-black"
+                  className="w-full rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-accent hover:text-black"
                 >
                   Siųsti užklausą
                 </button>
