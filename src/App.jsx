@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import 'keen-slider/keen-slider.min.css';
@@ -58,7 +58,7 @@ const Hero = ({ stats, backgroundDesktop, backgroundMobile }) => (
         <div className="flex w-full justify-center flex-col gap-4 sm:w-auto sm:flex-row">
           <a
             href="#programos"
-            className="inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 text-xl font-extrabold text-black shadow-lg transition-transform duration-150 hover:-translate-y-1 sm:px-8 sm:py-4 sm:text-2xl"
+            className="inline-flex items-center justify-center rounded-full glass-green-surface px-6 py-3 text-xl font-extrabold text-black shadow-lg transition-transform duration-150 hover:-translate-y-1 sm:px-8 sm:py-4 sm:text-2xl"
           >
             Peržiūrėti planus
           </a>
@@ -547,6 +547,9 @@ function AnimatedCounter({ from = 0, to, suffix = '', delay = 0 }) {
 function App() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const serviceCardRefs = useRef([]);
+  const [serviceCardHeight, setServiceCardHeight] = useState(0);
+  const [isDesktop, setIsDesktop] = useState(false);
 
   const [testimonialsRef, testimonials] = useKeenSlider({
     loop: true,
@@ -594,6 +597,32 @@ function App() {
       },
     },
   });
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 1024px)');
+    const handleChange = event => setIsDesktop(event.matches);
+    setIsDesktop(mediaQuery.matches);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  // Keep Paslaugos cards uniform height (desktop only) by syncing to the tallest card
+  useEffect(() => {
+    if (!isDesktop) {
+      setServiceCardHeight(0);
+      return undefined;
+    }
+
+    const measureServiceCards = () => {
+      const heights = serviceCardRefs.current.map(node => node?.getBoundingClientRect().height || 0);
+      const maxHeight = heights.length ? Math.max(...heights) : 0;
+      setServiceCardHeight(prev => (maxHeight && maxHeight !== prev ? maxHeight : prev));
+    };
+
+    measureServiceCards();
+    window.addEventListener('resize', measureServiceCards);
+    return () => window.removeEventListener('resize', measureServiceCards);
+  }, [isDesktop]);
 
   const [transformationsRef, transformationsSlider] = useKeenSlider({
     loop: true,
@@ -652,39 +681,29 @@ function App() {
     AOS.init({ once: true, duration: 700, easing: 'ease-out-cubic' });
   }, []);
 
-  // Use fixed header (works reliably across browsers/containers). We keep
-  // the visual scrolled vs default states, and a high z-index so the header
-  // stays above other content.
-  const headerClass = `fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300 backdrop-blur-md backdrop-saturate-150 ${
-    scrolled ? 'bg-slate-900/90 text-white border-slate-900/50' : 'bg-white/60 text-black border-slate-200'
+  const headerClass = `fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
+    scrolled ? 'translate-y-4' : 'translate-y-0'
   }`;
-  const desktopLinkClass = `transition ${scrolled ? 'text-white hover:text-accent' : 'text-black hover:text-accent'}`;
-  const desktopCtaClass = `inline-flex items-center justify-center rounded-full px-6 py-2 text-sm font-semibold transition ${
-    scrolled ? 'bg-accent text-black hover:bg-slate-900 hover:text-white' : 'bg-slate-900 text-white hover:bg-accent hover:text-black'
+  const headerSurfaceClass = `flex w-full items-center justify-between px-6 transition-all duration-300 backdrop-saturate-150 ${
+    scrolled
+      ? 'mx-auto max-w-6xl rounded-full border border-white/30 glass-green py-3 text-black shadow-[0_35px_90px_rgba(0,0,0,0.35)]'
+      : 'mx-auto max-w-none border-b border-black/10 bg-white py-5 text-black shadow-[0_12px_45px_rgba(15,23,42,0.08)]'
   }`;
-  const mobileMenuBaseClass = scrolled
-    ? 'border border-slate-900/40 bg-slate-900 text-white'
-    : 'border border-slate-200 bg-white text-black';
-  const mobileLinkClass = `transition ${scrolled ? 'text-white hover:text-accent' : 'text-black hover:text-accent'}`;
-  const mobileCtaClass = `mt-6 inline-flex w-full items-center justify-center rounded-full px-6 py-3 text-sm font-semibold transition ${
-    scrolled ? 'bg-accent text-black hover:bg-slate-900 hover:text-white' : 'bg-slate-900 text-white hover:bg-accent hover:text-black'
-  }`;
-  const mobileToggleClass = `inline-flex items-center justify-center rounded-full border p-2 md:hidden ${
-    scrolled ? 'border-white text-white' : 'border-black text-black'
-  }`;
+  const desktopLinkClass = 'transition text-black hover:text-slate-900';
+  const desktopCtaClass = 'inline-flex items-center justify-center rounded-full bg-black px-6 py-2 text-sm font-semibold text-white transition hover:bg-slate-900';
+  const mobileMenuBaseClass = `border border-black/15 bg-white/95 text-black backdrop-blur-md rounded-3xl mt-4`;
+  const mobileLinkClass = 'transition text-black hover:text-accent';
+  const mobileCtaClass = 'mt-6 inline-flex w-full items-center justify-center rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-900';
+  const mobileToggleClass = 'inline-flex items-center justify-center rounded-full border border-black/40 p-2 text-black md:hidden';
 
   return (
     <div className="relative bg-white text-black">
 
       <header className={headerClass}>
-        <div className={`mx-auto flex max-w-6xl items-center justify-between px-6 transition-all duration-300 ${
-          scrolled ? 'py-4' : 'py-5'
-        }`}>
+        <div className={headerSurfaceClass}>
           <a
             href="#hero"
-            className={`text-xl font-bold tracking-tight transition-colors duration-300 ${
-              scrolled ? 'text-white' : 'text-black'
-            }`}
+            className="text-xl font-bold tracking-tight text-black transition-colors duration-300"
           >
             Kaliadziuk
           </a>
@@ -717,7 +736,7 @@ function App() {
         <nav
           className={`${
             mobileOpen ? 'block' : 'hidden'
-          } ${mobileMenuBaseClass} px-6 py-4 md:hidden backdrop-blur-sm transition-colors duration-300`}
+          } ${mobileMenuBaseClass} px-6 py-4 md:hidden transition-colors duration-300`}
         >
           <div className="flex flex-col gap-4 text-sm font-medium">
             {navItems.map(item => (
@@ -739,7 +758,7 @@ function App() {
             Išbandyti nemokamai
           </a>
         </nav>
-  </header>
+      </header>
   {/* spacer equal to header height to prevent content jump when header is fixed */}
   <div aria-hidden="true" className="h-16 md:h-20" />
 
@@ -794,7 +813,7 @@ function App() {
                       <ul className="space-y-3">
                         {plan.extras.map(extra => (
                           <li key={extra} className="flex items-start gap-3 text-sm text-slate-600">
-                            <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-accent/30 text-xs font-bold text-slate-900">
+                            <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full glass-green-surface text-xs font-bold text-slate-900">
                               &bull;
                             </span>
                             <span>{extra}</span>
@@ -805,7 +824,7 @@ function App() {
                     <div className="flex flex-wrap items-center gap-4 pt-2">
                       <a
                         href="#kontaktai"
-                        className="inline-flex items-center gap-2 rounded-full bg-accent px-7 py-3 text-base font-semibold text-black transition hover:bg-slate-900 hover:text-white"
+                        className="inline-flex items-center gap-2 rounded-full glass-green-surface px-7 py-3 text-base font-semibold text-black transition hover:bg-slate-900 hover:text-white"
                       >
                         Pirkti
                         <span className="inline-block text-xl">&rarr;</span>
@@ -829,16 +848,44 @@ function App() {
               </div>
               <div>
                 <h3 className="text-4xl font-black uppercase">Apie mane</h3>
-                <p className="text-base text-black/70">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut
-                  labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
-                  nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit
-                  esse cillum dolore eu fugiat nulla pariatur.
-                </p>
-                <p className="mt-4 text-base text-black/70">
-                  Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
-                  laborum. Curabitur non nulla sit amet nisl tempus convallis quis ac lectus.
-                </p>
+                <div className="space-y-4 text-base text-black/75">
+                  <p>
+                    Labas, aš Pavel — sveikatingumo treneris ir biomechanikos specialistas, jau daugiau nei aštuonerius metus
+                    padedantis žmonėms ne tik sustiprėti fiziškai, bet ir atrasti vidinę ramybę bei pasitikėjimą savimi.
+                  </p>
+                  <p>
+                    Mano kelionė sporte prasidėjo dar būnant septynerių. Nuo pat vaikystės jutau tą vidinę ugnį — norą atrasti save,
+                    tapti stipriu ne tik kūnu, bet ir charakteriu. Sportas man tapo būdu augti ir įrodyti, kad galiu daugiau, net tada, kai
+                    aplinkybėse trūko atramos.
+                  </p>
+                  <p>
+                    Pradėjau nuo imtynių, vėliau pasinėriau į lengvąją atletiką, futbolą ir galiausiai į treniruotes savo kūno svoriu.
+                    Maksimalizmas ir noras viską daryti „iki galo“ atvedė prie traumų — pečių, stuburo, kelių skausmai privertė sustoti ir
+                    klausytis savo kūno.
+                  </p>
+                  <p>
+                    Kai kūnas nebeleidžia eiti pirmyn, turi suprasti, ką jis tau sako. Pradėjau gilintis į anatomiją, stuburo struktūrą,
+                    biomechaniką, analizavau kiekvieną judesį kaip eksperimentą. Supratau, kad judėjimas turi būti protingas, o kiekvieno
+                    žmogaus kūnas — unikalus.
+                  </p>
+                  <p>
+                    Buvo laikas, kai skaudėjo ne tik kūną, bet ir vidų. Depresijos bangos, finansiniai sunkumai, jausmas, kad esi vienas su
+                    savo skausmu. Tai nepalaužė — priešingai, paskatino ieškoti gilesnės prasmės ir dalintis patirtimi su kitais.
+                  </p>
+                  <p>
+                    Todėl įstojau į sporto universitetą ir pradėjau gilinti žinias moksliškai. Studijos, seminarai, darbas su specialistais ir
+                    praktika su klientais vedė prie vieno tikslo — padėti žmonėms atrasti sveiką, harmoningą ir sąmoningą judėjimą.
+                  </p>
+                  <p>
+                    Dirbau sporto klubuose, universitete, vedžiau treniruotes, organizavau seminarus, kūriau įrangą ir drabužius — sportas tapo
+                    mano gyvenimo būdu, ne tik darbu.
+                  </p>
+                  <p>
+                    Šiandien padedu žmonėms ne tik sustiprinti kūną, bet ir jį suprasti. Mokau judėti be skausmo, be baimės ir su pasitikėjimu.
+                    Tikiu, kad judėjimas — kelias į vidinę ramybę. Jei gali kiti, kodėl negali tu? Aš tikiu tavimi, ir jei eisi kartu, pasieksime
+                    daugiau, nei kada nors įsivaizdavai.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -931,6 +978,74 @@ function App() {
           </div>
         </section>
 
+        <section id="paslaugos" className="bg-gradient-to-tr from-white via-slate-50 to-white text-slate-900">
+          <div className="mx-auto max-w-6xl px-6 py-24">
+            <div className="flex flex-col gap-3 text-center" data-aos="fade-up">
+              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Paslaugos</p>
+              <h2 className="text-4xl font-black uppercase text-slate-900">Treniruotės ir sveikatingumo paslaugos</h2>
+              <p className="text-base text-slate-600 sm:text-lg">
+                Judėjimas, kuris keičia kūną, nuotaiką ir energiją!
+              </p>
+              <p className="text-base text-slate-600 sm:text-lg">
+                Rask tau tinkamiausią būdą sportuoti – individualiai, su pora, grupe ar visa komanda.
+              </p>
+            </div>
+            <div className="relative mt-16" data-aos="fade-up">
+              <div ref={servicesRef} className="keen-slider">
+                {services.map((service, index) => (
+                  <article
+                    key={service.title}
+                    ref={el => {
+                      serviceCardRefs.current[index] = el;
+                    }}
+                    style={isDesktop && serviceCardHeight ? { minHeight: `${serviceCardHeight}px` } : undefined}
+                    className="keen-slider__slide flex h-full flex-col overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-[0_25px_90px_rgba(15,23,42,0.08)]"
+                  >
+                    <figure className="relative h-56 w-full sm:h-64">
+                      <img
+                        src={service.image}
+                        alt={service.title}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                    </figure>
+                    <div className="flex h-full flex-col justify-between gap-6 p-8 text-slate-700">
+                      <div>
+                        <h3 className="text-2xl font-semibold text-slate-900">{service.title}</h3>
+                        <p className="mt-4 text-sm leading-relaxed">{service.description}</p>
+                      </div>
+                      <ul className="space-y-2 text-sm">
+                        {service.features.map(feature => (
+                          <li key={feature} className="flex items-start gap-2">
+                            <span className="mt-1 h-1.5 w-1.5 rounded-full glass-green-surface" aria-hidden="true" />
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </article>
+                ))}
+              </div>
+              <div className="mt-8 flex items-center justify-between gap-4 text-sm">
+                <button
+                  type="button"
+                  onClick={() => servicesSlider?.current?.prev()}
+                  className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-400 bg-white text-slate-600 transition hover:border-accent hover:text-accent"
+                >
+                  &lt;
+                </button>
+                <button
+                  type="button"
+                  onClick={() => servicesSlider?.current?.next()}
+                  className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-400 bg-white text-slate-600 transition hover:border-accent hover:text-accent"
+                >
+                  &gt;
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section
           className="relative overflow-hidden py-36 sm:py-48 lg:py-80 bg-cover"
           style={{ backgroundImage: `url(${fromUploads('IMG_0469-scaled.jpg')})`, backgroundPosition: 'center 83%', minHeight: 'clamp(520px, 135vw, 920px)' }}
@@ -950,15 +1065,15 @@ function App() {
                 </div>
                 <div className="space-y-4 rounded-3xl border border-white/40 bg-white/10 p-6 text-sm text-white backdrop-blur-sm sm:p-8">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-black font-semibold">01</span>
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full glass-green-surface text-black font-semibold">01</span>
                     <span>Pasirinkite kupono vertę ir gavėją</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-black font-semibold">02</span>
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full glass-green-surface text-black font-semibold">02</span>
                     <span>Sudarysime personalizuotą planą ir tvarkaraštį</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-black font-semibold">03</span>
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full glass-green-surface text-black font-semibold">03</span>
                     <span>Stebėsime pažangą ir suteiksime grįžtamąjį ryšį</span>
                   </div>
                 </div>
@@ -966,7 +1081,7 @@ function App() {
               <div className="mt-10 flex flex-col gap-4 text-sm sm:flex-row">
                 <a
                   href="#kontaktai"
-                  className="inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 font-semibold text-black transition duration-200 hover:-translate-y-0.5"
+                  className="inline-flex items-center justify-center rounded-full glass-green-surface px-6 py-3 font-semibold text-black transition duration-200 hover:-translate-y-0.5"
                 >
                   Pirkti dovanų kuponą
                 </a>
@@ -1049,7 +1164,7 @@ function App() {
               <ul className="grid gap-3 text-base text-black">
                 {helpList.map(item => (
                   <li key={item} className="flex items-center gap-3">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-black">+</span>
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full glass-green-surface text-black">+</span>
 
                     {item}
                   </li>
@@ -1067,73 +1182,6 @@ function App() {
                   </li>
                 ))}
               </ul>
-            </div>
-          </div>
-        </section>
-
-        <section id="paslaugos" className="bg-gradient-to-tr from-white via-slate-50 to-white text-slate-900">
-          <div className="mx-auto max-w-6xl px-6 py-24">
-            <div className="flex flex-col gap-3 text-center" data-aos="fade-up">
-              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Paslaugos</p>
-              <h2 className="text-4xl font-black uppercase text-slate-900">Treniruotės ir sveikatingumo paslaugos</h2>
-              <p className="text-base text-slate-600 sm:text-lg">
-                Judėjimas, kuris keičia kūną, nuotaiką ir energiją!
-              </p>
-              <p className="text-base text-slate-600 sm:text-lg">
-                Rask tau tinkamiausią būdą sportuoti – individualiai, su pora, grupe ar visa komanda.
-              </p>
-            </div>
-            <div className="relative mt-16" data-aos="fade-up">
-              <div ref={servicesRef} className="keen-slider">
-                {services.map(service => (
-                  <article
-                    key={service.title}
-                    className="keen-slider__slide flex h-full flex-col overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-[0_25px_90px_rgba(15,23,42,0.08)]"
-                  >
-                    <figure className="relative h-56 w-full sm:h-64">
-                      <img
-                        src={service.image}
-                        alt={service.title}
-                        className="h-full w-full object-cover"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-x-6 bottom-6 rounded-full bg-white/90 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">
-                        Fokusas
-                      </div>
-                    </figure>
-                    <div className="flex h-full flex-col justify-between gap-6 p-8 text-slate-700">
-                      <div>
-                        <h3 className="text-2xl font-semibold text-slate-900">{service.title}</h3>
-                        <p className="mt-4 text-sm leading-relaxed">{service.description}</p>
-                      </div>
-                      <ul className="space-y-2 text-sm">
-                        {service.features.map(feature => (
-                          <li key={feature} className="flex items-start gap-2">
-                            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
-                            <span>{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </article>
-                ))}
-              </div>
-              <div className="mt-8 flex items-center justify-between gap-4 text-sm">
-                <button
-                  type="button"
-                  onClick={() => servicesSlider?.current?.prev()}
-                  className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-400 bg-white text-slate-600 transition hover:border-accent hover:text-accent"
-                >
-                  &lt;
-                </button>
-                <button
-                  type="button"
-                  onClick={() => servicesSlider?.current?.next()}
-                  className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-400 bg-white text-slate-600 transition hover:border-accent hover:text-accent"
-                >
-                  &gt;
-                </button>
-              </div>
             </div>
           </div>
         </section>
@@ -1161,15 +1209,15 @@ function App() {
                   <p className="font-semibold text-black">Ką gausite:</p>
                   <ul className="space-y-3">
                     <li className="flex items-center gap-3">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-black">+</span>
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full glass-green-surface text-black">+</span>
                       <span>Asmeninis įvertinimas ir aiškus startas.</span>
                     </li>
                     <li className="flex items-center gap-3">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-black">+</span>
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full glass-green-surface text-black">+</span>
                       <span>Pritaikytos mitybos bei treniruočių kryptys.</span>
                     </li>
                     <li className="flex items-center gap-3">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-black">+</span>
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full glass-green-surface text-black">+</span>
                       <span>Atsakymai į visus klausimus apie treniruočių procesą.</span>
                     </li>
                   </ul>
@@ -1275,7 +1323,7 @@ function App() {
           </div>
         </section>
 
-        <section className="bg-accent py-32 text-center">
+        <section className="glass-green-surface py-32 text-center">
           <h2 className="text-6xl font-black uppercase tracking-tight text-black">Kaliadziuk</h2>
         </section>
       </main>
