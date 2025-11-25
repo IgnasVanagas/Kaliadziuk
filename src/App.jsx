@@ -70,7 +70,7 @@ const Hero = ({ stats, backgroundDesktop, backgroundMobile }) => (
         {stats.map(stat => (
           <div
             key={stat.label}
-            className="inline-flex flex-col items-center justify-center space-y-2 rounded-3xl border border-white/10 bg-white/10 px-5 py-5 backdrop-blur-sm sm:min-w-[220px] sm:px-6 text-center"
+            className="glass-card inline-flex flex-col items-center justify-center space-y-2 rounded-full px-5 py-5 sm:min-w-[220px] sm:px-6 text-center"
           >
             <p className="text-4xl font-extrabold text-accent">
               <AnimatedCounter to={stat.value} suffix={stat.suffix} delay={stat.delay} />
@@ -634,12 +634,183 @@ function App() {
     },
   });
 
+  // track last index/time to control when to wrap from last -> first
+  const transformAutoplayRef = useRef(null);
+  const lastTransformIndexRef = useRef(null);
+  const lastTransformIndexTimeRef = useRef(0);
+  const transformRestartTimeoutRef = useRef(null);
+
+  const startTransformAutoplay = () => {
+    if (transformAutoplayRef.current) {
+      window.clearInterval(transformAutoplayRef.current);
+    }
+    transformAutoplayRef.current = window.setInterval(() => {
+      transformationsSlider?.current?.next();
+    }, 6000);
+  };
+
+  const stopTransformAutoplay = () => {
+    if (transformAutoplayRef.current) {
+      window.clearInterval(transformAutoplayRef.current);
+      transformAutoplayRef.current = null;
+    }
+  };
+
+  const resetTransformAutoplay = () => {
+    // restart autoplay timer when user interacts
+    stopTransformAutoplay();
+    if (transformRestartTimeoutRef.current) {
+      window.clearTimeout(transformRestartTimeoutRef.current);
+      transformRestartTimeoutRef.current = null;
+    }
+    // small debounce before restarting so manual nav isn't immediately overridden
+    transformRestartTimeoutRef.current = window.setTimeout(() => {
+      startTransformAutoplay();
+      transformRestartTimeoutRef.current = null;
+    }, 6000);
+  };
+
+  // Instantly jump to a target index without visible slide transitions.
+  // Adds a temporary class to the slider container to disable CSS transitions,
+  // performs a non-animated move on the instance, then removes the class.
+  const instantJump = (inst, targetIdx) => {
+    if (!inst) return;
+    const container = inst.container || inst?.root || null;
+    try {
+      if (container && container.classList) container.classList.add('keen-no-transition');
+
+      // Collect slides and temporarily hide all of them except the target to avoid
+      // any intermediate rendering or jitter during the instant jump.
+      const slides = container ? Array.from(container.querySelectorAll('.keen-slider__slide')) : [];
+      const prev = slides.map(s => ({ el: s, transition: s.style.transition || '', opacity: s.style.opacity || '', pointerEvents: s.style.pointerEvents || '' }));
+
+      slides.forEach(s => {
+        s.style.transition = 'none';
+        s.style.opacity = '0';
+        s.style.pointerEvents = 'none';
+      });
+
+      // force reflow
+      if (container) void container.offsetHeight;
+
+      if (typeof inst.moveToIdx === 'function') {
+        inst.moveToIdx(targetIdx, false);
+      } else if (typeof inst.moveTo === 'function') {
+        inst.moveTo(targetIdx, false);
+      }
+
+      // ensure the target slide is visible immediately
+      const targetSlide = slides[targetIdx];
+      if (targetSlide) {
+        targetSlide.style.opacity = '1';
+        targetSlide.style.pointerEvents = 'auto';
+      }
+
+      // restore previous inline styles shortly after
+      window.setTimeout(() => {
+        prev.forEach(p => {
+          try {
+            p.el.style.transition = p.transition;
+            p.el.style.opacity = p.opacity;
+            p.el.style.pointerEvents = p.pointerEvents;
+          } catch (e) {
+            /* ignore */
+          }
+        });
+      }, 60);
+    } catch (e) {
+      // ignore instance errors
+    } finally {
+      // remove class on next tick so state stabilizes
+      window.setTimeout(() => {
+        try {
+          if (container && container.classList) container.classList.remove('keen-no-transition');
+        } catch (e) {
+          /* ignore */
+        }
+      }, 20);
+    }
+  };
+
   useEffect(() => {
     if (!transformationsSlider) return undefined;
-    const interval = window.setInterval(() => {
-      transformationsSlider.current?.next();
-    }, 6000);
-    return () => window.clearInterval(interval);
+    // start autoplay and keep ref so we can reset it on user interaction
+    startTransformAutoplay();
+    return () => {
+      stopTransformAutoplay();
+      if (transformRestartTimeoutRef.current) {
+        window.clearTimeout(transformRestartTimeoutRef.current);
+        transformRestartTimeoutRef.current = null;
+      }
+    };
+  }, [transformationsSlider]);
+
+  // Simplified, truly endless prev/next for transformations (Klientų istorijos)
+  const handleTransformPrev = () => {
+    const inst = transformationsSlider?.current;
+    if (!inst) return;
+    const idx = inst.track?.details?.rel ?? 0;
+    if (idx === 0) {
+      // jump instantly to last slide without animating through intermediate slides
+      instantJump(inst, transformations.length - 1);
+    } else {
+      inst.prev();
+    }
+    resetTransformAutoplay();
+  };
+
+  const handleTransformNext = () => {
+    const inst = transformationsSlider?.current;
+    if (!inst) return;
+    const idx = inst.track?.details?.rel ?? 0;
+    if (idx === transformations.length - 1) {
+      // jump instantly to first slide without animating through intermediate slides
+      instantJump(inst, 0);
+    } else {
+      inst.next();
+    }
+    resetTransformAutoplay();
+  };
+
+  // When the slider reaches the last slide, after it's been visible for the autoplay interval, jump to first
+  useEffect(() => {
+    if (!transformationsSlider?.current) return undefined;
+    const inst = transformationsSlider.current;
+    let intervalId = null;
+    const VISIBLE_THRESHOLD = 6000; // ms the last slide must be visible before trigger (match autoplay interval)
+
+    intervalId = window.setInterval(() => {
+      try {
+        const details = inst.track && inst.track.details;
+        if (!details) return;
+        const idx = details.rel;
+
+        // update last seen index/time when index changes
+        if (lastTransformIndexRef.current !== idx) {
+          lastTransformIndexRef.current = idx;
+          lastTransformIndexTimeRef.current = Date.now();
+          return;
+        }
+
+        const isAutoplayActive = !!transformAutoplayRef.current;
+
+        // only trigger when autoplay is active, index is last, and it's been visible for threshold
+        if (
+          idx === details.slides.length - 1 &&
+          isAutoplayActive &&
+          Date.now() - lastTransformIndexTimeRef.current >= VISIBLE_THRESHOLD
+        ) {
+          instantJump(inst, 0);
+          lastTransformIndexRef.current = -1;
+        }
+      } catch (e) {
+        // ignore read errors
+      }
+    }, 200);
+
+    return () => {
+      if (intervalId) window.clearInterval(intervalId);
+    };
   }, [transformationsSlider]);
 
   useEffect(() => {
@@ -790,8 +961,8 @@ function App() {
                         <h3 className="text-3xl font-black leading-tight sm:text-4xl">{plan.title}</h3>
                       </div>
                       <div className="flex flex-wrap gap-3 text-sm font-semibold">
-                        <span className="rounded-full border border-white/40 px-4 py-2 text-white/90">{plan.duration}</span>
-                        <span className="rounded-full border border-white/30 bg-white/10 px-4 py-2 text-white">{plan.price}</span>
+                        <span className="glass-card rounded-full px-4 py-2 text-white/90">{plan.duration}</span>
+                        <span className="glass-card rounded-full px-4 py-2 text-white">{plan.price}</span>
                       </div>
                     </div>
                   </div>
@@ -902,7 +1073,14 @@ function App() {
               <h2 className="text-4xl font-black uppercase text-white">Klientų istorijos</h2>
             </div>
             <div className="relative" data-aos="fade-up">
-              <div ref={transformationsRef} className="keen-slider">
+              <div
+                ref={transformationsRef}
+                className="keen-slider"
+                onPointerDown={resetTransformAutoplay}
+                onTouchStart={resetTransformAutoplay}
+                onWheel={resetTransformAutoplay}
+              >
+                {/* simplified loop: no overlay */}
                 {transformations.map((item, index) => {
                   const storyNumber = index + 1;
                   const photos = [
@@ -913,7 +1091,7 @@ function App() {
                   return (
                     <article
                       key={item.name}
-                      className="keen-slider__slide group rounded-[36px] border border-white/12 bg-white/[0.06] p-8 shadow-[0_25px_80px_rgba(0,0,0,0.35)] transition-transform duration-500 ease-out hover:border-accent/60"
+                      className="keen-slider__slide glass-card group rounded-[36px] p-8 text-white transition-transform duration-500 ease-out hover:border-accent/60"
                     >
                       <div className="flex flex-col gap-8 lg:flex-row lg:items-stretch">
                         <div className="flex-1 space-y-6">
@@ -961,14 +1139,14 @@ function App() {
               <div className="mt-8 flex items-center justify-between gap-4 text-sm">
                 <button
                   type="button"
-                  onClick={() => transformationsSlider?.current?.prev()}
+                  onClick={handleTransformPrev}
                   className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/40 text-white transition hover:border-accent hover:text-accent"
                 >
                   &lt;
                 </button>
                 <button
                   type="button"
-                  onClick={() => transformationsSlider?.current?.next()}
+                  onClick={handleTransformNext}
                   className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/40 text-white transition hover:border-accent hover:text-accent"
                 >
                   &gt;
@@ -978,7 +1156,7 @@ function App() {
           </div>
         </section>
 
-        <section id="paslaugos" className="bg-gradient-to-tr from-white via-slate-50 to-white text-slate-900">
+        <section id="paslaugos" className="bg-white text-slate-900">
           <div className="mx-auto max-w-6xl px-6 py-24">
             <div className="flex flex-col gap-3 text-center" data-aos="fade-up">
               <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Paslaugos</p>
@@ -1063,7 +1241,7 @@ function App() {
                     Pasirinkite sumą, o likusia dalimi pasirūpinsiu asmeniškai: tikslų aptarimas, individualus planas ir aiškios pirmosios užduotys.
                   </p>
                 </div>
-                <div className="space-y-4 rounded-3xl border border-white/40 bg-white/10 p-6 text-sm text-white backdrop-blur-sm sm:p-8">
+                <div className="glass-card space-y-4 rounded-3xl p-6 text-sm text-white sm:p-8">
                   <div className="flex items-center gap-3">
                     <span className="flex h-10 w-10 items-center justify-center rounded-full glass-green-surface text-black font-semibold">01</span>
                     <span>Pasirinkite kupono vertę ir gavėją</span>
@@ -1096,7 +1274,7 @@ function App() {
           </div>
         </section>
 
-        <section id="istorijos" className="bg-gradient-to-b from-white via-slate-50 to-slate-100 text-slate-900">
+        <section id="istorijos" className="bg-white text-slate-900">
           <div className="mx-auto max-w-6xl px-6 py-24">
             <div className="flex flex-col gap-3 text-center" data-aos="fade-up">
               <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Gyvos patirtys</p>
@@ -1323,7 +1501,7 @@ function App() {
           </div>
         </section>
 
-        <section className="glass-green-surface py-32 text-center">
+        <section className="bg-accent py-32 text-center">
           <h2 className="text-6xl font-black uppercase tracking-tight text-black">Kaliadziuk</h2>
         </section>
       </main>
