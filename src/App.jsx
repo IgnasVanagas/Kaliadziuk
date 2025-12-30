@@ -3,6 +3,8 @@ import AOS from 'aos';
 import 'aos/dist/aos.css';
 import 'keen-slider/keen-slider.min.css';
 import { useKeenSlider } from 'keen-slider/react';
+import CustomCursor from './CustomCursor';
+import CustomScrollbar from './CustomScrollbar';
 
 const fromUploads = file => new URL(`../uploads/${file}`, import.meta.url).href;
 
@@ -547,13 +549,12 @@ function AnimatedCounter({ from = 0, to, suffix = '', delay = 0 }) {
 function App() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const serviceCardRefs = useRef([]);
-  const [serviceCardHeight, setServiceCardHeight] = useState(0);
   const [isDesktop, setIsDesktop] = useState(false);
 
   const [testimonialsRef, testimonials] = useKeenSlider({
     loop: true,
     mode: 'snap',
+    renderMode: 'performance',
     slides: {
       perView: 1,
       spacing: 24,
@@ -599,219 +600,66 @@ function App() {
   });
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(min-width: 1024px)');
+    const mediaQuery = window.matchMedia('(min-width: 768px)');
     const handleChange = event => setIsDesktop(event.matches);
     setIsDesktop(mediaQuery.matches);
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  // Keep Paslaugos cards uniform height (desktop only) by syncing to the tallest card
-  useEffect(() => {
-    if (!isDesktop) {
-      setServiceCardHeight(0);
-      return undefined;
-    }
 
-    const measureServiceCards = () => {
-      const heights = serviceCardRefs.current.map(node => node?.getBoundingClientRect().height || 0);
-      const maxHeight = heights.length ? Math.max(...heights) : 0;
-      setServiceCardHeight(prev => (maxHeight && maxHeight !== prev ? maxHeight : prev));
-    };
 
-    measureServiceCards();
-    window.addEventListener('resize', measureServiceCards);
-    return () => window.removeEventListener('resize', measureServiceCards);
-  }, [isDesktop]);
 
-  const [transformationsRef, transformationsSlider] = useKeenSlider({
-    loop: true,
-    mode: 'snap',
-    renderMode: 'performance',
-    slides: {
-      perView: 1,
-      spacing: 24,
+
+  const [transformationsRef, transformationsSlider] = useKeenSlider(
+    {
+      loop: true,
+      mode: 'snap',
+      renderMode: 'performance',
+      drag: true,
+      slides: {
+        perView: 1,
+        spacing: 24,
+      },
+      defaultAnimation: {
+        duration: 1000,
+        easing: t => 1 - Math.pow(1 - t, 4),
+      },
     },
-  });
+    [
+      slider => {
+        let timeout;
+        let mouseOver = false;
 
-  // track last index/time to control when to wrap from last -> first
-  const transformAutoplayRef = useRef(null);
-  const lastTransformIndexRef = useRef(null);
-  const lastTransformIndexTimeRef = useRef(0);
-  const transformRestartTimeoutRef = useRef(null);
+        function clearNextTimeout() {
+          clearTimeout(timeout);
+        }
 
-  const startTransformAutoplay = () => {
-    if (transformAutoplayRef.current) {
-      window.clearInterval(transformAutoplayRef.current);
-    }
-    transformAutoplayRef.current = window.setInterval(() => {
-      transformationsSlider?.current?.next();
-    }, 6000);
-  };
+        function nextTimeout() {
+          clearTimeout(timeout);
+          if (mouseOver) return;
+          timeout = setTimeout(() => {
+            slider.next();
+          }, 7000);
+        }
 
-  const stopTransformAutoplay = () => {
-    if (transformAutoplayRef.current) {
-      window.clearInterval(transformAutoplayRef.current);
-      transformAutoplayRef.current = null;
-    }
-  };
-
-  const resetTransformAutoplay = () => {
-    // restart autoplay timer when user interacts
-    stopTransformAutoplay();
-    if (transformRestartTimeoutRef.current) {
-      window.clearTimeout(transformRestartTimeoutRef.current);
-      transformRestartTimeoutRef.current = null;
-    }
-    // small debounce before restarting so manual nav isn't immediately overridden
-    transformRestartTimeoutRef.current = window.setTimeout(() => {
-      startTransformAutoplay();
-      transformRestartTimeoutRef.current = null;
-    }, 6000);
-  };
-
-  // Instantly jump to a target index without visible slide transitions.
-  // Adds a temporary class to the slider container to disable CSS transitions,
-  // performs a non-animated move on the instance, then removes the class.
-  const instantJump = (inst, targetIdx) => {
-    if (!inst) return;
-    const container = inst.container || inst?.root || null;
-    try {
-      if (container && container.classList) container.classList.add('keen-no-transition');
-
-      // Collect slides and temporarily hide all of them except the target to avoid
-      // any intermediate rendering or jitter during the instant jump.
-      const slides = container ? Array.from(container.querySelectorAll('.keen-slider__slide')) : [];
-      const prev = slides.map(s => ({ el: s, transition: s.style.transition || '', opacity: s.style.opacity || '', pointerEvents: s.style.pointerEvents || '' }));
-
-      slides.forEach(s => {
-        s.style.transition = 'none';
-        s.style.opacity = '0';
-        s.style.pointerEvents = 'none';
-      });
-
-      // force reflow
-      if (container) void container.offsetHeight;
-
-      if (typeof inst.moveToIdx === 'function') {
-        inst.moveToIdx(targetIdx, false);
-      } else if (typeof inst.moveTo === 'function') {
-        inst.moveTo(targetIdx, false);
-      }
-
-      // ensure the target slide is visible immediately
-      const targetSlide = slides[targetIdx];
-      if (targetSlide) {
-        targetSlide.style.opacity = '1';
-        targetSlide.style.pointerEvents = 'auto';
-      }
-
-      // restore previous inline styles shortly after
-      window.setTimeout(() => {
-        prev.forEach(p => {
-          try {
-            p.el.style.transition = p.transition;
-            p.el.style.opacity = p.opacity;
-            p.el.style.pointerEvents = p.pointerEvents;
-          } catch (e) {
-            /* ignore */
-          }
+        slider.on('created', () => {
+          slider.container.addEventListener('mouseover', () => {
+            mouseOver = true;
+            clearNextTimeout();
+          });
+          slider.container.addEventListener('mouseout', () => {
+            mouseOver = false;
+            nextTimeout();
+          });
+          nextTimeout();
         });
-      }, 60);
-    } catch (e) {
-      // ignore instance errors
-    } finally {
-      // remove class on next tick so state stabilizes
-      window.setTimeout(() => {
-        try {
-          if (container && container.classList) container.classList.remove('keen-no-transition');
-        } catch (e) {
-          /* ignore */
-        }
-      }, 20);
-    }
-  };
-
-  useEffect(() => {
-    if (!transformationsSlider) return undefined;
-    // start autoplay and keep ref so we can reset it on user interaction
-    startTransformAutoplay();
-    return () => {
-      stopTransformAutoplay();
-      if (transformRestartTimeoutRef.current) {
-        window.clearTimeout(transformRestartTimeoutRef.current);
-        transformRestartTimeoutRef.current = null;
-      }
-    };
-  }, [transformationsSlider]);
-
-  // Simplified, truly endless prev/next for transformations (Klientų istorijos)
-  const handleTransformPrev = () => {
-    const inst = transformationsSlider?.current;
-    if (!inst) return;
-    const idx = inst.track?.details?.rel ?? 0;
-    if (idx === 0) {
-      // jump instantly to last slide without animating through intermediate slides
-      instantJump(inst, transformations.length - 1);
-    } else {
-      inst.prev();
-    }
-    resetTransformAutoplay();
-  };
-
-  const handleTransformNext = () => {
-    const inst = transformationsSlider?.current;
-    if (!inst) return;
-    const idx = inst.track?.details?.rel ?? 0;
-    if (idx === transformations.length - 1) {
-      // jump instantly to first slide without animating through intermediate slides
-      instantJump(inst, 0);
-    } else {
-      inst.next();
-    }
-    resetTransformAutoplay();
-  };
-
-  // When the slider reaches the last slide, after it's been visible for the autoplay interval, jump to first
-  useEffect(() => {
-    if (!transformationsSlider?.current) return undefined;
-    const inst = transformationsSlider.current;
-    let intervalId = null;
-    const VISIBLE_THRESHOLD = 6000; // ms the last slide must be visible before trigger (match autoplay interval)
-
-    intervalId = window.setInterval(() => {
-      try {
-        const details = inst.track && inst.track.details;
-        if (!details) return;
-        const idx = details.rel;
-
-        // update last seen index/time when index changes
-        if (lastTransformIndexRef.current !== idx) {
-          lastTransformIndexRef.current = idx;
-          lastTransformIndexTimeRef.current = Date.now();
-          return;
-        }
-
-        const isAutoplayActive = !!transformAutoplayRef.current;
-
-        // only trigger when autoplay is active, index is last, and it's been visible for threshold
-        if (
-          idx === details.slides.length - 1 &&
-          isAutoplayActive &&
-          Date.now() - lastTransformIndexTimeRef.current >= VISIBLE_THRESHOLD
-        ) {
-          instantJump(inst, 0);
-          lastTransformIndexRef.current = -1;
-        }
-      } catch (e) {
-        // ignore read errors
-      }
-    }, 200);
-
-    return () => {
-      if (intervalId) window.clearInterval(intervalId);
-    };
-  }, [transformationsSlider]);
+        slider.on('dragStarted', clearNextTimeout);
+        slider.on('animationEnded', nextTimeout);
+        slider.on('updated', nextTimeout);
+      },
+    ]
+  );
 
   useEffect(() => {
     if (!testimonials) {
@@ -855,7 +703,7 @@ function App() {
   const headerClass = `fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
     scrolled ? 'translate-y-4' : 'translate-y-0'
   }`;
-  const headerSurfaceClass = `flex w-full items-center justify-between px-6 transition-all duration-300 backdrop-saturate-150 ${
+  const headerSurfaceClass = `w-full px-6 transition-all duration-300 backdrop-saturate-150 ${
     scrolled
       ? 'mx-auto max-w-6xl rounded-full border border-white/30 glass-green py-3 text-black shadow-[0_35px_90px_rgba(0,0,0,0.35)]'
       : 'mx-auto max-w-none border-b border-black/10 bg-white py-5 text-black shadow-[0_12px_45px_rgba(15,23,42,0.08)]'
@@ -869,40 +717,43 @@ function App() {
 
   return (
     <div className="relative bg-white text-black">
-
+      <CustomCursor />
+      <CustomScrollbar />
       <header className={headerClass}>
         <div className={headerSurfaceClass}>
-          <a
-            href="#hero"
-            className="text-xl font-bold tracking-tight text-black transition-colors duration-300"
-          >
-            Kaliadziuk
-          </a>
-          <nav className="hidden items-center gap-8 text-sm font-medium md:flex">
-            {navItems.map(item => (
-              <a key={item.href} href={item.href} className={desktopLinkClass}>
-                {item.label}
-              </a>
-            ))}
-          </nav>
-          <div className="hidden md:block">
+          <div className={`flex items-center justify-between w-full ${!scrolled ? 'max-w-7xl mx-auto' : ''}`}>
             <a
-              href="#kontaktai"
-              className={desktopCtaClass}
+              href="#hero"
+              className="text-xl font-bold tracking-tight text-black transition-colors duration-300"
             >
-              Išbandyti nemokamai
+              Kaliadziuk
             </a>
+            <nav className="hidden items-center gap-8 text-sm font-medium md:flex">
+              {navItems.map(item => (
+                <a key={item.href} href={item.href} className={desktopLinkClass}>
+                  {item.label}
+                </a>
+              ))}
+            </nav>
+            <div className="hidden md:block">
+              <a
+                href="#kontaktai"
+                className={desktopCtaClass}
+              >
+                Išbandyti nemokamai
+              </a>
+            </div>
+            <button
+              type="button"
+              onClick={() => setMobileOpen(current => !current)}
+              className={mobileToggleClass}
+            >
+              <span className="sr-only">Perjungti meniu</span>
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setMobileOpen(current => !current)}
-            className={mobileToggleClass}
-          >
-            <span className="sr-only">Perjungti meniu</span>
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
         </div>
         <nav
           className={`${
@@ -935,79 +786,6 @@ function App() {
 
       <main>
         <Hero stats={heroStats} backgroundDesktop={heroImageDesktop} backgroundMobile={heroImageMobile} />
-
-        <section id="programos" className="bg-white py-24 text-black">
-          <div className="mx-auto max-w-7xl px-6">
-            <div className="mx-auto max-w-3xl space-y-4 text-center" data-aos="fade-up">
-              <h2 className="text-4xl font-black uppercase">Treniruočių ir mitybos planai</h2>
-              <p className="text-base text-black/70">
-                Pasirinkite programą pagal savo tikslus – kiekviena sudaroma individualiai, atsižvelgiant į jūsų poreikius ir galimybes.
-              </p>
-            </div>
-            <div className="mt-16 grid gap-10 pb-6 xl:grid-cols-2">
-              {programs.map((plan, index) => (
-                <article
-                  key={plan.title}
-                  className="overflow-hidden rounded-[40px] border border-slate-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.1)] transition duration-500 hover:-translate-y-2"
-                  data-aos="fade-up"
-                  data-aos-delay={index * 80}
-                >
-                  <div className="relative h-[320px] sm:h-[360px]">
-                    <img src={plan.image} alt={plan.title} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/60 to-black/90" />
-                    <div className="relative z-10 flex h-full flex-col justify-between p-8 sm:p-10 text-white">
-                      <div className="space-y-3">
-                        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/70">{plan.subtitle}</p>
-                        <h3 className="text-3xl font-black leading-tight sm:text-4xl">{plan.title}</h3>
-                      </div>
-                      <div className="flex flex-wrap gap-3 text-sm font-semibold">
-                        <span className="glass-card rounded-full px-4 py-2 text-white/90">{plan.duration}</span>
-                        <span className="glass-card rounded-full px-4 py-2 text-white">{plan.price}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid gap-8 bg-white p-8 sm:p-10 text-slate-900">
-                    <p className="text-lg leading-relaxed text-slate-600">{plan.description}</p>
-                    <div className="grid gap-6 md:grid-cols-2">
-                      {plan.highlights.map(highlight => (
-                        <div
-                          key={highlight.title}
-                          className="rounded-3xl border border-slate-100 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.08)]"
-                        >
-                          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">{highlight.title}</p>
-                          <p className="mt-3 text-sm text-slate-600">{highlight.detail}</p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="space-y-3">
-                      <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Į paketą įeina</p>
-                      <ul className="space-y-3">
-                        {plan.extras.map(extra => (
-                          <li key={extra} className="flex items-start gap-3 text-sm text-slate-600">
-                            <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full glass-green-surface text-xs font-bold text-slate-900">
-                              &bull;
-                            </span>
-                            <span>{extra}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-4 pt-2">
-                      <a
-                        href="#kontaktai"
-                        className="inline-flex items-center gap-2 rounded-full glass-green-surface px-7 py-3 text-base font-semibold text-black transition hover:bg-slate-900 hover:text-white"
-                      >
-                        Pirkti
-                        <span className="inline-block text-xl">&rarr;</span>
-                      </a>
-                      <span className="text-xs uppercase tracking-[0.3em] text-slate-400">Nemokama konsultacija prieš startą</span>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
 
         <section id="apie-mane" className="bg-white py-20 text-black">
           <div className="mx-auto max-w-7xl px-6">
@@ -1062,6 +840,79 @@ function App() {
           </div>
         </section>
 
+        <section id="programos" className="bg-white py-24 text-black">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="mx-auto max-w-3xl space-y-4 text-center" data-aos="fade-up">
+              <h2 className="text-4xl font-black uppercase">Treniruočių ir mitybos planai</h2>
+              <p className="text-base text-black/70">
+                Pasirinkite programą pagal savo tikslus – kiekviena sudaroma individualiai, atsižvelgiant į jūsų poreikius ir galimybes.
+              </p>
+            </div>
+            <div className="mt-16 grid gap-10 pb-6 xl:grid-cols-2">
+              {programs.map((plan, index) => (
+                <article
+                  key={plan.title}
+                  className="flex flex-col overflow-hidden rounded-[40px] border border-slate-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.1)] transition duration-500 hover:-translate-y-2"
+                  data-aos="fade-up"
+                  data-aos-delay={index * 80}
+                >
+                  <div className="relative h-[320px] sm:h-[360px] shrink-0">
+                    <img src={plan.image} alt={plan.title} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/60 to-black/90" />
+                    <div className="relative z-10 flex h-full flex-col justify-between p-8 sm:p-10 text-white">
+                      <div className="space-y-3">
+                        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/70">{plan.subtitle}</p>
+                        <h3 className="text-3xl font-black leading-tight sm:text-4xl">{plan.title}</h3>
+                      </div>
+                      <div className="flex flex-wrap gap-3 text-sm font-semibold">
+                        <span className="glass-card rounded-full px-4 py-2 text-white/90">{plan.duration}</span>
+                        <span className="glass-card rounded-full px-4 py-2 text-white">{plan.price}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col flex-1 gap-8 bg-white p-8 sm:p-10 text-slate-900">
+                    <p className="text-lg leading-relaxed text-slate-600">{plan.description}</p>
+                    <div className="grid gap-6 md:grid-cols-2">
+                      {plan.highlights.map(highlight => (
+                        <div
+                          key={highlight.title}
+                          className="rounded-3xl border border-slate-100 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.08)]"
+                        >
+                          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">{highlight.title}</p>
+                          <p className="mt-3 text-sm text-slate-600">{highlight.detail}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-auto space-y-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Į paketą įeina</p>
+                      <ul className="space-y-3">
+                        {plan.extras.map(extra => (
+                          <li key={extra} className="flex items-start gap-3 text-sm text-slate-600">
+                            <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full glass-green-surface text-xs font-bold text-slate-900">
+                              &bull;
+                            </span>
+                            <span>{extra}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-4 pt-2">
+                      <a
+                        href="#kontaktai"
+                        className="inline-flex items-center gap-2 rounded-full glass-green-surface px-7 py-3 text-base font-semibold text-black transition hover:bg-slate-900 hover:text-white"
+                      >
+                        Pirkti
+                        <span className="inline-block text-xl">&rarr;</span>
+                      </a>
+                      <span className="text-xs uppercase tracking-[0.3em] text-slate-400">Nemokama konsultacija prieš startą</span>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <section id="sekmes" className="relative overflow-hidden py-28 text-white">
           <div className="pointer-events-none absolute inset-0" aria-hidden="true">
             <img src={successImage} alt="" className="h-full w-full object-cover" loading="lazy" />
@@ -1075,10 +926,7 @@ function App() {
             <div className="relative" data-aos="fade-up">
               <div
                 ref={transformationsRef}
-                className="keen-slider"
-                onPointerDown={resetTransformAutoplay}
-                onTouchStart={resetTransformAutoplay}
-                onWheel={resetTransformAutoplay}
+                className="keen-slider overflow-hidden will-change-transform"
               >
                 {/* simplified loop: no overlay */}
                 {transformations.map((item, index) => {
@@ -1091,7 +939,7 @@ function App() {
                   return (
                     <article
                       key={item.name}
-                      className="keen-slider__slide glass-card group rounded-[36px] p-8 text-white transition-transform duration-500 ease-out hover:border-accent/60"
+                      className="keen-slider__slide glass-card group rounded-[36px] p-8 text-white transition-colors duration-500 ease-out hover:border-accent/60"
                     >
                       <div className="flex flex-col gap-8 lg:flex-row lg:items-stretch">
                         <div className="flex-1 space-y-6">
@@ -1139,14 +987,14 @@ function App() {
               <div className="mt-8 flex items-center justify-between gap-4 text-sm">
                 <button
                   type="button"
-                  onClick={handleTransformPrev}
+                  onClick={() => transformationsSlider.current?.prev()}
                   className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/40 text-white transition hover:border-accent hover:text-accent"
                 >
                   &lt;
                 </button>
                 <button
                   type="button"
-                  onClick={handleTransformNext}
+                  onClick={() => transformationsSlider.current?.next()}
                   className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/40 text-white transition hover:border-accent hover:text-accent"
                 >
                   &gt;
@@ -1171,55 +1019,54 @@ function App() {
             <div className="relative mt-16" data-aos="fade-up">
               <div ref={servicesRef} className="keen-slider">
                 {services.map((service, index) => (
-                  <article
-                    key={service.title}
-                    ref={el => {
-                      serviceCardRefs.current[index] = el;
-                    }}
-                    style={isDesktop && serviceCardHeight ? { minHeight: `${serviceCardHeight}px` } : undefined}
-                    className="keen-slider__slide flex h-full flex-col overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-[0_25px_90px_rgba(15,23,42,0.08)]"
-                  >
-                    <figure className="relative h-56 w-full sm:h-64">
-                      <img
-                        src={service.image}
-                        alt={service.title}
-                        className="h-full w-full object-cover"
-                        loading="lazy"
-                      />
-                    </figure>
-                    <div className="flex h-full flex-col justify-between gap-6 p-8 text-slate-700">
-                      <div>
-                        <h3 className="text-2xl font-semibold text-slate-900">{service.title}</h3>
-                        <p className="mt-4 text-sm leading-relaxed">{service.description}</p>
+                  <div key={service.title} className="keen-slider__slide py-12 px-4">
+                    <article
+                      className="flex flex-col h-full overflow-hidden rounded-[32px] border border-slate-200 bg-white"
+                    >
+                      <figure className="relative h-56 w-full sm:h-64">
+                        <img
+                          src={service.image}
+                          alt={service.title}
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      </figure>
+                      <div className="flex flex-1 flex-col gap-6 p-8 text-slate-700">
+                        <div>
+                          <h3 className="text-2xl font-semibold text-slate-900">{service.title}</h3>
+                          <p className="mt-4 text-sm leading-relaxed">{service.description}</p>
+                        </div>
+                        <ul className="space-y-2 text-sm">
+                          {service.features.map(feature => (
+                            <li key={feature} className="flex items-start gap-2">
+                              <span className="mt-1 h-1.5 w-1.5 rounded-full glass-green-surface" aria-hidden="true" />
+                              <span>{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                      <ul className="space-y-2 text-sm">
-                        {service.features.map(feature => (
-                          <li key={feature} className="flex items-start gap-2">
-                            <span className="mt-1 h-1.5 w-1.5 rounded-full glass-green-surface" aria-hidden="true" />
-                            <span>{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </article>
+                    </article>
+                  </div>
                 ))}
               </div>
-              <div className="mt-8 flex items-center justify-between gap-4 text-sm">
-                <button
-                  type="button"
-                  onClick={() => servicesSlider?.current?.prev()}
-                  className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-400 bg-white text-slate-600 transition hover:border-accent hover:text-accent"
-                >
-                  &lt;
-                </button>
-                <button
-                  type="button"
-                  onClick={() => servicesSlider?.current?.next()}
-                  className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-400 bg-white text-slate-600 transition hover:border-accent hover:text-accent"
-                >
-                  &gt;
-                </button>
-              </div>
+              
+              {/* Navigation Arrows */}
+              <button
+                type="button"
+                onClick={() => servicesSlider?.current?.prev()}
+                className="absolute left-0 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-lg transition hover:border-accent hover:text-accent"
+                aria-label="Previous slide"
+              >
+                &lt;
+              </button>
+              <button
+                type="button"
+                onClick={() => servicesSlider?.current?.next()}
+                className="absolute right-0 top-1/2 z-10 translate-x-1/2 -translate-y-1/2 inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-lg transition hover:border-accent hover:text-accent"
+                aria-label="Next slide"
+              >
+                &gt;
+              </button>
             </div>
           </div>
         </section>
@@ -1281,53 +1128,59 @@ function App() {
               <h2 className="text-4xl font-black uppercase text-slate-900">Klientų atsiliepimai</h2>
               <p className="text-base text-slate-600">Tikros istorijos iš žmonių, kurie jaučiasi stipresni, sveikesni ir labiau pasitikintys savimi.</p>
             </div>
-            <div ref={testimonialsRef} className="keen-slider mt-16 h-auto overflow-visible">
-              {stories.map(story => (
-                <article
-                  key={story.name}
-                  className="keen-slider__slide h-auto rounded-[32px] border border-slate-200 bg-white/90 p-8 shadow-[0_30px_90px_rgba(15,23,42,0.08)]"
-                >
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={story.avatar}
-                      alt={story.name}
-                      className="h-14 w-14 rounded-full object-cover"
-                      loading="lazy"
-                    />
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-900">{story.name}</h3>
-                      <p className="text-xs uppercase tracking-wide text-accent">Programa</p>
-                    </div>
+            <div className="relative mt-16">
+              <div ref={testimonialsRef} className="keen-slider overflow-visible">
+                {stories.map((story, index) => (
+                  <div key={story.name} className="keen-slider__slide py-12 px-4">
+                    <article
+                      className="flex flex-col h-full rounded-[32px] border border-slate-200 bg-white/90 p-8"
+                    >
+                      <div>
+                        <div className="flex items-center gap-4">
+                          <img
+                            src={story.avatar}
+                            alt={story.name}
+                            className="h-14 w-14 rounded-full object-cover"
+                            loading="lazy"
+                          />
+                          <div>
+                            <h3 className="text-lg font-semibold text-slate-900">{story.name}</h3>
+                            <p className="text-xs uppercase tracking-wide text-accent">Programa</p>
+                          </div>
+                        </div>
+                        <div className="mt-4 flex items-center gap-1 text-accent" aria-hidden="true">
+                          {Array.from({ length: 5 }).map((_, starIndex) => (
+                            <svg
+                              key={starIndex}
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                              className="h-4 w-4"
+                            >
+                              <path d="M9.049 2.927a1 1 0 0 1 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462a1 1 0 0 1 .588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292a1 1 0 0 1-1.538 1.118L10 13.347l-2.987 2.133a1 1 0 0 1-1.538-1.118l1.07-3.292a1 1 0 0 0-.364-1.118l-2.8-2.034a1 1 0 0 1 .588-1.81h3.462a1 1 0 0 0 .95-.69z" />
+                            </svg>
+                          ))}
+                          <span className="sr-only">5 iš 5 žvaigždučių</span>
+                        </div>
+                      </div>
+                      <p className="mt-6 text-sm leading-relaxed text-slate-600">{story.quote}</p>
+                    </article>
                   </div>
-                  <div className="mt-4 flex items-center gap-1 text-accent" aria-hidden="true">
-                    {Array.from({ length: 5 }).map((_, starIndex) => (
-                      <svg
-                        key={starIndex}
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        className="h-4 w-4"
-                      >
-                        <path d="M9.049 2.927a1 1 0 0 1 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462a1 1 0 0 1 .588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292a1 1 0 0 1-1.538 1.118L10 13.347l-2.987 2.133a1 1 0 0 1-1.538-1.118l1.07-3.292a1 1 0 0 0-.364-1.118l-2.8-2.034a1 1 0 0 1 .588-1.81h3.462a1 1 0 0 0 .95-.69z" />
-                      </svg>
-                    ))}
-                    <span className="sr-only">5 iš 5 žvaigždučių</span>
-                  </div>
-                  <p className="mt-6 text-sm leading-relaxed text-slate-600">{story.quote}</p>
-                </article>
-              ))}
-            </div>
-            <div className="mt-8 flex items-center justify-between gap-4 text-sm">
+                ))}
+              </div>
+              
               <button
                 type="button"
                 onClick={() => testimonials?.current?.prev()}
-                className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-400 bg-white text-slate-600 transition hover:border-accent hover:text-accent"
+                className="absolute left-0 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-lg transition hover:border-accent hover:text-accent"
+                aria-label="Previous slide"
               >
                 &lt;
               </button>
               <button
                 type="button"
                 onClick={() => testimonials?.current?.next()}
-                className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-400 bg-white text-slate-600 transition hover:border-accent hover:text-accent"
+                className="absolute right-0 top-1/2 z-10 translate-x-1/2 -translate-y-1/2 inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-lg transition hover:border-accent hover:text-accent"
+                aria-label="Next slide"
               >
                 &gt;
               </button>
@@ -1508,7 +1361,7 @@ function App() {
 
       <footer className="border-t border-black bg-white py-10">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 text-sm text-black md:flex-row md:items-center md:justify-between">
-          <p>Kaliadziuk (c) 2025. Visos teises saugomos.</p>
+          <p>Kaliadziuk &copy; 2025. Visos teises saugomos.</p>
           <a href="#" className="text-sm font-medium text-black transition hover:text-accent">
             Privatumo politika
           </a>
