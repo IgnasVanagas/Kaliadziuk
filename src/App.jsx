@@ -54,7 +54,7 @@ const Hero = ({ stats, backgroundDesktop, backgroundMobile }) => (
     />
   <div className="relative z-20 mx-auto flex min-h-full w-full max-w-7xl flex-col items-start px-6 pt-60 pb-20 sm:pt-72 sm:pb-24 lg:pt-80 lg:pb-28">
   <div className="max-w-4xl mx-auto text-center space-y-8" data-aos="fade-up">
-        <h1 className="text-3xl font-extrabold leading-tight sm:text-4xl md:text-5xl lg:text-6xl drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)]">
+        <h1 className="font-heading text-3xl font-extrabold leading-tight sm:text-4xl md:text-5xl lg:text-6xl drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)]">
           Asmeninės treniruotės, kurios keičia jūsų kūną ir mąstymą per 30 dienų
         </h1>
         <div className="flex w-full justify-center flex-col gap-4 sm:w-auto sm:flex-row">
@@ -74,7 +74,7 @@ const Hero = ({ stats, backgroundDesktop, backgroundMobile }) => (
             key={stat.label}
             className="glass-card inline-flex flex-col items-center justify-center space-y-2 rounded-full px-5 py-5 sm:min-w-[220px] sm:px-6 text-center"
           >
-            <p className="text-4xl font-extrabold text-accent">
+            <p className="font-heading text-4xl font-extrabold text-accent">
               <AnimatedCounter to={stat.value} suffix={stat.suffix} delay={stat.delay} />
             </p>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/85">{stat.label}</p>
@@ -93,7 +93,7 @@ const programs = [
       'Aštuonių savaičių kelionė, kuri derina švelniai agresyvią mitybos strategiją, riebalų deginimo treniruotes ir emocinį palaikymą. Kiekvieną savaitę peržiūrime žingsnius, miego higieną ir kraujo žymenis, kad korekcijos būtų tikslios, o motyvacija – stabili.',
     price: '100€',
     duration: '8 savaitės',
-    image: fromUploads('IMG_0481-scaled.jpg'),
+    image: fromUploads('brokolis.jpg'),
     highlights: [
       {
         title: 'Personalizuota mitybos architektūra',
@@ -121,7 +121,7 @@ const programs = [
       'Programa sukurta žmonėms, kurie nori ne tik priaugti svorio, bet ir jaustis funkcionaliai stiprūs. Dirbame ciklais – nuo nervų sistemos adaptacijos iki progresuojančių apkrovų, kartu prižiūrint hormonų ir baltymų balansą.',
     price: '100€',
     duration: '10 savaičių',
-    image: fromUploads('IMG_0443-scaled.jpg'),
+    image: fromUploads('paaugliu4.jpg'),
     highlights: [
       {
         title: 'Jėgos ir hipertrofijos blokai',
@@ -149,7 +149,7 @@ const programs = [
       'Jei neturi galimybės lankytis sporto klube, visa programa atkeliauja pas tave – nuo dviem hanteliais atliekamų kompleksų iki kūno peso blokų su tempimo ritualais. Vaizdo įrašai ir gyvos korekcijos leidžia jaustis taip, lyg treneris būtų šalia.',
     price: '100€',
     duration: '6 savaitės',
-    image: fromUploads('IMG_0462-scaled-e1750332801471.jpg'),
+    image: fromUploads('grupine8.jpg'),
     highlights: [
       {
         title: 'Adaptuota įrangai, kurią turi',
@@ -177,7 +177,7 @@ const programs = [
       'Skirta žmonėms, kurie nori išmanyti savo kūną, atsikratyti įtampos ir pagerinti laikyseną. Dirbame lėtai, bet tikslingai – deriname fascijų atpalaidavimą, aktyvius tempimus ir funkcinį stabilizavimą.',
     price: '100€',
     duration: '5 savaitės',
-    image: fromUploads('IMG_0441-modified-scaled-e1750335226133.jpg'),
+    image: fromUploads('testavimas8.jpg'),
     highlights: [
       {
         title: 'Tempimo ir kvėpavimo duetai',
@@ -372,7 +372,7 @@ const notHelpList = [
 const services = [
   {
     title: 'Testavimo treniruotė su kūno analize ir programos sudarymu',
-    image: fromUploads('IMG_0481-scaled.jpg'),
+    image: fromUploads('testavimas4.jpg'),
     description:
       'Pirmas žingsnis į aiškius rezultatus! Atliekame išsamią kūno analizę ir paruošiame programą pagal tavo tikslus.',
     features: [
@@ -395,7 +395,7 @@ const services = [
   },
   {
     title: 'Asmeninės treniruotės – Vilniuje ir Varėnoje',
-    image: fromUploads('IMG_0451-scaled.jpg'),
+    image: fromUploads('paaugliu2.jpg'),
     description:
       'Individualus dėmesys, aiškus planas ir realūs rezultatai. Gauk profesionalų palaikymą kiekviename žingsnyje.',
     features: ['100 % dėmesio vienam klientui', 'Aiškios treniruočių struktūros', 'Motyvacija ir atsakomybė'],
@@ -409,35 +409,35 @@ const services = [
   },
   {
     title: 'Treniruotės jūsų namuose',
-    image: fromUploads('IMG_0488-scaled.jpg'),
+    image: fromUploads('grupine8.jpg'),
     description:
       'Treneris atvyksta pas jus! Patogus ir saugus sportas, pritaikytas jūsų erdvei, tikslams ir galimybėms.',
     features: ['Inventoriaus pritaikymas namų erdvei', 'Treniruočių grafikas pagal jūsų laiką', 'Asmeninis dėmesys ir saugumas'],
   },
   {
     title: 'Grupinės treniruotės – Varėnoje ir Vilniuje',
-    image: fromUploads('IMG_0443-scaled.jpg'),
+    image: fromUploads('grupine1.jpg'),
     description:
       'Energija, kuri užkrečia! Sportuokite mažose ar didelėse grupėse, jauskite palaikymą ir bendrumą.',
     features: ['Skirtingo dydžio grupės', 'Motyvuojanti ir pozityvi atmosfera', 'Idealiai tinka socialiai motyvuotiems sportui'],
   },
   {
     title: 'Sportas poroje',
-    image: fromUploads('IMG_0481-scaled.jpg'),
+    image: fromUploads('IMG_0469-scaled.jpg'),
     description:
       'Labai populiarus pasirinkimas! Dviguba motyvacija ir bendras tikslas stiprina kūną bei santykį.',
     features: ['Planai pritaikyti dviem žmonėms', 'Bendro progreso sekimas', 'Treniruotės, kurios stiprina ryšį'],
   },
   {
     title: 'Paauglių grupinės treniruotės – Varėnoje',
-    image: fromUploads('IMG_0462-scaled-e1750332801471.jpg'),
+    image: fromUploads('paaugliu-grupine.jpg'),
     description:
       'Saugi, smagi ir lavinanti aplinka jauniems sportininkams. Stiprėk, gerink laikyseną, pasitikėjimą ir fizinį pasirengimą!',
     features: ['Amžiui pritaikyti pratimai', 'Dėmesys laikysenai ir fiziniam pasirengimui', 'Palaikanti ir draugiška bendruomenė'],
   },
   {
     title: 'Senjorų treniruotės – sporto salėje ir baseine',
-    image: fromUploads('IMG_0441-modified-scaled-e1750335226133.jpg'),
+    image: fromUploads('senjoru5.jpg'),
     description:
       'Švelnios, bet veiksmingos treniruotės geresnei savijautai, lankstumui ir gyvenimo džiaugsmui. Judėjimas tinka visiems!',
     features: ['Mažo poveikio pratimai salėje ir baseine', 'Gerina lankstumą ir balansą', 'Pritaikoma individualioms galimybėms'],
@@ -796,7 +796,7 @@ function App() {
                 </figure>
               </div>
               <div>
-                <h3 className="text-4xl font-black uppercase">Apie mane</h3>
+                <h3 className="font-heading text-4xl font-black uppercase">Apie mane</h3>
                 <div className="space-y-4 text-base text-black/75">
                   <p>
                     Labas, aš Pavel — sveikatingumo treneris ir biomechanikos specialistas, jau daugiau nei aštuonerius metus
@@ -843,7 +843,7 @@ function App() {
         <section id="programos" className="bg-white py-24 text-black">
           <div className="mx-auto max-w-7xl px-6">
             <div className="mx-auto max-w-3xl space-y-4 text-center" data-aos="fade-up">
-              <h2 className="text-4xl font-black uppercase">Treniruočių ir mitybos planai</h2>
+              <h2 className="font-heading text-4xl font-black uppercase">Treniruočių ir mitybos planai</h2>
               <p className="text-base text-black/70">
                 Pasirinkite programą pagal savo tikslus – kiekviena sudaroma individualiai, atsižvelgiant į jūsų poreikius ir galimybes.
               </p>
@@ -858,11 +858,11 @@ function App() {
                 >
                   <div className="relative h-[320px] sm:h-[360px] shrink-0">
                     <img src={plan.image} alt={plan.title} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/60 to-black/90" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/70" />
                     <div className="relative z-10 flex h-full flex-col justify-between p-8 sm:p-10 text-white">
                       <div className="space-y-3">
-                        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/70">{plan.subtitle}</p>
-                        <h3 className="text-3xl font-black leading-tight sm:text-4xl">{plan.title}</h3>
+                        <p className="text-sm font-semibold uppercase tracking-widest text-white/70">{plan.subtitle}</p>
+                        <h3 className="font-heading text-3xl font-black leading-tight sm:text-4xl">{plan.title}</h3>
                       </div>
                       <div className="flex flex-wrap gap-3 text-sm font-semibold">
                         <span className="glass-card rounded-full px-4 py-2 text-white/90">{plan.duration}</span>
@@ -878,13 +878,13 @@ function App() {
                           key={highlight.title}
                           className="rounded-3xl border border-slate-100 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.08)]"
                         >
-                          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">{highlight.title}</p>
+                          <p className="text-sm font-semibold uppercase tracking-widest text-slate-500">{highlight.title}</p>
                           <p className="mt-3 text-sm text-slate-600">{highlight.detail}</p>
                         </div>
                       ))}
                     </div>
                     <div className="mt-auto space-y-3">
-                      <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Į paketą įeina</p>
+                      <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Į paketą įeina</p>
                       <ul className="space-y-3">
                         {plan.extras.map(extra => (
                           <li key={extra} className="flex items-start gap-3 text-sm text-slate-600">
@@ -904,7 +904,7 @@ function App() {
                         Pirkti
                         <span className="inline-block text-xl">&rarr;</span>
                       </a>
-                      <span className="text-xs uppercase tracking-[0.3em] text-slate-400">Nemokama konsultacija prieš startą</span>
+                      <span className="text-xs uppercase tracking-widest text-slate-400">Nemokama konsultacija prieš startą</span>
                     </div>
                   </div>
                 </article>
@@ -921,7 +921,7 @@ function App() {
           </div>
           <div className="relative mx-auto max-w-7xl px-6">
             <div className="mx-auto max-w-3xl text-center mb-8" data-aos="fade-up">
-              <h2 className="text-4xl font-black uppercase text-white">Klientų istorijos</h2>
+              <h2 className="font-heading text-4xl font-black uppercase text-white">Klientų istorijos</h2>
             </div>
             <div className="relative" data-aos="fade-up">
               <div
@@ -944,7 +944,7 @@ function App() {
                       <div className="flex flex-col gap-8 lg:flex-row lg:items-stretch">
                         <div className="flex-1 space-y-6">
                           {/* removed: Kliento istorija and Asmeninis planas as requested */}
-                          <h3 className="text-3xl font-black tracking-tight text-white">{item.name}</h3>
+                          <h3 className="font-heading text-3xl font-black tracking-tight text-white">{item.name}</h3>
                           <dl className="space-y-3 text-sm text-white">
                             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                               <dt className="text-xs font-semibold uppercase tracking-[0.25em] text-white/60">Programa</dt>
@@ -1008,7 +1008,7 @@ function App() {
           <div className="mx-auto max-w-6xl px-6 py-24">
             <div className="flex flex-col gap-3 text-center" data-aos="fade-up">
               <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Paslaugos</p>
-              <h2 className="text-4xl font-black uppercase text-slate-900">Treniruotės ir sveikatingumo paslaugos</h2>
+              <h2 className="font-heading text-4xl font-black uppercase text-slate-900">Treniruotės ir sveikatingumo paslaugos</h2>
               <p className="text-base text-slate-600 sm:text-lg">
                 Judėjimas, kuris keičia kūną, nuotaiką ir energiją!
               </p>
@@ -1033,7 +1033,7 @@ function App() {
                       </figure>
                       <div className="flex flex-1 flex-col gap-6 p-8 text-slate-700">
                         <div>
-                          <h3 className="text-2xl font-semibold text-slate-900">{service.title}</h3>
+                          <h3 className="font-heading text-2xl font-semibold text-slate-900">{service.title}</h3>
                           <p className="mt-4 text-sm leading-relaxed">{service.description}</p>
                         </div>
                         <ul className="space-y-2 text-sm">
@@ -1081,7 +1081,7 @@ function App() {
             <div className="mx-auto max-w-6xl px-6 text-white" data-aos="fade-up">
               <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.6fr)] lg:items-center">
                 <div className="space-y-5">
-                  <h3 className="text-4xl font-black uppercase">
+                  <h3 className="font-heading text-4xl font-black uppercase">
                     Padovanok geresnę savijautą artimiesiems be papildomo streso.
                   </h3>
                   <p className="text-base text-white/90">
@@ -1125,7 +1125,7 @@ function App() {
           <div className="mx-auto max-w-6xl px-6 py-24">
             <div className="flex flex-col gap-3 text-center" data-aos="fade-up">
               <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Gyvos patirtys</p>
-              <h2 className="text-4xl font-black uppercase text-slate-900">Klientų atsiliepimai</h2>
+              <h2 className="font-heading text-4xl font-black uppercase text-slate-900">Klientų atsiliepimai</h2>
               <p className="text-base text-slate-600">Tikros istorijos iš žmonių, kurie jaučiasi stipresni, sveikesni ir labiau pasitikintys savimi.</p>
             </div>
             <div className="relative mt-16">
@@ -1144,7 +1144,7 @@ function App() {
                             loading="lazy"
                           />
                           <div>
-                            <h3 className="text-lg font-semibold text-slate-900">{story.name}</h3>
+                            <h3 className="font-heading text-lg font-semibold text-slate-900">{story.name}</h3>
                             <p className="text-xs uppercase tracking-wide text-accent">Programa</p>
                           </div>
                         </div>
@@ -1191,7 +1191,7 @@ function App() {
         <section className="mx-auto max-w-6xl px-6 py-24">
           <div className="grid gap-16 lg:grid-cols-2" data-aos="fade-up">
             <div className="space-y-6">
-              <h3 className="text-4xl font-black uppercase text-black">Galiu jums padėti, jei siekiate:</h3>
+              <h3 className="font-heading text-4xl font-black uppercase text-black">Galiu jums padėti, jei siekiate:</h3>
               <ul className="grid gap-3 text-base text-black">
                 {helpList.map(item => (
                   <li key={item} className="flex items-center gap-3">
@@ -1203,7 +1203,7 @@ function App() {
               </ul>
             </div>
             <div className="space-y-6" data-aos="fade-up" data-aos-delay="100">
-              <h3 className="text-4xl font-black uppercase text-black">Negaliu jums padėti, jei siekiate:</h3>
+              <h3 className="font-heading text-4xl font-black uppercase text-black">Negaliu jums padėti, jei siekiate:</h3>
               <ul className="grid gap-3 text-base text-black">
                 {notHelpList.map(item => (
                   <li key={item} className="flex items-center gap-3">
@@ -1231,7 +1231,7 @@ function App() {
           {/* On phones, show the form first then the descriptive text. On lg+ keep original order. */}
           <div className="order-2 lg:order-1 space-y-8 text-black">
                 <div className="space-y-4">
-                  <h2 className="text-4xl font-black uppercase">Susisiekite dabar</h2>
+                  <h2 className="font-heading text-4xl font-black uppercase">Susisiekite dabar</h2>
                   <p className="text-base text-black">
                     Įveskite savo kontaktus ir per 24 valandas suderinsime individualų susitikimo laiką bei aptarsime jūsų tikslus.
                   </p>
@@ -1254,7 +1254,7 @@ function App() {
                   </ul>
                 </div>
                 <div className="mt-8 space-y-4">
-                  <h3 className="text-4xl font-black uppercase">Mane rasite:</h3>
+                  <h3 className="font-heading text-4xl font-black uppercase">Mane rasite:</h3>
                   {partnerLogos.map(partner => (
                     <div
                       key={partner.name}
@@ -1355,7 +1355,7 @@ function App() {
         </section>
 
         <section className="bg-accent py-32 text-center">
-          <h2 className="text-6xl font-black uppercase tracking-tight text-black">Kaliadziuk</h2>
+          <h2 className="font-heading text-6xl font-black uppercase tracking-tight text-black">Kaliadziuk</h2>
         </section>
       </main>
 

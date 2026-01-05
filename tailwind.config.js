@@ -4,7 +4,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+        sans: ['Outfit', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        heading: ['Outfit', 'sans-serif'],
       },
       colors: {
         background: '#000000',
