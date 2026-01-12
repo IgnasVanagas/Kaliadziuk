@@ -1,0 +1,108 @@
+{
+  "nav": {
+    "home": "Home",
+    "plans": "Plans",
+    "giftCard": "Gift card",
+    "cart": "Cart",
+    "admin": "Admin"
+  },
+  "common": {
+    "language": "Language",
+    "lt": "LT",
+    "en": "EN",
+    "loading": "Loading…",
+    "error": "Error",
+    "back": "Back",
+    "continue": "Continue",
+    "required": "Required"
+  },
+  "home": {
+    "title": "Training & nutrition plans",
+    "ctaPlans": "View plans",
+    "ctaGift": "Gift card"
+  },
+  "plans": {
+    "title": "Plans",
+    "addToCart": "Add to cart",
+    "soldOut": "Unavailable"
+  },
+  "giftCard": {
+    "title": "Gift card",
+    "amount": "Amount (EUR)",
+    "recipientName": "Recipient name",
+    "recipientEmail": "Recipient email",
+    "buyerName": "Buyer name",
+    "buyerEmail": "Buyer email",
+    "addToCart": "Add to cart"
+  },
+  "cart": {
+    "title": "Cart",
+    "empty": "Your cart is empty.",
+    "giftCode": "Gift code discount",
+    "giftCodePlaceholder": "Enter code",
+    "apply": "Apply",
+    "remove": "Remove",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "total": "Total",
+    "checkout": "Pay",
+    "checkoutNote": "Payment is confirmed only by Stripe webhook (not by redirect).",
+    "payment": {
+      "title": "Payment details",
+      "pay": "Pay now",
+      "processing": "Processing payment…",
+      "notReady": "Payment form is still loading. Try again in a few seconds.",
+      "failed": "Payment failed. Check your details and try again."
+    },
+    "contact": {
+      "title": "Contact",
+      "email": "Email",
+      "phone": "Phone",
+      "fullName": "Full name",
+      "marketing": "I want to receive updates and offers",
+      "acceptTerms": "I accept the terms",
+      "acceptPrivacy": "I accept the privacy policy"
+    }
+  },
+  "success": {
+    "title": "Payment received",
+    "body": "If your payment succeeded, you will receive an email shortly.",
+    "backHome": "Back to home"
+  },
+  "cancel": {
+    "title": "Payment cancelled",
+    "body": "You can go back to your cart and try again."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "This page doesn’t exist or was moved.",
+    "backHome": "Back to home"
+  },
+  "payment": {
+    "title": "Payment",
+    "subtitle": "Choose a method and confirm the payment.",
+    "expressTitle": "Express checkout",
+    "cardTitle": "Card and other methods",
+    "totalLabel": "Payment",
+    "applePayHint": "Apple Pay shows only on Apple devices.",
+    "googlePayHint": "Google Pay shows only on supported devices/browsers.",
+    "cancelLink": "Cancel and go back",
+    "missingTitle": "Missing payment details",
+    "missingBody": "If you refreshed the page, the payment session may be lost. Go back to your cart and try again.",
+    "backToCart": "Back to cart"
+  },
+  "admin": {
+    "loginTitle": "Sign in",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "orders": "Orders",
+    "giftCards": "Gift cards"
+  },
+  "legal": {
+    "privacy": "Privacy policy",
+    "terms": "Terms",
+    "refunds": "Refunds"
+  }
+}

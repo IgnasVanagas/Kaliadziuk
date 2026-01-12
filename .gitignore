@@ -12,12 +12,21 @@ yarn.lock
 dist/
 .vite/
 
+# Supabase local dev artifacts
+.supabase/
+supabase/.temp/
+supabase/.env
+supabase/.env.*
+
 # env
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Local tools (downloaded CLIs etc.)
+.tools/
 
 # Logs
 logs/
@@ -37,6 +46,9 @@ Thumbs.db
 *.bak
 *.tmp
 *.swp
+
+# Temporary scripts
+tmp_*.py
 
 # Image caches
 uploads/*.db

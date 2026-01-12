@@ -1,0 +1,108 @@
+{
+  "nav": {
+    "home": "Pradžia",
+    "plans": "Planai",
+    "giftCard": "Dovanų kuponas",
+    "cart": "Krepšelis",
+    "admin": "Administravimas"
+  },
+  "common": {
+    "language": "Kalba",
+    "lt": "LT",
+    "en": "EN",
+    "loading": "Kraunama…",
+    "error": "Klaida",
+    "back": "Grįžti",
+    "continue": "Tęsti",
+    "required": "Privaloma"
+  },
+  "home": {
+    "title": "Treniruočių ir mitybos planai",
+    "ctaPlans": "Peržiūrėti planus",
+    "ctaGift": "Dovanų kuponas"
+  },
+  "plans": {
+    "title": "Planai",
+    "addToCart": "Į krepšelį",
+    "soldOut": "Neparduodama"
+  },
+  "giftCard": {
+    "title": "Dovanų kuponas",
+    "amount": "Suma (EUR)",
+    "recipientName": "Gavėjo vardas",
+    "recipientEmail": "Gavėjo el. paštas",
+    "buyerName": "Pirkėjo vardas",
+    "buyerEmail": "Pirkėjo el. paštas",
+    "addToCart": "Į krepšelį"
+  },
+  "cart": {
+    "title": "Krepšelis",
+    "empty": "Krepšelis tuščias.",
+    "giftCode": "Dovanų kodo nuolaida",
+    "giftCodePlaceholder": "Įveskite kodą",
+    "apply": "Taikyti",
+    "remove": "Pašalinti",
+    "subtotal": "Suma",
+    "discount": "Nuolaida",
+    "total": "Iš viso",
+    "checkout": "Apmokėti",
+    "checkoutNote": "Apmokėjimą patvirtina tik Stripe webhook (ne puslapio nukreipimas).",
+    "payment": {
+      "title": "Mokėjimo informacija",
+      "pay": "Apmokėti dabar",
+      "processing": "Vykdomas apmokėjimas…",
+      "notReady": "Mokėjimo forma dar kraunama. Pabandykite po kelių sekundžių.",
+      "failed": "Apmokėjimas nepavyko. Patikrinkite duomenis ir bandykite dar kartą."
+    },
+    "contact": {
+      "title": "Kontaktai",
+      "email": "El. paštas",
+      "phone": "Telefonas",
+      "fullName": "Vardas pavardė",
+      "marketing": "Noriu gauti naujienas ir pasiūlymus",
+      "acceptTerms": "Sutinku su taisyklėmis",
+      "acceptPrivacy": "Sutinku su privatumo politika"
+    }
+  },
+  "success": {
+    "title": "Mokėjimas priimtas",
+    "body": "Jei mokėjimas sėkmingas, netrukus gausite el. laišką.",
+    "backHome": "Grįžti į pagrindinį puslapį"
+  },
+  "cancel": {
+    "title": "Mokėjimas atšauktas",
+    "body": "Galite grįžti į krepšelį ir bandyti dar kartą."
+  },
+  "notFound": {
+    "title": "Puslapis nerastas",
+    "body": "Šis puslapis neegzistuoja arba buvo perkeltas.",
+    "backHome": "Grįžti į pradžią"
+  },
+  "payment": {
+    "title": "Apmokėjimas",
+    "subtitle": "Pasirinkite būdą ir patvirtinkite mokėjimą.",
+    "expressTitle": "Greitas apmokėjimas",
+    "cardTitle": "Kortelė ir kiti būdai",
+    "totalLabel": "Apmokėjimas",
+    "applePayHint": "Apple Pay rodoma tik Apple įrenginiuose.",
+    "googlePayHint": "Google Pay rodoma tik suderinamuose įrenginiuose/naršyklėse.",
+    "cancelLink": "Atšaukti ir grįžti",
+    "missingTitle": "Trūksta mokėjimo informacijos",
+    "missingBody": "Atnaujinus puslapį mokėjimo sesija gali dingti. Grįžkite į krepšelį ir bandykite dar kartą.",
+    "backToCart": "Grįžti į krepšelį"
+  },
+  "admin": {
+    "loginTitle": "Prisijungimas",
+    "email": "El. paštas",
+    "password": "Slaptažodis",
+    "signIn": "Prisijungti",
+    "signOut": "Atsijungti",
+    "orders": "Užsakymai",
+    "giftCards": "Dovanų kuponai"
+  },
+  "legal": {
+    "privacy": "Privatumo politika",
+    "terms": "Taisyklės",
+    "refunds": "Grąžinimas"
+  }
+}

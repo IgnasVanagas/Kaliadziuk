@@ -1,0 +1,2 @@
+# Called by Stripe (no user JWT)
+verify_jwt = false

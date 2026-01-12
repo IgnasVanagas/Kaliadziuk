@@ -1,0 +1,20 @@
+# Supabase local/dev config.
+# For public Edge Functions called directly from the browser,
+# disable JWT verification so CORS OPTIONS preflight isn't rejected.
+
+[functions.create-checkout-session]
+verify_jwt = false
+
+[functions.create-payment-intent]
+verify_jwt = false
+
+[functions.validate-gift-card]
+verify_jwt = false
+
+# Stripe webhooks come from Stripe, not a logged-in user
+[functions.stripe-webhook]
+verify_jwt = false
+
+# Admin-only function should keep JWT verification enabled (default)
+# [functions.admin-delete-gift-card]
+# verify_jwt = true

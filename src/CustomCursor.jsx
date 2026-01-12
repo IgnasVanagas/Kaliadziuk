@@ -3,45 +3,56 @@ import { useEffect, useRef, useState } from 'react';
 export default function CustomCursor() {
   const cursorRef = useRef(null);
   const [clicking, setClicking] = useState(false);
+  const [hovering, setHovering] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const [ripples, setRipples] = useState([]);
 
   useEffect(() => {
-    const cursor = cursorRef.current;
-    let mouseX = 0, mouseY = 0;
-
+    // Direct mouse movement update for instant responsiveness
     const onMouseMove = (e) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
       if (!isVisible) setIsVisible(true);
-      
-      if (cursor) {
-        cursor.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+      if (cursorRef.current) {
+        cursorRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
       }
     };
 
-    const onMouseDown = (e) => {
-      setClicking(true);
-      const id = Date.now();
-      setRipples(prev => [...prev, { x: e.clientX, y: e.clientY, id }]);
-      setTimeout(() => {
-        setRipples(prev => prev.filter(r => r.id !== id));
-      }, 1000);
+    const onMouseDown = () => setClicking(true);
+    const onMouseUp = () => setClicking(false);
+
+    // Subtle hover state detection
+    const onMouseOver = (e) => {
+      const target = e.target;
+      const isInteractive = 
+        target.tagName === 'A' || 
+        target.tagName === 'BUTTON' ||
+        target.closest('a') || 
+        target.closest('button') ||
+        target.closest('[role="button"]') ||
+        target.matches('input, textarea, select, label');
+        
+      setHovering(!!isInteractive);
     };
 
-    const onMouseUp = () => setClicking(false);
+    // Reset hovering when leaving interactive elements
+    const onMouseOut = (e) => {
+      setHovering(false);
+    };
 
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mousedown', onMouseDown);
     document.addEventListener('mouseup', onMouseUp);
+    document.addEventListener('mouseover', onMouseOver);
+    document.addEventListener('mouseout', onMouseOut);
 
     return () => {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mousedown', onMouseDown);
       document.removeEventListener('mouseup', onMouseUp);
+      document.removeEventListener('mouseover', onMouseOver);
+      document.removeEventListener('mouseout', onMouseOut);
     };
   }, [isVisible]);
 
+  // Device check
   const [isDesktop, setIsDesktop] = useState(false);
   useEffect(() => {
     const checkDevice = () => {
@@ -55,27 +66,19 @@ export default function CustomCursor() {
   if (!isDesktop) return null;
 
   return (
-    <>
-      {ripples.map(r => (
-        <div
-          key={r.id}
-          className="fixed pointer-events-none z-[9990] rounded-full bg-accent animate-ping"
-          style={{ 
-            left: r.x, 
-            top: r.y, 
-            width: '20px', 
-            height: '20px', 
-            marginLeft: '-10px', 
-            marginTop: '-10px',
-            animationDuration: '0.8s',
-            animationIterationCount: 1
-          }}
-        />
-      ))}
+    <div 
+      ref={cursorRef} 
+      className="pointer-events-none fixed left-0 top-0 z-[9999] mix-blend-difference"
+      style={{ willChange: 'transform' }}
+    >
       <div 
-        ref={cursorRef} 
-        className={`pointer-events-none fixed left-0 top-0 z-[9999] h-3 w-3 -ml-1.5 -mt-1.5 rounded-full bg-[#EEFFCC] mix-blend-difference transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'} ${clicking ? 'scale-50' : 'scale-100'}`}
+        className={`
+          h-3 w-3 -ml-1.5 -mt-1.5 rounded-full bg-[#EEFFCC] 
+          transition-transform duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]
+          ${isVisible ? 'opacity-100' : 'opacity-0'}
+          ${clicking ? 'scale-75' : hovering ? 'scale-[2.5]' : 'scale-100'}
+        `}
       />
-    </>
+    </div>
   );
 }
