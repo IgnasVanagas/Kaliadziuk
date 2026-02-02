@@ -5,10 +5,10 @@ import 'aos/dist/aos.css';
 import 'keen-slider/keen-slider.min.css';
 import { useKeenSlider } from 'keen-slider/react';
 import { addItem, loadCart, saveCart } from './state/cart';
-import CartToast from './components/CartToast';
 import { getProductImageUrl } from './lib/productImages';
+import { sendEvent } from './lib/tracking';
 
-const fromUploads = file => new URL(`../uploads/${file}`, import.meta.url).href;
+const fromUploads = (file) => new URL(`../uploads/${file}`, import.meta.url).pathname;
 
 const heroImageDesktop = fromUploads('IMG_0443-scaled.jpg');
 const heroImageMobile = fromUploads('IMG_0441-modified-scaled-e1750335226133.jpg');
@@ -43,20 +43,32 @@ const Hero = ({ stats, backgroundDesktop, backgroundMobile, title, ctaLabel }) =
       />
     </picture>
 
-    {/* Layered overlays for consistent text contrast */}
+    {/* Layered overlays for consistent text contrast - Mobile (Lighter) */}
     <div
-      className="pointer-events-none absolute inset-0 z-10"
+      className="pointer-events-none absolute inset-0 z-10 md:hidden"
+      aria-hidden="true"
+      style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.35) 40%, rgba(0,0,0,0.2) 65%, rgba(0,0,0,0.12) 100%)' }}
+    />
+    <div
+      className="pointer-events-none absolute inset-0 z-15 md:hidden"
+      aria-hidden="true"
+      style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 60%)' }}
+    />
+
+    {/* Layered overlays for consistent text contrast - Desktop (Original) */}
+    <div
+      className="pointer-events-none absolute inset-0 z-10 hidden md:block"
       aria-hidden="true"
       style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.25) 65%, rgba(0,0,0,0.15) 100%)' }}
     />
     <div
-      className="pointer-events-none absolute inset-0 z-15"
+      className="pointer-events-none absolute inset-0 z-15 hidden md:block"
       aria-hidden="true"
       style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 60%)' }}
     />
   <div className="relative z-20 mx-auto flex min-h-full w-full max-w-7xl flex-col items-start px-6 pt-60 pb-20 sm:pt-72 sm:pb-24 lg:pt-80 lg:pb-28">
   <div className="max-w-4xl mx-auto text-center space-y-8" data-aos="fade-up">
-        <h1 className="font-heading text-3xl font-extrabold uppercase leading-tight sm:text-4xl md:text-5xl lg:text-6xl drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)]">
+        <h1 className="font-heading text-3xl font-extrabold leading-tight sm:text-4xl md:text-5xl lg:text-6xl drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)]">
           {title}
         </h1>
         <div className="flex w-full justify-center flex-col gap-4 sm:w-auto sm:flex-row">
@@ -97,126 +109,154 @@ const PROGRAM_IDS = {
 const programsLt = [
   {
     productId: PROGRAM_IDS.weightLoss,
-    cartName: 'Svorio metimo planas',
-    unitPriceCents: 10000,
-    title: 'Svorio metimo',
-    subtitle: 'Lengvesnis kūnas ir daugiau energijos',
+    cartName: 'Svorio metimo programa',
+    unitPriceCents: 20000,
+    title: 'Svorio metimo programa',
+    subtitle: '8–12 savaičių',
     description:
-      'Aštuonių savaičių kelionė, kuri derina švelniai agresyvią mitybos strategiją, riebalų deginimo treniruotes ir emocinį palaikymą. Kiekvieną savaitę peržiūrime žingsnius, miego higieną ir kraujo žymenis, kad korekcijos būtų tikslios, o motyvacija – stabili.',
-    price: '100€',
-    duration: '8 savaitės',
+      'Programa skirta tiems, kurie nori saugiai, tvariai ir be chaoso sumažinti svorį bei išsiugdyti sveikus įpročius.',
+    price: '200€',
+    duration: '8–12 savaičių',
+    hasDietician: true,
     image: fromUploads('brokolis.jpg'),
+    result: 'Rezultatai išliks ir po programos.',
     highlights: [
       {
-        title: 'Personalizuota mitybos architektūra',
-        detail: 'Sudarau makroelementų paskirstymą pagal hormonų balansą ir darbų ritmą, pridedu receptus su realistiška prep trukme.',
+        title: 'Individualus planas',
+        detail: 'Sporto planas, sudarytas pagal Jūsų poreikius.',
       },
       {
-        title: 'Kintančios treniruočių fazės',
-        detail: 'HIIT ir žemo pulso blokai rotuojami kas dvi savaites, kad kūnas nuolat gautų naują stimulą be perdegimo.',
+        title: 'Aiškios mitybos gairės',
+        detail: 'Supraskite bendrą kalorijų ir makroelementų balansą, be griežtų dietų.',
       },
       {
-        title: 'Mindset ir atsistatymas',
-        detail: 'Kvėpavimo protokolai, limfodrenažiniai tempimai ir trumpi audio įrašai, padedantys laikytis plano net stresinėmis dienomis.',
+        title: 'Ilgalaikis požiūris',
+        detail: 'Vertiname ne tik kilogramus, bet ir savijautą bei tvarius pokyčius.',
+      },
+      {
+        title: 'Nuodugni analizė',
+        detail: 'Nemokama konsultacija: tikslų, gyvenimo būdo ir galimybių įvertinimas.',
       },
     ],
     extras: [
-      'Savaitinis progreso „health report“ su korekcijomis',
-      'Receptų biblioteka ir apsipirkimo sąrašai kiekvienai savaitei',
-      'WhatsApp palaikymas darbo dienomis 9–18 val.',
+      'Nemokama konsultacija (tikslų, gyvenimo būdo ir galimybių įvertinimas)',
+      'Individualus sporto planas, sudarytas pagal Jūsų poreikius',
+      'Aiškios mitybos gairės – supraskite bendrą kalorijų ir makroelementų balansą',
+      '1 asmeninė treniruotė (technikos, pajėgumo ir silpnų vietų įvertinimui)',
+      'Lojalumo bonusas: atnaujinimas po 8–12 sav. tik 50 €',
     ],
   },
   {
     productId: PROGRAM_IDS.muscleGain,
-    cartName: 'Raumenų auginimo planas',
-    unitPriceCents: 10000,
-    title: 'Raumenų auginimo',
-    subtitle: 'Didesnė jėga ir aiškiai matoma forma',
+    cartName: 'Raumenų auginimo programa',
+    unitPriceCents: 20000,
+    title: 'Raumenų auginimo programa',
+    subtitle: '8–12 savaičių',
     description:
-      'Programa sukurta žmonėms, kurie nori ne tik priaugti svorio, bet ir jaustis funkcionaliai stiprūs. Dirbame ciklais – nuo nervų sistemos adaptacijos iki progresuojančių apkrovų, kartu prižiūrint hormonų ir baltymų balansą.',
-    price: '100€',
-    duration: '10 savaičių',
+      'Programa skirta tiems, kurie nori auginti liesą raumeninę masę, treniruotis protingai ir suprasti hipertrofiją per mokslo prizmę.',
+    price: '200€',
+    duration: '8–12 savaičių',
+    hasDietician: true,
     image: fromUploads('paaugliu4.jpg'),
+    result: 'Matomas raumenų augimas, didesnė jėga ir aiškus supratimas, kaip treniruotis ateityje be spėliojimo.',
     highlights: [
       {
-        title: 'Jėgos ir hipertrofijos blokai',
-        detail: 'Periodizuotas split planas su RPE gairėmis ir technikos video analizėmis kas dvi savaites.',
+        title: 'Liesa raumenų masė',
+        detail: 'Auginti raumenis be nereikalingo riebalų priaugimo.',
       },
       {
-        title: 'Mityba testosterono palaikymui',
-        detail: 'Didinu kalorijų kiekį laipsniškai, kad augtų švarūs raumenys, o virškinimo sistema suspėtų prisitaikyti.',
+        title: 'Mokslinis požiūris',
+        detail: 'Suprasti, kaip veikia pratimai, apkrovos ir poilsis.',
       },
       {
-        title: 'Pažangos laboratorija',
-        detail: 'Naudojame skenavimus ir mobilųjį žurnalą, kuris vizualiai rodo apimčių ir svorių pokytį.',
+        title: 'Hipertrofijos metodai',
+        detail: 'Išbandyti moksliškai įrodytus hipertrofijos metodus.',
+      },
+      {
+        title: 'Mitybos strategija',
+        detail: 'Supraskite kalorijų perteklių ir makroelementų balansą raumenų augimui.',
       },
     ],
     extras: [
-      'Kas savaitę koreguojamas darbo svorių grafikas',
-      'Papildų protokolas (nebūtinas, bet rekomenduojamas)',
-      'Prieiga prie trumpo mobilumo „primer“ prieš kiekvieną sesiją',
+      'Nemokama konsultacija (tikslų, patirties ir pasirengimo įvertinimas)',
+      'Individualus sporto planas pagal Jūsų poreikius',
+      'Mitybos gairės raumenų augimui',
+      '1 asmeninė treniruotė (technikos, apkrovų ir silpnų vietų įvertinimui)',
+      'Struktūruotas progresas, paremtas hipertrofijos principais',
+      'Lojalumo bonusas: atnaujinimas tik 50 €',
     ],
   },
   {
     productId: PROGRAM_IDS.homeTraining,
-    cartName: 'Namų treniruotės planas',
-    unitPriceCents: 10000,
-    title: 'Namų treniruotė',
-    subtitle: 'Studijos kokybė tavo svetainėje',
+    cartName: 'Namų treniruočių programa',
+    unitPriceCents: 15000,
+    title: 'Namų treniruočių programa',
+    subtitle: '6–8 savaitės',
     description:
-      'Jei neturi galimybės lankytis sporto klube, visa programa atkeliauja pas tave – nuo dviem hanteliais atliekamų kompleksų iki kūno peso blokų su tempimo ritualais. Vaizdo įrašai ir gyvos korekcijos leidžia jaustis taip, lyg treneris būtų šalia.',
-    price: '100€',
-    duration: '6 savaitės',
+      'Programa skirta tiems, kurie nori treniruoti visą kūną namuose, sutaupyti laiką ir pasiekti tvirtą, atletišką kūną – be sporto salės.',
+    price: '150€',
+    duration: '6–8 savaitės',
     image: fromUploads('grupine8.jpg'),
+    result: 'Stiprus, funkcionalus kūnas, geresnė savijauta ir aiškus planas, kaip treniruotis namuose be chaoso.',
     highlights: [
       {
-        title: 'Adaptuota įrangai, kurią turi',
-        detail: 'Nesvarbu, ar tai pasipriešinimo gumos, ar vienas kettlebellis – planą pritaikau tavo realiam inventorui.',
+        title: 'Jokio klubo',
+        detail: 'Neturite laiko ar noro lankytis sporto salėje.',
       },
       {
-        title: 'Gyvi „form-check“ skambučiai',
-        detail: 'Kas dvi savaites prisijungiame trumpam video skambučiui, kad pakoreguotume techniką ir atsakytume į klausimus.',
+        title: 'Be inventoriaus',
+        detail: 'Suprasti, kaip apkrauti kūną be salės inventoriaus.',
       },
       {
-        title: 'Regeneracijos ritualai',
-        detail: 'Įtraukta trumpa mobilumo seka kiekvienai dienai ir savaitgalio „reset“ sesija stuburui.',
+        title: 'Aiški sistema',
+        detail: 'Sistema „nuo A iki Z“',
+      },
+      {
+        title: 'Dovana: Inventorius',
+        detail: 'Sporto inventorius namų treniruotėms – pradėkite iš karto.',
       },
     ],
     extras: [
-      'Priminimų sistema telefone, kad nepraleistum treniruotės',
-      'Spotify grojaraščiai pagal treniruotės intensyvumą',
-      'Prisijungimas prie bendruomenės pokalbių kambario',
+      'Nemokama konsultacija',
+      'Individualus namų treniruočių planas',
+      '1 asmeninė treniruotė technikos mokymui',
+      'Vaizdo įrašai su visais pratimais',
+      'Aiški treniruočių struktūra progresavimui',
+      'Dovana: sporto inventorius namų treniruotėms',
     ],
   },
   {
     productId: PROGRAM_IDS.mobility,
-    cartName: 'Mobilumo lavinimo planas',
+    cartName: 'Mobilumo lavinimo programa',
     unitPriceCents: 10000,
-    title: 'Mobilumo lavinimo',
-    subtitle: 'Lengvas kūnas kasdieniame judesyje',
+    title: 'Mobilumo lavinimo programa',
+    subtitle: 'Kasdienė mankšta (6–8 savaitės)',
     description:
-      'Skirta žmonėms, kurie nori išmanyti savo kūną, atsikratyti įtampos ir pagerinti laikyseną. Dirbame lėtai, bet tikslingai – deriname fascijų atpalaidavimą, aktyvius tempimus ir funkcinį stabilizavimą.',
+      'Programa skirta tiems, kurie nori judėti laisviau, geriau jaustis kūne ir formuoti discipliną per kasdienį, sąmoningą judėjimą.',
     price: '100€',
-    duration: '5 savaitės',
+    duration: '6–8 savaitės',
     image: fromUploads('testavimas8.jpg'),
+    result: 'Mažiau įtampos, daugiau judėjimo laisvės, geresnė laikysena ir stipresnis ryšys su kūnu.',
     highlights: [
       {
-        title: 'Tempimo ir kvėpavimo duetai',
-        detail: 'Kiekviena seka turi audio instrukcijas, kad žinotum, kur turi jaustis tempimas ir kaip kvėpuoti.',
+        title: 'Ryto rutina',
+        detail: 'Teisingai pradėti dieną ir paruošti kūną.',
       },
       {
-        title: 'Funkciniai pratimai',
-        detail: 'Stipriname stabilizuojančius raumenis aplink klubus, pečius ir stuburą, kad laikysena išliktų natūrali.',
+        title: 'Kūno suvokimas',
+        detail: 'Suvokti savo kūno struktūrą ir judesio kokybę.',
       },
       {
-        title: 'Laikysenos diagnostika',
-        detail: 'Prieš pradedant gauni video analizę bei individualius pataisymus, kuriuos peržiūrime kurso pabaigoje.',
+        title: 'Be įtampos',
+        detail: 'Mažinti sustingimą, įtampą ar judesių ribotumą.',
       },
     ],
     extras: [
-      'Kas savaitę – trumpas vakarinis ritualas sąnariams',
-      'Darbo vietos ergonomikos gidas',
-      'Praktinių užrašų knygutė su progreso žymomis',
+      'Konsultacija tikslų įvertinimui',
+      'Individualus planas (10–30 min/d.)',
+      'Vaizdo įrašai ir seka',
+      'Struktūra „kas po ko“',
+      'Gilinsimės į: mobilumą, stabilumą, savimasažą',
     ],
   },
 ];
@@ -225,14 +265,16 @@ const programsEn = [
   {
     productId: PROGRAM_IDS.weightLoss,
     cartName: 'Weight loss plan',
-    unitPriceCents: 10000,
+    unitPriceCents: 20000,
     title: 'Weight loss',
     subtitle: 'A lighter body and more energy',
     description:
       'An 8‑week plan combining nutrition structure, fat‑loss training blocks, and weekly support. We adjust steps, recovery, and intensity to keep progress steady and sustainable.',
-    price: '100€',
+    price: '200€',
     duration: '8 weeks',
+    hasDietician: true,
     image: fromUploads('brokolis.jpg'),
+    result: 'Sustainable results even after the program ends.',
     highlights: [
       {
         title: 'Personalized nutrition',
@@ -252,14 +294,16 @@ const programsEn = [
   {
     productId: PROGRAM_IDS.muscleGain,
     cartName: 'Muscle gain plan',
-    unitPriceCents: 10000,
+    unitPriceCents: 20000,
     title: 'Muscle gain',
     subtitle: 'More strength and visible shape',
     description:
       'A structured plan for functional strength and muscle growth. We progress loads in cycles and keep nutrition aligned with recovery and performance.',
-    price: '100€',
+    price: '200€',
     duration: '10 weeks',
+    hasDietician: true,
     image: fromUploads('paaugliu4.jpg'),
+    result: 'Visible muscle growth, increased strength, and a clear understanding of how to train in the future without guesswork.',
     highlights: [
       {
         title: 'Strength + hypertrophy blocks',
@@ -279,14 +323,15 @@ const programsEn = [
   {
     productId: PROGRAM_IDS.homeTraining,
     cartName: 'Home training plan',
-    unitPriceCents: 10000,
+    unitPriceCents: 15000,
     title: 'Home training',
     subtitle: 'Gym quality at home',
     description:
       'A complete program adapted to the equipment you have. Technique guidance and check‑ins make it feel like coaching is right next to you.',
-    price: '100€',
+    price: '150€',
     duration: '6 weeks',
     image: fromUploads('grupine8.jpg'),
+    result: 'A strong, functional body, better well-being, and a clear plan for home training without chaos.',
     highlights: [
       {
         title: 'Adapted to your equipment',
@@ -305,30 +350,41 @@ const programsEn = [
   },
   {
     productId: PROGRAM_IDS.mobility,
-    cartName: 'Mobility plan',
+    cartName: 'Mobility training program',
     unitPriceCents: 10000,
-    title: 'Mobility',
-    subtitle: 'Move better every day',
+    title: 'Mobility training',
+    subtitle: 'Daily routine (6–8 weeks)',
     description:
-      'For people who want less stiffness and better posture. We combine release work, active mobility, and functional stability to make movement feel easy again.',
+      'A program for those who want to move more freely, feel better in their body and build discipline through daily, conscious movement.',
     price: '100€',
-    duration: '5 weeks',
+    duration: '6–8 weeks',
     image: fromUploads('testavimas8.jpg'),
+    result: 'Less tension, more freedom of movement, better posture, and a stronger connection with your body.',
     highlights: [
       {
-        title: 'Mobility + breathing',
-        detail: 'Guided sequences so you know what to feel and how to breathe.',
+        title: 'Morning routine',
+        detail: 'Start the day right and prepare your body.',
       },
       {
-        title: 'Functional stability',
-        detail: 'Strength around hips, shoulders, and spine for lasting posture changes.',
+        title: 'Body awareness',
+        detail: 'Understand your body structure and movement quality.',
       },
       {
-        title: 'Posture baseline',
-        detail: 'Start with a simple assessment and track improvements.',
+        title: 'Without tension',
+        detail: 'Reduce stiffness, tension, or movement limitations.',
+      },
+      {
+        title: 'Biomechanics',
+        detail: 'Dive into biomechanical nuances for effective movement.',
       },
     ],
-    extras: ['Weekly evening joint routine', 'Workstation ergonomics guide', 'Practical progress notes'],
+    extras: [
+      'Consultation for goals and needs assessment',
+      'Individual mobility plan (10–30 min per day)',
+      'Videos with all exercises',
+      'Structure "what follows what" – no need to improvise',
+      'Self-massage and relaxation',
+    ],
   },
 ];
 
@@ -337,7 +393,7 @@ const programsByLocale = {
   en: programsEn,
 };
 
-const stories = [
+const storiesLt = [
   {
     name: 'Ingrida Brazytė-Česevičienė',
     avatar: fromUploads('atsiliepimai/470469671_9420998764591504_1367316031802033160_n-e1743524043787.jpg'),
@@ -360,7 +416,7 @@ const stories = [
     name: 'Julia Gatsko',
     avatar: fromUploads('atsiliepimai/Picture1 (1).jpg'),
     quote:
-      '“Pasha stands out with his professionalism and scientific approach – he considers your health and body condition, helping you not only look fit but also feel better. I’ve been training with him for almost a year and see great improvements in both fitness and overall well-being. Highly recommended!”',
+      '“Pasha išsiskiria profesionalumu ir moksliniu požiūriu – jis atsižvelgia į tavo sveikatą ir kūno būklę, padeda ne tik atrodyti sportiškai, bet ir jaustis geriau. Su juo treniruojuosi beveik metus ir matau didelius pokyčius tiek fizinėje formoje, tiek savijautoje. Labai rekomenduoju!”',
   },
   {
     name: 'Justė Perveneckaitė',
@@ -372,7 +428,7 @@ const stories = [
     name: 'Edvard Korovacki',
     avatar: fromUploads('atsiliepimai/Picture3 (1).jpg'),
     quote:
-      '“Pavel is an outstanding trainer who considers personal needs, motivates, and gives clear feedback. His knowledge covers not only exercises but also nutrition and recovery, helping to achieve real results. Trainings are always full of positive energy, and with him you feel welcome and inspired every time.”',
+      '“Pavelas – išskirtinis treneris, įvertinantis asmeninius poreikius, motyvuojantis ir suteikiantis aiškų grįžtamąjį ryšį. Jo žinios apima ne tik pratimus, bet ir mitybą bei atsistatymą, todėl rezultatai – realūs. Treniruotės visada pilnos pozityvios energijos, o su juo jautiesi laukiamas ir įkvėptas kiekvieną kartą.”',
   },
   {
     name: 'Greta Valasinavičiūtė',
@@ -382,13 +438,13 @@ const stories = [
   },
   {
     name: 'Tadas Kibirkštis',
-    avatar: fromUploads('atsiliepimai/302925805_5629860167034966_3216542933912186510_n.jpg'),
+    avatar: fromUploads('atsiliepimai/367460586_6616155658420913_6885742354305016905_n.jpg'),
     quote:
       '“Pavelas – tikras savo srities profesionalas. Įsigilina į situaciją, atidžiai parenka pratimus pagal būklę ir savijautą, o rezultatas jaučiasi iškart. Jis – žmogus, mylintis savo darbą ir atsiduodantis jam 100 %. Ačiū Jam ir tikrai rekomenduoju kitiems!”',
   },
   {
     name: 'Ūlė Julija Masteikaitė',
-    avatar: fromUploads('atsiliepimai/Screenshot-2025-03-19-at-5.40.07PM.png'),
+    avatar: fromUploads('atsiliepimai/Screenshot-2025-03-19-at-5.40.07 PM.png'),
     quote:
       '“Pavelas yra the absolute best 🫶 Susidūrus su nugaros skausmo problema, padėjo ją spręsti bei pasiūlė daug prevencinių pratimų. Viską aiškina suuuuper detaliai - ne tik kaip atlikti pratimą, bet taip pat ir kokie raumenys dirba bei visapusę pratimo naudą. Po treniruotės lieki ne tik pasportavęs, bet ir sužinojęs daug dalykų apie savo kūną, laikyseną, mobilumą.”',
   },
@@ -404,39 +460,127 @@ const stories = [
     quote:
       '“Vienas geriausių sprendimų – treniruotis pas Pavelą! Jis puikiai išmano savo darbą, įsiklauso į kliento poreikius bei norus, yra labai atsakingas, mylintis savo profesiją ir tiksliai žinantis, ką daro. Treniruotės praskrieja akimirksniu!”',
   },
+  {
+    name: 'Anna Levkovich',
+    avatar: fromUploads('atsiliepimai/image00001 (2).jpeg'),
+    quote:
+      '“Sportuoju pas Pavelą jau virš trejų metų ir tai geriausia, kas nutiko mano savijautai. Per šį laiką dingo nugaros skausmai bei migrena, o kūnas akivaizdžiai sutvirtėjo. Pavelas yra neįtikėtinai dėmesingas: jis ne tik atsižvelgia į moterišką ciklą, bet ir profesionaliai padėjo man atsistatyti po mastektomijos su specialiai pritaikytu planu. Nors važiuoju pas jį per visą miestą, rasti tokį empatišką specialistą yra tokia pat sėkmė, kaip rasti „savo“ gydytoją ar psichologą.”',
+  },
 ];
 
-const transformations = [
+const storiesEn = [
+  {
+    name: 'Ingrida Brazytė-Česevičienė',
+    avatar: fromUploads('atsiliepimai/470469671_9420998764591504_1367316031802033160_n-e1743524043787.jpg'),
+    quote:
+      '“Pavel is a professional, attentive and sincere coach—and a great motivator! I’ve been training for over three months and no two sessions have been the same. Workouts fly by and never feel boring. Most importantly, after each session I feel my muscles working, but it’s never been so painful that I couldn’t get out of bed.”',
+  },
+  {
+    name: 'Dovydas Sem',
+    avatar: fromUploads('atsiliepimai/485767155_2433248600372198_5450357866485351546_n-e1743523994763.jpg'),
+    quote:
+      '“I’ve been training with Pavel for my second year now and I’m definitely not stopping! I’d say working out with him has been my best choice. He helps young people build a strong foundation, introduces a wide range of exercises and how they work, and encourages a healthy lifestyle. With this coach it’s never boring—exercise variety and constant communication make you want to come to the gym!”',
+  },
+  {
+    name: 'Artūras Kozlov',
+    avatar: fromUploads('atsiliepimai/394284740_6710013242385928_5528573044851569625_n.jpg'),
+    quote:
+      '“A responsible, qualified coach who truly loves his work. You can see he prepares carefully for every session—chooses the right load and comes with a plan tailored specifically to you, not a copy‑paste scheme for everyone. Exercises are varied and interesting—there’s no monotony and you always learn something new. Most importantly, Pavel is extremely attentive: throughout the session he watches your technique, explains what each exercise is for and its benefits. He definitely doesn’t let any mistakes slip!”',
+  },
+  {
+    name: 'Julia Gatsko',
+    avatar: fromUploads('atsiliepimai/Picture1 (1).jpg'),
+    quote:
+      '“Pasha stands out with his professionalism and scientific approach—he considers your health and body condition, helping you not only look fit but also feel better. I’ve been training with him for almost a year and see great improvements in both fitness and overall well-being. Highly recommended!”',
+  },
+  {
+    name: 'Justė Perveneckaitė',
+    avatar: fromUploads('atsiliepimai/Picture2-1.jpg'),
+    quote:
+      '“I’m an athlete who used to deal with various muscle imbalances, but the coach’s personalized program helped me resolve them and get stronger. I especially value his support in recovery and injury prevention, which is crucial for long-term progress. He’s very kind, attentive, and always sincerely answers every question.”',
+  },
+  {
+    name: 'Edvard Korovacki',
+    avatar: fromUploads('atsiliepimai/Picture3 (1).jpg'),
+    quote:
+      '“Pavel is an outstanding trainer who considers personal needs, motivates, and gives clear feedback. His knowledge covers not only exercises but also nutrition and recovery, helping to achieve real results. Trainings are always full of positive energy, and with him you feel welcome and inspired every time.”',
+  },
+  {
+    name: 'Greta Valasinavičiūtė',
+    avatar: fromUploads('atsiliepimai/373064400_6180419855414750_1227222582074733444_n.jpg'),
+    quote:
+      '“Pavel is an amazing coach, and every workout with him is a source of motivation, energy and knowledge. I look forward to every session! Professionalism guaranteed—highly recommend!”',
+  },
+  {
+    name: 'Tadas Kibirkštis',
+    avatar: fromUploads('atsiliepimai/367460586_6616155658420913_6885742354305016905_n.jpg'),
+    quote:
+      '“Pavel is a true professional. He dives into the situation, carefully selects exercises based on your condition and how you feel, and the result is noticeable immediately. He’s someone who loves his work and gives it 100%. Thank you—and I definitely recommend him to others!”',
+  },
+  {
+    name: 'Ūlė Julija Masteikaitė',
+    avatar: fromUploads('atsiliepimai/Screenshot-2025-03-19-at-5.40.07 PM.png'),
+    quote:
+      '“Pavel is the absolute best 🫶 When I faced back pain, he helped me address it and suggested plenty of preventive exercises. He explains everything super thoroughly—not only how to do an exercise, but also which muscles work and the full benefit. After a workout you leave not only having trained, but also having learned a lot about your body, posture and mobility.”',
+  },
+  {
+    name: 'Roma Šablinskienė',
+    avatar: fromUploads('atsiliepimai/459630769_10230433925305293_4458957318428687233_n.jpg'),
+    quote:
+      '“How do you turn a total dislike of sport into love for it? Easy—you just need Pavel’s help! Very carefully, for a long time, I looked for someone who could help me ‘tame this beast’. My attempts at group workouts were short‑lived, so I had almost written off sport as ‘not my thing’. But after the very first session I understood that with Pavel it’s perfect chemistry! He’s a true professional who doesn’t use one scheme for everyone. Respect!”',
+  },
+  {
+    name: 'Evelina Jurčiukonytė',
+    avatar: fromUploads('atsiliepimai/302925805_5629860167034966_3216542933912186510_n.jpg'),
+    quote:
+      '“One of the best decisions—training with Pavel! He really knows his craft, listens to the client’s needs and wishes, is very responsible, loves his profession and knows exactly what he’s doing. Workouts fly by in an instant!”',
+  },
+  {
+    name: 'Anna Levkovich',
+    avatar: fromUploads('atsiliepimai/image00001 (2).jpeg'),
+    quote:
+      '“I’ve been training with Pavel for over three years and it’s the best thing that’s happened to my well-being. During this time my back pain and migraines disappeared, and my body has clearly become stronger. Pavel is incredibly attentive: he not only considers the female cycle, but also helped me recover professionally after a mastectomy with a specially adapted plan. Even though I travel across the city to train with him, finding such an empathetic specialist is as lucky as finding ‘your’ doctor or psychologist.”',
+  },
+];
+
+const storiesByLocale = {
+  lt: storiesLt,
+  en: storiesEn,
+};
+
+const transformationsLt = [
   {
     name: 'TADAS NORUŠAITIS',
     program: 'Jėgos ir raumenų auginimo',
     goal: 'Geras fizinis pasiruošimas ir mažesnis riebalinis audinys',
     result: 'Priaugo 15 kg raumenų per 9 mėnesius',
     before: {
-      image: 'https://kaliadziuk.lt/wp-content/uploads/2025/04/before-2.jpg',
+      image: fromUploads('atsiliepimai/before-2.jpg'),
       label: 'Foto prieš',
       weight: '105 kg',
     },
     after: {
-      image: 'https://kaliadziuk.lt/wp-content/uploads/2025/04/after-2.jpg',
+      image: fromUploads('atsiliepimai/after-2.jpg'),
       label: 'Foto po',
       weight: '90 kg',
     },
   },
   {
-    name: 'ATŪRAS KOZLOV',
+    name: 'ARTŪRAS KOZLOV',
     program: 'Jėgos ir raumenų auginimo',
     goal: 'Bendras fizinis pasiruošimas su akcentu į svorio metimą',
     result: 'Numetė 30 kg per metus',
     before: {
-      image: 'https://kaliadziuk.lt/wp-content/uploads/2025/04/before-3.jpg',
+      image: fromUploads('atsiliepimai/before-3.jpg'),
       label: 'Foto prieš',
       weight: '118 kg',
+      objectPosition: '60% top',
     },
     after: {
-      image: 'https://kaliadziuk.lt/wp-content/uploads/2025/04/after-3.jpg',
+      image: fromUploads('atsiliepimai/after-3.jpg'),
       label: 'Foto po',
       weight: '88 kg',
+      objectPosition: '60% top',
     },
   },
   {
@@ -445,14 +589,30 @@ const transformations = [
     goal: 'Sumažinti riebalinį audinį išlaikant raumeninę masę',
     result: 'Numetė 42 kg per pusę metų',
     before: {
-      image: 'https://kaliadziuk.lt/wp-content/uploads/2025/04/before-1.jpg',
+      image: fromUploads('atsiliepimai/before-1.jpg'),
       label: 'Foto prieš',
       weight: '125 kg',
     },
     after: {
-      image: 'https://kaliadziuk.lt/wp-content/uploads/2025/04/after-1.jpg',
+      image: fromUploads('atsiliepimai/after-1.jpg'),
       label: 'Foto po',
       weight: '83 kg',
+    },
+  },
+  {
+    name: 'MIROSLAV MICHOLČ',
+    program: 'Svorio metimo',
+    goal: 'Atsikratyti riebalinės masės',
+    result: 'Numetė 13 kg riebalinės masės per 2 mėnesius',
+    before: {
+      image: fromUploads('atsiliepimai/image00001.jpeg'),
+      label: 'Foto prieš',
+      weight: '113 kg',
+    },
+    after: {
+      image: fromUploads('atsiliepimai/image00002.jpeg'),
+      label: 'Foto po',
+      weight: '99 kg',
     },
   },
   {
@@ -461,12 +621,12 @@ const transformations = [
     goal: 'Daugiau energijos, stipresnė sveikata ir lengvesnis kūnas',
     result: 'Numetė 7 kg per 4 mėnesius',
     before: {
-      image: 'https://kaliadziuk.lt/wp-content/uploads/2025/09/Unknown-4.jpg',
+      image: fromUploads('atsiliepimai/Unknown-4 (1).jpg'),
       label: 'Foto prieš',
       weight: '67 kg',
     },
     after: {
-      image: 'https://kaliadziuk.lt/wp-content/uploads/2025/09/Po2-1.jpg',
+      image: fromUploads('atsiliepimai/Po2-1.jpg'),
       label: 'Foto po',
       weight: '60 kg',
     },
@@ -477,17 +637,123 @@ const transformations = [
     goal: 'Raumenų hipertrofija ir jėgos didinimas',
     result: 'Priaugo 10 kg raumenų per 11 mėnesių',
     before: {
-      image: 'https://kaliadziuk.lt/wp-content/uploads/2025/09/IMG_6824-scaled.jpg',
+      image: fromUploads('atsiliepimai/IMG_6824-scaled.jpg'),
       label: 'Foto prieš',
       weight: '63 kg',
     },
     after: {
-      image: 'https://kaliadziuk.lt/wp-content/uploads/2025/09/Bicepsa-scaled.jpg',
+      image: fromUploads('atsiliepimai/Bicepsa-scaled.jpg'),
       label: 'Foto po',
       weight: '73 kg',
     },
   },
 ];
+
+const transformationsEn = [
+  {
+    name: 'TADAS NORUŠAITIS',
+    program: 'Strength & muscle gain',
+    goal: 'Better overall fitness and lower body fat',
+    result: 'Gained 15 kg of muscle in 9 months',
+    before: {
+      image: fromUploads('atsiliepimai/before-2.jpg'),
+      label: 'Before photo',
+      weight: '105 kg',
+    },
+    after: {
+      image: fromUploads('atsiliepimai/after-2.jpg'),
+      label: 'After photo',
+      weight: '90 kg',
+    },
+  },
+  {
+    name: 'ARTŪRAS KOZLOV',
+    program: 'Strength & muscle gain',
+    goal: 'Overall fitness with a focus on fat loss',
+    result: 'Lost 30 kg in 1 year',
+    before: {
+      image: fromUploads('atsiliepimai/before-3.jpg'),
+      label: 'Before photo',
+      weight: '118 kg',
+      objectPosition: '60% top',
+    },
+    after: {
+      image: fromUploads('atsiliepimai/after-3.jpg'),
+      label: 'After photo',
+      weight: '88 kg',
+      objectPosition: '60% top',
+    },
+  },
+  {
+    name: 'ROKAS RUTKAUSKAS',
+    program: 'Weight loss',
+    goal: 'Reduce body fat while maintaining muscle mass',
+    result: 'Lost 42 kg in 6 months',
+    before: {
+      image: fromUploads('atsiliepimai/before-1.jpg'),
+      label: 'Before photo',
+      weight: '125 kg',
+    },
+    after: {
+      image: fromUploads('atsiliepimai/after-1.jpg'),
+      label: 'After photo',
+      weight: '83 kg',
+    },
+  },
+  {
+    name: 'MIROSLAV MICHOLČ',
+    program: 'Weight loss',
+    goal: 'Lose body fat',
+    result: 'Lost 13 kg of body fat in 2 months',
+    before: {
+      image: fromUploads('atsiliepimai/image00001.jpeg'),
+      label: 'Before photo',
+      weight: '113 kg',
+    },
+    after: {
+      image: fromUploads('atsiliepimai/image00002.jpeg'),
+      label: 'After photo',
+      weight: '99 kg',
+    },
+  },
+  {
+    name: 'JOLITA VARNAGIRIENĖ',
+    program: 'Weight loss',
+    goal: 'More energy, stronger health, and a lighter body',
+    result: 'Lost 7 kg in 4 months',
+    before: {
+      image: fromUploads('atsiliepimai/Unknown-4 (1).jpg'),
+      label: 'Before photo',
+      weight: '67 kg',
+    },
+    after: {
+      image: fromUploads('atsiliepimai/Po2-1.jpg'),
+      label: 'After photo',
+      weight: '60 kg',
+    },
+  },
+  {
+    name: 'LAURYNAS ČEPLIKAS',
+    program: 'Strength & muscle gain',
+    goal: 'Muscle hypertrophy and strength increase',
+    result: 'Gained 10 kg of muscle in 11 months',
+    before: {
+      image: fromUploads('atsiliepimai/IMG_6824-scaled.jpg'),
+      label: 'Before photo',
+      weight: '63 kg',
+    },
+    after: {
+      image: fromUploads('atsiliepimai/Bicepsa-scaled.jpg'),
+      label: 'After photo',
+      weight: '73 kg',
+    },
+  },
+];
+
+const transformationsByLocale = {
+  lt: transformationsLt,
+  en: transformationsEn,
+};
 
 const helpListLt = [
   'Atrodyti ir jaustis geriau',
@@ -514,10 +780,10 @@ const helpListByLocale = {
 
 const notHelpListLt = [
   'Tikite greitais rezultatais be nuoseklaus darbo',
-  'Nenorite įsitraukti į mitybos ir gyvenimo būdo pokyčius',
+  'Nenorite keisti mitybos ir gyvenimo būdo įpročių',
   'Ieškote „stebuklingų“ papildų ar trumpų kelių',
   'Atsisakote laikytis individualiai sudaryto plano',
-  'Neturite laiko bent kelioms treniruotėms per savaitę',
+  'Negalite skirti laiko bent kelioms treniruotėms per savaitę',
 ];
 
 const notHelpListEn = [
@@ -559,7 +825,7 @@ const servicesLt = [
   },
   {
     title: 'Asmeninės treniruotės – Vilniuje ir Varėnoje',
-    image: fromUploads('paaugliu2.jpg'),
+    image: fromUploads('IMG_0481-scaled.jpg'),
     description:
       'Individualus dėmesys, aiškus planas ir realūs rezultatai. Gauk profesionalų palaikymą kiekviename žingsnyje.',
     features: ['100 % dėmesio vienam klientui', 'Aiškios treniruočių struktūros', 'Motyvacija ir atsakomybė'],
@@ -568,7 +834,7 @@ const servicesLt = [
     title: 'Online coaching',
     image: fromUploads('Planu_darymas3.jpg'),
     description:
-      'Sportuok bet kur – gautas planas, palaikymas ir atskaitomybė padeda išlikti kelyje į tikslą net kelionėje.',
+      'Sportuok bet kur – gautas planas, palaikymas ir atsakomybė padeda išlikti kelyje į tikslą net kelionėje.',
     features: ['Individualus nuotolinis planas', 'Reguliarus palaikymas ir grįžtamasis ryšys', 'Treniruočių korekcijos pagal progresą'],
   },
   {
@@ -587,7 +853,7 @@ const servicesLt = [
   },
   {
     title: 'Sportas poroje',
-    image: fromUploads('IMG_0469-scaled.jpg'),
+    image: fromUploads('IMG_0451-scaled.jpg'),
     description:
       'Labai populiarus pasirinkimas! Dviguba motyvacija ir bendras tikslas stiprina kūną bei santykį.',
     features: ['Planai pritaikyti dviem žmonėms', 'Bendro progreso sekimas', 'Treniruotės, kurios stiprina ryšį'],
@@ -628,7 +894,7 @@ const servicesEn = [
   },
   {
     title: 'Personal training — Vilnius and Varėna',
-    image: fromUploads('paaugliu2.jpg'),
+    image: fromUploads('IMG_0481-scaled.jpg'),
     description: 'Individual attention, a clear plan, and real results with accountability.',
     features: ['100% focus on you', 'Clear training structure', 'Motivation and responsibility'],
   },
@@ -652,7 +918,7 @@ const servicesEn = [
   },
   {
     title: 'Partner training (2 people)',
-    image: fromUploads('IMG_0469-scaled.jpg'),
+    image: fromUploads('IMG_0451-scaled.jpg'),
     description: 'A popular choice: shared goals and double motivation build consistency.',
     features: ['Plans for two', 'Shared progress tracking', 'Sessions that build habits'],
   },
@@ -811,10 +1077,20 @@ function App({ locale = 'lt' }) {
   const activeLocale = locale === 'en' ? 'en' : 'lt';
   const location = useLocation();
   const [isDesktop, setIsDesktop] = useState(false);
-
-  const [toastOpen, setToastOpen] = useState(false);
+  const [contactNotice, setContactNotice] = useState(null);
+  const [contactError, setContactError] = useState(null);
+  const [contactBusy, setContactBusy] = useState(false);
+  const [expandedProgramIdsMobile, setExpandedProgramIdsMobile] = useState(() => ({}));
 
   const cartPath = activeLocale === 'lt' ? '/lt/krepselis' : '/en/cart';
+
+  const toggleProgramExpandedMobile = programId => {
+    if (!programId) return;
+    setExpandedProgramIdsMobile(prev => ({
+      ...prev,
+      [programId]: !prev?.[programId],
+    }));
+  };
 
   const onBuyProgram = program => {
     const cart = loadCart();
@@ -828,57 +1104,242 @@ function App({ locale = 'lt' }) {
     });
     saveCart(next);
 
-    // Show a popup instead of redirecting.
-    setToastOpen(true);
+    sendEvent('add_to_cart', {
+      currency: 'EUR',
+      value: Number(program.unitPriceCents || 0) / 100,
+      items: [
+        {
+          item_id: program.productId,
+          item_name: program.cartName || program.title,
+          price: Number(program.unitPriceCents || 0) / 100,
+          quantity: 1,
+        },
+      ],
+    });
+
+    // Open the global slide-out cart.
+    try {
+      window.dispatchEvent(new Event('cart:open'));
+    } catch {
+      // ignore
+    }
   };
 
-  const [testimonialsRef, testimonials] = useKeenSlider({
-    loop: true,
-    mode: 'snap',
-    renderMode: 'performance',
-    slides: {
-      perView: 1,
-      spacing: 24,
-    },
-    breakpoints: {
-      '(min-width: 768px)': {
-        slides: {
-          perView: 2,
-          spacing: 24,
+  const [testimonialsRef, testimonials] = useKeenSlider(
+    {
+      loop: true,
+      mode: 'snap',
+      renderMode: 'performance',
+      drag: true,
+      slides: {
+        perView: 1,
+        spacing: 24,
+      },
+      breakpoints: {
+        '(min-width: 768px)': {
+          slides: {
+            perView: 2,
+            spacing: 24,
+          },
+        },
+        '(min-width: 1024px)': {
+          slides: {
+            perView: 3,
+            spacing: 24,
+          },
         },
       },
-      '(min-width: 1024px)': {
-        slides: {
-          perView: 3,
-          spacing: 24,
-        },
+      defaultAnimation: {
+        duration: 800,
+        easing: t => 1 - Math.pow(1 - t, 4),
       },
     },
-  });
+    [
+      slider => {
+        let timeout;
+        let isInteracting = false;
 
-  const [servicesRef, servicesSlider] = useKeenSlider({
-    loop: true,
-    mode: 'snap',
-    renderMode: 'performance',
-    slides: {
-      perView: 1,
-      spacing: 24,
-    },
-    breakpoints: {
-      '(min-width: 768px)': {
-        slides: {
-          perView: 2,
-          spacing: 24,
+        const clearNextTimeout = () => {
+          clearTimeout(timeout);
+        };
+
+        const nextTimeout = () => {
+          clearTimeout(timeout);
+          if (isInteracting) return;
+          timeout = setTimeout(() => {
+            slider.next();
+          }, 5000);
+        };
+
+        slider.on('created', () => {
+          const container = slider.container;
+
+          const onPointerDown = () => {
+            isInteracting = true;
+            clearNextTimeout();
+          };
+          const onPointerUp = () => {
+            isInteracting = false;
+            nextTimeout();
+          };
+          const onMouseEnter = () => {
+            isInteracting = true;
+            clearNextTimeout();
+          };
+          const onMouseLeave = () => {
+            isInteracting = false;
+            nextTimeout();
+          };
+
+          container.addEventListener('pointerdown', onPointerDown, { passive: true });
+          window.addEventListener('pointerup', onPointerUp, { passive: true });
+          container.addEventListener('mouseenter', onMouseEnter, { passive: true });
+          container.addEventListener('mouseleave', onMouseLeave, { passive: true });
+
+          nextTimeout();
+
+          slider.on('destroyed', () => {
+            container.removeEventListener('pointerdown', onPointerDown);
+            window.removeEventListener('pointerup', onPointerUp);
+            container.removeEventListener('mouseenter', onMouseEnter);
+            container.removeEventListener('mouseleave', onMouseLeave);
+          });
+        });
+
+        slider.on('dragStarted', () => {
+          isInteracting = true;
+          clearNextTimeout();
+        });
+        slider.on('animationEnded', () => {
+          isInteracting = false;
+          nextTimeout();
+        });
+        slider.on('updated', nextTimeout);
+      },
+    ]
+  );
+
+  const [servicesRef, servicesSlider] = useKeenSlider(
+    {
+      loop: true,
+      mode: 'snap',
+      renderMode: 'performance',
+      drag: true,
+      slides: {
+        perView: 1,
+        spacing: 24,
+      },
+      breakpoints: {
+        '(min-width: 768px)': {
+          slides: {
+            perView: 2,
+            spacing: 24,
+          },
+        },
+        '(min-width: 1280px)': {
+          slides: {
+            perView: 3,
+            spacing: 24,
+          },
         },
       },
-      '(min-width: 1280px)': {
-        slides: {
-          perView: 3,
-          spacing: 24,
-        },
+      defaultAnimation: {
+        duration: 800,
+        easing: t => 1 - Math.pow(1 - t, 4),
       },
     },
-  });
+    [
+      slider => {
+        let timeout;
+        let isInteracting = false;
+        let resizeObserver;
+
+        const clearNextTimeout = () => {
+          clearTimeout(timeout);
+        };
+
+        const requestUpdate = () => {
+          try {
+            slider.update();
+          } catch {
+            // ignore
+          }
+        };
+
+        const nextTimeout = () => {
+          clearTimeout(timeout);
+          if (isInteracting) return;
+          timeout = setTimeout(() => {
+            slider.next();
+          }, 6000);
+        };
+
+        slider.on('created', () => {
+          const container = slider.container;
+
+          const onPointerDown = () => {
+            isInteracting = true;
+            clearNextTimeout();
+          };
+          const onPointerUp = () => {
+            isInteracting = false;
+            nextTimeout();
+          };
+          const onMouseEnter = () => {
+            isInteracting = true;
+            clearNextTimeout();
+          };
+          const onMouseLeave = () => {
+            isInteracting = false;
+            nextTimeout();
+          };
+
+          container.addEventListener('pointerdown', onPointerDown, { passive: true });
+          window.addEventListener('pointerup', onPointerUp, { passive: true });
+          container.addEventListener('mouseenter', onMouseEnter, { passive: true });
+          container.addEventListener('mouseleave', onMouseLeave, { passive: true });
+
+          if (typeof ResizeObserver !== 'undefined') {
+            resizeObserver = new ResizeObserver(() => {
+              requestAnimationFrame(requestUpdate);
+            });
+            resizeObserver.observe(container);
+          }
+
+          // Defensive: ensure correct initial measurements after images/fonts settle.
+          requestAnimationFrame(requestUpdate);
+          window.setTimeout(requestUpdate, 50);
+
+          nextTimeout();
+
+          slider.on('destroyed', () => {
+            container.removeEventListener('pointerdown', onPointerDown);
+            window.removeEventListener('pointerup', onPointerUp);
+            container.removeEventListener('mouseenter', onMouseEnter);
+            container.removeEventListener('mouseleave', onMouseLeave);
+            resizeObserver?.disconnect();
+          });
+        });
+
+        slider.on('dragStarted', () => {
+          isInteracting = true;
+          clearNextTimeout();
+        });
+        slider.on('animationEnded', () => {
+          isInteracting = false;
+          nextTimeout();
+        });
+        slider.on('updated', nextTimeout);
+      },
+    ]
+  );
+
+  useEffect(() => {
+    // Services slides change with locale; force Keen Slider to re-measure.
+    requestAnimationFrame(() => servicesSlider.current?.update());
+    window.setTimeout(() => servicesSlider.current?.update(), 50);
+    window.setTimeout(() => servicesSlider.current?.update(), 200);
+  }, [activeLocale]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 768px)');
@@ -910,61 +1371,67 @@ function App({ locale = 'lt' }) {
     [
       slider => {
         let timeout;
-        let mouseOver = false;
+        let isInteracting = false;
 
-        function clearNextTimeout() {
+        const clearNextTimeout = () => {
           clearTimeout(timeout);
-        }
+        };
 
-        function nextTimeout() {
+        const nextTimeout = () => {
           clearTimeout(timeout);
-          if (mouseOver) return;
+          if (isInteracting) return;
           timeout = setTimeout(() => {
             slider.next();
           }, 7000);
-        }
+        };
 
         slider.on('created', () => {
-          slider.container.addEventListener('mouseover', () => {
-            mouseOver = true;
+          const container = slider.container;
+
+          const onPointerDown = () => {
+            isInteracting = true;
             clearNextTimeout();
-          });
-          slider.container.addEventListener('mouseout', () => {
-            mouseOver = false;
+          };
+          const onPointerUp = () => {
+            isInteracting = false;
             nextTimeout();
+          };
+          const onMouseEnter = () => {
+            isInteracting = true;
+            clearNextTimeout();
+          };
+          const onMouseLeave = () => {
+            isInteracting = false;
+            nextTimeout();
+          };
+
+          container.addEventListener('pointerdown', onPointerDown, { passive: true });
+          window.addEventListener('pointerup', onPointerUp, { passive: true });
+          container.addEventListener('mouseenter', onMouseEnter, { passive: true });
+          container.addEventListener('mouseleave', onMouseLeave, { passive: true });
+
+          nextTimeout();
+
+          slider.on('destroyed', () => {
+            container.removeEventListener('pointerdown', onPointerDown);
+            window.removeEventListener('pointerup', onPointerUp);
+            container.removeEventListener('mouseenter', onMouseEnter);
+            container.removeEventListener('mouseleave', onMouseLeave);
           });
+        });
+
+        slider.on('dragStarted', () => {
+          isInteracting = true;
+          clearNextTimeout();
+        });
+        slider.on('animationEnded', () => {
+          isInteracting = false;
           nextTimeout();
         });
-        slider.on('dragStarted', clearNextTimeout);
-        slider.on('animationEnded', nextTimeout);
         slider.on('updated', nextTimeout);
       },
     ]
   );
-
-  useEffect(() => {
-    if (!testimonials) {
-      return undefined;
-    }
-
-    const interval = window.setInterval(() => {
-      testimonials.current?.next();
-    }, 5000);
-
-    return () => window.clearInterval(interval);
-  }, [testimonials]);
-
-  useEffect(() => {
-    if (!servicesSlider) {
-      return undefined;
-    }
-
-    const interval = window.setInterval(() => {
-      servicesSlider.current?.next();
-    }, 6000);
-
-    return () => window.clearInterval(interval);
-  }, [servicesSlider]);
 
   useEffect(() => {
     AOS.init({ once: true, duration: 700, easing: 'ease-out-cubic' });
@@ -979,8 +1446,8 @@ function App({ locale = 'lt' }) {
           backgroundMobile={heroImageMobile}
           title={
             activeLocale === 'lt'
-              ? 'Asmeninės treniruotės, kurios keičia jūsų kūną ir mąstymą per 30 dienų'
-              : 'Personal training that transforms your body and mindset in 30 days'
+              ? 'Asmeninis treneris Vilniuje: raumenų auginimas ir svorio metimas'
+              : 'Personal trainer in Vilnius: muscle gain and fat loss'
           }
           ctaLabel={activeLocale === 'lt' ? 'Peržiūrėti planus' : 'View plans'}
         />
@@ -1004,8 +1471,8 @@ function App({ locale = 'lt' }) {
                   {activeLocale === 'lt' ? (
                     <>
                       <p>
-                        Labas, aš Pavel — sveikatingumo treneris ir biomechanikos specialistas, jau daugiau nei aštuonerius metus
-                        padedantis žmonėms ne tik sustiprėti fiziškai, bet ir atrasti vidinę ramybę bei pasitikėjimą savimi.
+                        Labas, aš Pavel Kaliadziuk — asmeninis treneris Vilniuje, sveikatingumo treneris ir biomechanikos specialistas,
+                        jau daugiau nei aštuonerius metus padedantis žmonėms raumenų auginimo, svorio metimo ir judėjimo be skausmo kelyje.
                       </p>
                       <p>
                         Mano kelionė sporte prasidėjo dar būnant septynerių. Nuo pat vaikystės jutau tą vidinę ugnį — norą atrasti save,
@@ -1113,61 +1580,106 @@ function App({ locale = 'lt' }) {
                     <img src={plan.image} alt={plan.title} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/70" />
                     <div className="relative z-10 flex h-full flex-col justify-between p-8 sm:p-10 text-white">
-                      <div className="space-y-3">
+                      <button
+                        type="button"
+                        onClick={() => toggleProgramExpandedMobile(plan.productId)}
+                        aria-expanded={Boolean(expandedProgramIdsMobile?.[plan.productId])}
+                        aria-controls={`program-details-${plan.productId || index}`}
+                        className="md:hidden !absolute bottom-6 right-6 z-20 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full glass-green-surface text-2xl font-semibold leading-none text-black shadow-[0_18px_45px_rgba(15,23,42,0.25)] transition hover:brightness-95"
+                      >
+                        {expandedProgramIdsMobile?.[plan.productId] ? '-' : '+'}
+                      </button>
+                      <div className="space-y-4">
                         <p className="text-sm font-semibold uppercase tracking-widest text-white/70">{plan.subtitle}</p>
-                        <h3 className="font-heading text-3xl font-black leading-tight sm:text-4xl">{plan.title}</h3>
+                        <h3 className="font-heading text-2xl font-black leading-tight sm:text-4xl">{plan.title}</h3>
                       </div>
-                      <div className="flex flex-wrap gap-3 text-sm font-semibold">
+                      <div className="flex flex-wrap gap-4 text-sm font-semibold">
                         <span className="glass-card rounded-full px-4 py-2 text-white/90">{plan.duration}</span>
+                        {plan.hasDietician && (
+                          <span className="glass-card flex items-center gap-2 rounded-full px-4 py-2 text-white/90">
+                            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white text-black">
+                              <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                              </svg>
+                            </span>
+                            {activeLocale === 'lt' ? 'Parengta su dietologu' : 'Approved by dietician'}
+                          </span>
+                        )}
                         <span className="glass-card rounded-full px-4 py-2 text-white">{plan.price}</span>
                       </div>
                     </div>
                   </div>
-                  <div className="flex flex-col flex-1 gap-8 bg-white p-8 sm:p-10 text-slate-900">
-                    <p className="text-lg leading-relaxed text-slate-600">{plan.description}</p>
+                  <div
+                    id={`program-details-${plan.productId || index}`}
+                    className={`flex flex-col flex-1 gap-8 bg-white p-8 sm:p-10 text-slate-900 ${expandedProgramIdsMobile?.[plan.productId] ? 'flex' : 'hidden'} md:flex`}
+                  >
+                    <p className="text-base leading-relaxed text-slate-600">{plan.description}</p>
+
                     <div className="grid gap-6 md:grid-cols-2">
                       {plan.highlights.map(highlight => (
                         <div
                           key={highlight.title}
-                          className="rounded-3xl border border-slate-100 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.08)]"
+                          className="rounded-3xl border border-slate-100 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]"
                         >
                           <p className="text-sm font-semibold uppercase tracking-widest text-slate-500">{highlight.title}</p>
-                          <p className="mt-3 text-sm text-slate-600">{highlight.detail}</p>
+                          <p className="mt-4 text-sm text-slate-600">{highlight.detail}</p>
                         </div>
                       ))}
                     </div>
-                    <div className="mt-auto space-y-3">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+                    <div className="space-y-4">
+                      <p className="text-sm font-semibold uppercase tracking-widest text-slate-400">
                         {activeLocale === 'lt' ? 'Į paketą įeina' : "What's included"}
                       </p>
-                      <ul className="space-y-3">
+                      <ul className="space-y-4">
                         {plan.extras.map(extra => (
-                          <li key={extra} className="flex items-start gap-3 text-sm text-slate-600">
-                            <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full glass-green-surface text-xs font-bold text-slate-900">
-                              &bull;
+                          <li key={extra} className="flex items-start gap-4 text-sm text-slate-600">
+                            <span className="mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full glass-green-surface text-sm font-bold text-slate-900">
+                              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                              </svg>
                             </span>
                             <span>{extra}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
-                    <div className="flex flex-wrap items-center gap-4 pt-2">
-                      <button
-                        type="button"
-                        onClick={() => onBuyProgram(plan)}
-                        className="inline-flex items-center gap-2 rounded-full glass-green-surface px-7 py-3 text-base font-semibold text-black transition hover:bg-slate-900 hover:text-white"
-                      >
-                        {activeLocale === 'lt' ? 'Pirkti' : 'Buy'}
-                        <span className="inline-block text-xl">&rarr;</span>
-                      </button>
-                      <span className="text-xs uppercase tracking-widest text-slate-400">
-                        {activeLocale === 'lt' ? 'Nemokama konsultacija prieš startą' : 'Free consultation before you start'}
-                      </span>
+
+                    <div className="mt-auto space-y-8">
+                      {plan.result && (
+                        <div className="rounded-3xl bg-slate-50 p-6 border border-slate-100">
+                          <p className="font-heading text-base font-extrabold uppercase tracking-wide text-slate-900 mb-2">
+                            {activeLocale === 'lt' ? 'Rezultatas' : 'The Result'}
+                          </p>
+                          <p className="text-base font-medium text-slate-700 leading-relaxed">{plan.result}</p>
+                        </div>
+                      )}
+                      <div className="flex flex-wrap items-center gap-4">
+                        <button
+                          type="button"
+                          onClick={() => onBuyProgram(plan)}
+                          className="inline-flex items-center gap-2 rounded-full glass-green-surface px-8 py-4 text-base font-semibold text-black transition hover:bg-slate-900 hover:text-white"
+                        >
+                          {activeLocale === 'lt' ? 'Pirkti' : 'Buy'}
+                        </button>
+                        <a
+                          href="#kontaktai"
+                          className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-8 py-4 text-base font-semibold text-slate-900 transition hover:border-accent hover:text-accent"
+                        >
+                          {activeLocale === 'lt' ? 'Nemokama konsultacija' : 'Free consultation'}
+                        </a>
+                      </div>
                     </div>
                   </div>
                 </article>
               ))}
             </div>
+            {activeLocale === 'lt' && (
+              <div className="mt-12 mx-auto max-w-4xl text-center">
+                <p className="text-lg leading-relaxed text-black font-semibold">
+                  Po apmokėjimo su Jumis susisieksiu ir suderinsiu nemokamą pirmąją nuotolinę konsultaciją. Jos metu įvertinsiu Jūsų kūno poreikius, galimybes ir tikslus. Po konsultacijos sudarysiu treniruočių planą – gyvą arba nuotolinę treniruotę – ir atsakysiu į visus Jums rūpimus klausimus.
+                </p>
+              </div>
+            )}
           </div>
         </section>
 
@@ -1189,12 +1701,74 @@ function App({ locale = 'lt' }) {
                 className="keen-slider overflow-hidden will-change-transform"
               >
                 {/* simplified loop: no overlay */}
-                {transformations.map((item, index) => {
+                {transformationsByLocale[activeLocale].map((item, index) => {
                   const storyNumber = index + 1;
                   const photos = [
                     { key: 'before', ...item.before },
                     { key: 'after', ...item.after },
                   ];
+
+                  const capitalizeFirst = (value) => {
+                    const s = String(value || '').trim();
+                    if (!s) return s;
+                    const first = s[0];
+                    const upper = first.toLocaleUpperCase('lt-LT');
+                    return `${upper}${s.slice(1)}`;
+                  };
+
+                  const normalizeLtPeriod = (value) => {
+                    const s = String(value || '').trim();
+                    if (!s) return s;
+
+                    // Specific common phrases from our results.
+                    if (/^metus$/i.test(s)) return 'metai';
+                    if (/^pusę\s+metų$/i.test(s)) return 'pusė metų';
+
+                    let m = s.match(/^(\d+)\s+mėnes(ius|į)$/i);
+                    if (m) {
+                      const n = Number(m[1]);
+                      if (!Number.isFinite(n)) return s;
+                      if (n === 1) return '1 mėnuo';
+                      if (n >= 10) return `${n} mėnesių`;
+                      return `${n} mėnesiai`;
+                    }
+
+                    m = s.match(/^(\d+)\s+metus$/i);
+                    if (m) {
+                      const n = Number(m[1]);
+                      if (!Number.isFinite(n)) return s;
+                      if (n === 1) return '1 metai';
+                      if (n >= 10) return `${n} metų`;
+                      return `${n} metai`;
+                    }
+
+                    return s;
+                  };
+
+                  const extractPeriodFromResult = (resultText) => {
+                    const s = String(resultText || '').trim();
+                    if (!s) return null;
+
+                    // Prefer a trailing "per ..." (LT) or "in ..." (EN) clause.
+                    const m = s.match(/\s+(per|in)\s+([^.;,]+)\s*$/i);
+                    if (!m) return null;
+
+                    const raw = String(m[2] || '').trim();
+                    if (!raw) return null;
+                    return raw;
+                  };
+
+                  const stripPeriodFromResult = (resultText) => {
+                    const s = String(resultText || '').trim();
+                    if (!s) return s;
+                    return s.replace(/\s+(per|in)\s+([^.;,]+)\s*$/i, '').trim();
+                  };
+
+                  const periodTextRaw = extractPeriodFromResult(item.result);
+                  const periodText = periodTextRaw
+                    ? (activeLocale === 'lt' ? capitalizeFirst(normalizeLtPeriod(periodTextRaw)) : periodTextRaw)
+                    : null;
+                  const resultTextPc = stripPeriodFromResult(item.result);
 
                   return (
                     <article
@@ -1206,23 +1780,26 @@ function App({ locale = 'lt' }) {
                           {/* removed: Kliento istorija and Asmeninis planas as requested */}
                           <h3 className="font-heading text-3xl font-black tracking-tight text-white">{item.name}</h3>
                           <dl className="space-y-3 text-sm text-white">
-                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                              <dt className="text-xs font-semibold uppercase tracking-[0.25em] text-white/60">
-                                {activeLocale === 'lt' ? 'Programa' : 'Program'}
-                              </dt>
-                              <dd className="mt-2 text-base font-medium text-white">{item.program}</dd>
-                            </div>
-                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 lg:p-5">
                               <dt className="text-xs font-semibold uppercase tracking-[0.25em] text-white/60">
                                 {activeLocale === 'lt' ? 'Tikslas' : 'Goal'}
                               </dt>
-                              <dd className="mt-2 text-base font-medium text-white">{item.goal}</dd>
+                              <dd className="mt-2 text-base font-medium text-white lg:text-lg">{item.goal}</dd>
                             </div>
-                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                            {periodText ? (
+                              <div className="hidden lg:block rounded-2xl border border-white/10 bg-white/5 p-4 lg:p-5">
+                                <dt className="text-xs font-semibold uppercase tracking-[0.25em] text-white/60">
+                                  {activeLocale === 'lt' ? 'Laikotarpis' : 'Period'}
+                                </dt>
+                                <dd className="mt-2 text-base font-medium text-white lg:text-lg">{periodText}</dd>
+                              </div>
+                            ) : null}
+                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 lg:p-5">
                               <dt className="text-xs font-semibold uppercase tracking-[0.25em] text-white/60">
                                 {activeLocale === 'lt' ? 'Rezultatai' : 'Results'}
                               </dt>
-                              <dd className="mt-2 text-base font-semibold text-white">{item.result}</dd>
+                              <dd className="mt-2 text-base font-medium text-white lg:hidden">{item.result}</dd>
+                              <dd className="mt-2 hidden text-base font-medium text-white lg:block lg:text-lg">{resultTextPc}</dd>
                             </div>
                           </dl>
                         </div>
@@ -1247,7 +1824,8 @@ function App({ locale = 'lt' }) {
                               <img
                                 src={photo.image}
                                 alt={`${item.name} ${altSuffix}`}
-                                  className="h-64 w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02] md:h-72 lg:h-[420px]"
+                                className="h-64 w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02] md:h-72 lg:h-[420px]"
+                                style={{ objectPosition: photo.objectPosition || 'center top' }}
                                 loading="lazy"
                               />
                               <figcaption className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/70 px-4 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-white">
@@ -1301,7 +1879,7 @@ function App({ locale = 'lt' }) {
               </p>
             </div>
             <div className="relative mt-16" data-aos="fade-up">
-              <div ref={servicesRef} className="keen-slider">
+              <div key={`services-${activeLocale}`} ref={servicesRef} className="keen-slider">
                 {servicesByLocale[activeLocale].map((service, index) => (
                   <div key={service.title} className="keen-slider__slide py-12 px-4">
                     <article
@@ -1378,16 +1956,16 @@ function App({ locale = 'lt' }) {
                 </div>
                 <div className="glass-card space-y-4 rounded-3xl p-6 text-sm text-white sm:p-8">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full glass-green-surface text-black font-semibold">01</span>
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full glass-green-surface text-black font-semibold">01</span>
                     <span>{activeLocale === 'lt' ? 'Pasirinkite kupono vertę ir gavėją' : 'Choose the voucher amount and recipient'}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full glass-green-surface text-black font-semibold">02</span>
-                    <span>{activeLocale === 'lt' ? 'Sudarysime personalizuotą planą ir tvarkaraštį' : 'We create a personalized plan and schedule'}</span>
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full glass-green-surface text-black font-semibold">02</span>
+                    <span>{activeLocale === 'lt' ? 'Sudarysiu personalizuotą planą ir tvarkaraštį' : 'We create a personalized plan and schedule'}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full glass-green-surface text-black font-semibold">03</span>
-                    <span>{activeLocale === 'lt' ? 'Stebėsime pažangą ir suteiksime grįžtamąjį ryšį' : 'We track progress and give feedback'}</span>
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full glass-green-surface text-black font-semibold">03</span>
+                    <span>{activeLocale === 'lt' ? 'Stebėsiu pažangą ir suteiksiu grįžtamąjį ryšį' : 'We track progress and give feedback'}</span>
                   </div>
                 </div>
               </div>
@@ -1426,7 +2004,7 @@ function App({ locale = 'lt' }) {
             </div>
             <div className="relative mt-16">
               <div ref={testimonialsRef} className="keen-slider overflow-visible">
-                {stories.map((story, index) => (
+                {storiesByLocale[activeLocale].map((story, index) => (
                   <div key={story.name} className="keen-slider__slide py-12 px-4">
                     <article
                       className="flex flex-col h-full rounded-[32px] border border-slate-200 bg-white/90 p-8"
@@ -1449,7 +2027,11 @@ function App({ locale = 'lt' }) {
                               key={starIndex}
                               viewBox="0 0 20 20"
                               fill="currentColor"
-                              className="h-4 w-4"
+                              stroke="currentColor"
+                              strokeWidth="1.2"
+                              vectorEffect="non-scaling-stroke"
+                              paintOrder="stroke fill"
+                              className="h-4 w-4 stroke-black"
                             >
                               <path d="M9.049 2.927a1 1 0 0 1 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462a1 1 0 0 1 .588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292a1 1 0 0 1-1.538 1.118L10 13.347l-2.987 2.133a1 1 0 0 1-1.538-1.118l1.07-3.292a1 1 0 0 0-.364-1.118l-2.8-2.034a1 1 0 0 1 .588-1.81h3.462a1 1 0 0 0 .95-.69z" />
                             </svg>
@@ -1492,7 +2074,7 @@ function App({ locale = 'lt' }) {
               <ul className="grid gap-3 text-base text-black">
                 {helpListByLocale[activeLocale].map(item => (
                   <li key={item} className="flex items-center gap-3">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full glass-green-surface text-black">+</span>
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full glass-green-surface text-black">+</span>
 
                     {item}
                   </li>
@@ -1501,12 +2083,12 @@ function App({ locale = 'lt' }) {
             </div>
             <div className="space-y-6" data-aos="fade-up" data-aos-delay="100">
               <h3 className="font-heading text-4xl font-black uppercase text-black">
-                {activeLocale === 'lt' ? 'Negaliu jums padėti, jei siekiate:' : "I'm not a fit if you:"}
+                {activeLocale === 'lt' ? 'Negaliu jums padėti, jeigu:' : "I'm not a fit if you:"}
               </h3>
               <ul className="grid gap-3 text-base text-black">
                 {notHelpListByLocale[activeLocale].map(item => (
                   <li key={item} className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-white">-</span>
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white">-</span>
 
                     {item}
                   </li>
@@ -1541,16 +2123,16 @@ function App({ locale = 'lt' }) {
                   <p className="font-semibold text-black">{activeLocale === 'lt' ? 'Ką gausite:' : 'What you get:'}</p>
                   <ul className="space-y-3">
                     <li className="flex items-center gap-3">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full glass-green-surface text-black">+</span>
-                      <span>{activeLocale === 'lt' ? 'Asmeninis įvertinimas ir aiškus startas.' : 'A clear starting point and assessment.'}</span>
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full glass-green-surface text-black">+</span>
+                      <span>{activeLocale === 'lt' ? 'Asmeninį įvertinimą ir aiškų startą' : 'A clear starting point and assessment.'}</span>
                     </li>
                     <li className="flex items-center gap-3">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full glass-green-surface text-black">+</span>
-                      <span>{activeLocale === 'lt' ? 'Pritaikytos mitybos bei treniruočių kryptys.' : 'Nutrition and training direction tailored to you.'}</span>
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full glass-green-surface text-black">+</span>
+                      <span>{activeLocale === 'lt' ? 'Pritaikytas mitybos bei treniruočių kryptis' : 'Nutrition and training direction tailored to you.'}</span>
                     </li>
                     <li className="flex items-center gap-3">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full glass-green-surface text-black">+</span>
-                      <span>{activeLocale === 'lt' ? 'Atsakymai į visus klausimus apie treniruočių procesą.' : 'Answers to all your questions about the process.'}</span>
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full glass-green-surface text-black">+</span>
+                      <span>{activeLocale === 'lt' ? 'Atsakymus į visus klausimus apie treniruočių procesą' : 'Answers to all your questions about the process.'}</span>
                     </li>
                   </ul>
                 </div>
@@ -1579,16 +2161,94 @@ function App({ locale = 'lt' }) {
               </div>
               <form
                 className="order-1 lg:order-2 space-y-5 rounded-[32px] bg-white p-8 text-black shadow-[0_30px_120px_rgba(0,0,0,0.35)]"
-                onSubmit={event => {
+                onSubmit={async (event) => {
                   event.preventDefault();
-                  alert(
-                    activeLocale === 'lt'
-                      ? 'Ačiū! Jūsų žinutė gauta. Susisieksiu kuo greičiau.'
-                      : 'Thanks! Your message was received. I will contact you soon.'
-                  );
-                  event.currentTarget.reset();
+                  setContactNotice(null);
+                  setContactError(null);
+                  setContactBusy(true);
+
+                  try {
+                    const base = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL;
+                    if (!base) throw new Error('Missing VITE_SUPABASE_FUNCTIONS_URL');
+                    const url = `${String(base).replace(/\/$/, '')}/contact-form`;
+
+                    const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+                    if (!anonKey) throw new Error('Missing VITE_SUPABASE_ANON_KEY');
+
+                    const form = event.currentTarget;
+                    const fd = new FormData(form);
+
+                    const payload = {
+                      locale: activeLocale,
+                      name: String(fd.get('name') || '').trim(),
+                      phone: String(fd.get('phone') || '').trim(),
+                      email: String(fd.get('email') || '').trim(),
+                      message: String(fd.get('message') || '').trim(),
+                      page_url: typeof window !== 'undefined' ? window.location.href : null,
+                    };
+
+                    const headers = {
+                      'Content-Type': 'application/json',
+                      apikey: anonKey,
+                      Authorization: `Bearer ${anonKey}`,
+                    };
+
+                    // Supabase Edge Functions gateway expects both `apikey` and `Authorization`.
+                    // New-format keys like `sb_publishable_...` are not JWTs, but still must be sent
+                    // as `Authorization: Bearer <key>` for the gateway to authorize the request.
+
+                    const resp = await fetch(url, {
+                      method: 'POST',
+                      headers,
+                      body: JSON.stringify(payload),
+                    });
+
+                    const body = await resp.json().catch(() => ({}));
+                    if (!resp.ok) {
+                      const code = body?.error || body?.message || `http_${resp.status}`;
+                      const err = new Error(code);
+                      err.status = resp.status;
+                      throw err;
+                    }
+
+                    setContactNotice(
+                      activeLocale === 'lt'
+                        ? 'Ačiū! Jūsų žinutė išsiųsta. Susisieksiu kuo greičiau.'
+                        : 'Thanks! Your message was sent. I will contact you soon.'
+                    );
+                    form.reset();
+                  } catch (e) {
+                    const status = Number(e?.status || 0);
+                    if (status === 401) {
+                      setContactError(
+                        activeLocale === 'lt'
+                          ? 'Nepavyko išsiųsti (401). Patikrinkite VITE_SUPABASE_ANON_KEY ir VITE_SUPABASE_FUNCTIONS_URL (ar tai tas pats Supabase projektas) bei ar contact-form Edge Function leidžia anoniminius kvietimus.'
+                          : 'Failed to send (401). Check VITE_SUPABASE_ANON_KEY and VITE_SUPABASE_FUNCTIONS_URL (same Supabase project) and that the contact-form Edge Function allows anonymous calls.'
+                      );
+                      return;
+                    }
+                    setContactError(
+                      activeLocale === 'lt'
+                        ? 'Nepavyko išsiųsti. Pabandykite dar kartą.'
+                        : 'Failed to send. Please try again.'
+                    );
+                  } finally {
+                    setContactBusy(false);
+                  }
                 }}
               >
+                {contactNotice ? (
+                  <div role="status" className="rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm text-black shadow-sm">
+                    <div className="font-semibold">{activeLocale === 'lt' ? 'Išsiųsta' : 'Sent'}</div>
+                    <div className="mt-1 text-black/70">{contactNotice}</div>
+                  </div>
+                ) : null}
+                {contactError ? (
+                  <div role="alert" className="rounded-2xl border border-red-200 bg-white px-4 py-3 text-sm text-black shadow-sm">
+                    <div className="font-semibold">{activeLocale === 'lt' ? 'Klaida' : 'Error'}</div>
+                    <div className="mt-1 text-black/70">{contactError}</div>
+                  </div>
+                ) : null}
                 <div>
                   <label htmlFor="name" className="text-sm font-semibold text-black">
                     {activeLocale === 'lt' ? 'Jūsų vardas' : 'Your name'}
@@ -1599,7 +2259,6 @@ function App({ locale = 'lt' }) {
                     type="text"
                     placeholder={activeLocale === 'lt' ? 'Įrašykite savo vardą' : 'Enter your name'}
                     className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-black placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
-                    required
                   />
                 </div>
                 <div>
@@ -1646,40 +2305,52 @@ function App({ locale = 'lt' }) {
                     className="mt-1 h-5 w-5 rounded border border-slate-400 bg-white text-accent focus:ring-accent"
                     required
                   />
-                  <span>{activeLocale === 'lt' ? 'Sutinku su privatumo politika' : 'I agree to the privacy policy'}</span>
+                  <span>
+                    {activeLocale === 'lt' ? 'Sutinku su ' : 'I agree to the '}
+                    <a
+                      href={activeLocale === 'lt' ? '/lt/privatumas' : '/en/privacy'}
+                      className="underline underline-offset-2 hover:text-accent"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {activeLocale === 'lt' ? 'privatumo politika' : 'privacy policy'}
+                    </a>
+                  </span>
                 </label>
                 <button
                   type="submit"
+                  disabled={contactBusy}
                   className="w-full rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-accent hover:text-black"
                 >
-                  {activeLocale === 'lt' ? 'Siųsti užklausą' : 'Send message'}
+                  {contactBusy
+                    ? (activeLocale === 'lt' ? 'Siunčiama…' : 'Sending…')
+                    : (activeLocale === 'lt' ? 'Siųsti užklausą' : 'Send message')}
                 </button>
               </form>
             </div>
           </div>
         </section>
 
-        <section className="bg-accent py-32 text-center">
-          <h2 className="font-heading text-6xl font-black uppercase tracking-tight text-black">Kaliadziuk</h2>
+        <section className="bg-accent py-32 text-center flex justify-center">
+          <img
+            src={fromUploads('Branding/Pozityvi-full-TP-RGB.png')}
+            alt="Kaliadziuk"
+            className="h-32 w-auto object-contain"
+            loading="lazy"
+          />
         </section>
       </main>
 
       <footer className="border-t border-black bg-white py-10">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 text-sm text-black md:flex-row md:items-center md:justify-between">
           <p>Kaliadziuk &copy; 2025. Visos teises saugomos.</p>
-          <a href="#" className="text-sm font-medium text-black transition hover:text-accent">
+          <a
+            href={activeLocale === 'lt' ? '/lt/privatumas' : '/en/privacy'}
+            className="text-sm font-medium text-black transition hover:text-accent"
+          >
             {activeLocale === 'lt' ? 'Privatumo politika' : 'Privacy policy'}
           </a>
         </div>
       </footer>
-
-      <CartToast
-        open={toastOpen}
-        onClose={() => setToastOpen(false)}
-        title={activeLocale === 'lt' ? 'Pridėta į krepšelį' : 'Added to cart'}
-        actionLabel={activeLocale === 'lt' ? 'Atidaryti krepšelį' : 'Open cart'}
-        actionTo={cartPath}
-      />
     </div>
   );
 }

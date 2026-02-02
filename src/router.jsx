@@ -16,6 +16,9 @@ import Cancel from './pages/Cancel';
 import Payment from './pages/Payment';
 import Admin from './pages/Admin';
 import NotFound from './pages/NotFound';
+import Auth from './pages/Auth';
+import Account from './pages/Account';
+import RequireAuth from './auth/RequireAuth.jsx';
 
 function RootRedirect() {
   const navigate = useNavigate();
@@ -39,6 +42,11 @@ function LocaleShell() {
     if (!locale) return;
     persistLocale(locale);
     if (i18n.language !== locale) i18n.changeLanguage(locale);
+    try {
+      document.documentElement.lang = locale;
+    } catch {
+      // ignore
+    }
   }, [location.pathname, i18n]);
 
   return (
@@ -53,6 +61,14 @@ function LocaleShell() {
   );
 }
 
+function RequireAuthWrapper({ locale }) {
+  return (
+    <RequireAuth locale={locale}>
+      <Account />
+    </RequireAuth>
+  );
+}
+
 export default function AppRouter() {
   return (
     <Routes>
@@ -61,6 +77,12 @@ export default function AppRouter() {
       <Route element={<LocaleShell />}>
         <Route path="/lt" element={<HomeLtLegacy />} />
         <Route path="/en" element={<HomeLtLegacy />} />
+
+        <Route path="/lt/prisijungti" element={<Auth />} />
+        <Route path="/en/login" element={<Auth />} />
+
+        <Route path="/lt/paskyra" element={<RequireAuthWrapper locale="lt" />} />
+        <Route path="/en/account" element={<RequireAuthWrapper locale="en" />} />
 
         <Route path="/lt/planai" element={<Plans />} />
         <Route path="/en/plans" element={<Plans />} />

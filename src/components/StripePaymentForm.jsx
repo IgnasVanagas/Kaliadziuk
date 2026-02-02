@@ -64,10 +64,6 @@ export default function StripePaymentForm({ locale, returnUrl }) {
         {busy ? t('cart.payment.processing') : t('cart.payment.pay')}
       </button>
 
-      <p className="text-xs text-black/60">
-        {t('cart.checkoutNote')}
-      </p>
-
       {/* Keep locale prop referenced so it’s explicit and future-proof */}
       <span className="sr-only">{locale}</span>
     </div>

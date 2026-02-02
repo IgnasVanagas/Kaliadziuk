@@ -11,6 +11,9 @@ verify_jwt = false
 [functions.validate-gift-card]
 verify_jwt = false
 
+[functions.contact-form]
+verify_jwt = false
+
 # Stripe webhooks come from Stripe, not a logged-in user
 [functions.stripe-webhook]
 verify_jwt = false

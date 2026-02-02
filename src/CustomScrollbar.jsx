@@ -113,11 +113,11 @@ export default function CustomScrollbar() {
   return (
     <div 
       ref={trackRef}
-      className="fixed right-0 top-0 bottom-0 w-6 z-[9995] bg-black"
+      className="fixed right-0 top-0 bottom-0 w-6 z-[9995] bg-white"
     >
       <div 
         ref={thumbRef}
-        className="w-full rounded-full bg-accent border-4 border-black transition-filter duration-200"
+        className="w-full rounded-full bg-accent border-4 border-white transition-filter duration-200"
         style={{ position: 'absolute', right: 0 }}
       />
     </div>

@@ -1,8 +1,19 @@
 import { corsHeaders, handleOptions } from '../_shared/cors.ts';
 import { getServiceClient } from '../_shared/supabase.ts';
 import { getStripe } from '../_shared/stripe.ts';
-import { normalizeGiftCode, sha256Hex } from '../_shared/crypto.ts';
+import { normalizeGiftCode, randomGiftCode, sha256Hex } from '../_shared/crypto.ts';
 import { rateLimit } from '../_shared/rateLimit.ts';
+import { renderAdminNewOrderPaid, renderOrderPaidEmail, sendEmail } from '../_shared/email.ts';
+
+declare const Deno: {
+  env: { get(name: string): string | undefined };
+  serve: (handler: (req: Request) => Promise<Response> | Response) => void;
+};
+
+function formatEur(cents: number) {
+  const value = (Number(cents || 0) / 100).toFixed(2);
+  return `${value} EUR`;
+}
 
 type CartItem = {
   kind: 'product' | 'gift_card';
@@ -14,7 +25,25 @@ type CartItem = {
   meta?: Record<string, unknown>;
 };
 
-Deno.serve(async (req) => {
+const PRIVATE_TEST_PRODUCT_ID = 'private_test_1eur';
+const PRIVATE_TEST_PRODUCT_PRICE_CENTS = 100;
+
+function getHeader(req: Request, name: string) {
+  return req.headers.get(name) || req.headers.get(name.toLowerCase()) || null;
+}
+
+function getBearerToken(req: Request) {
+  const raw = req.headers.get('authorization') || req.headers.get('Authorization') || '';
+  const m = raw.match(/^Bearer\s+(.+)$/i);
+  return m ? m[1].trim() : null;
+}
+
+function looksLikeJwt(token: string) {
+  // Supabase access tokens are JWTs with 3 dot-separated parts.
+  return token.split('.').length === 3;
+}
+
+Deno.serve(async (req: Request) => {
   const preflight = handleOptions(req);
   if (preflight) return preflight;
 
@@ -32,6 +61,17 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Safety: don't allow production site to accidentally use Stripe test mode.
+    // This also prevents Apple Pay/Google Pay from showing “test environment” messaging.
+    const isProdOrigin = /^https:\/\/(www\.)?kaliadziuk\.lt$/i.test(origin);
+    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY') || '';
+    if (isProdOrigin && stripeSecretKey.startsWith('sk_test_')) {
+      return new Response(JSON.stringify({ error: 'stripe_test_mode_in_production' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const items: CartItem[] = Array.isArray(body?.items) ? body.items : [];
     if (items.length === 0) {
       return new Response(JSON.stringify({ error: 'empty_cart' }), {
@@ -39,6 +79,8 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    const hasPrivateTestItem = items.some((it) => it?.kind === 'product' && String(it?.productId || '') === PRIVATE_TEST_PRODUCT_ID);
 
     const customer = body?.customer || {};
     const email = String(customer?.email || '').trim();
@@ -57,6 +99,14 @@ Deno.serve(async (req) => {
 
     const supabase = getServiceClient();
     const stripe = getStripe();
+
+    // Optional: attach purchases to the authenticated user.
+    let authUserId: string | null = null;
+    const bearer = getBearerToken(req);
+    if (bearer && looksLikeJwt(bearer)) {
+      const { data, error } = await supabase.auth.getUser(bearer);
+      if (!error && data?.user?.id) authUserId = data.user.id;
+    }
 
     // Upsert customer by email
     const nowIso = new Date().toISOString();
@@ -89,6 +139,43 @@ Deno.serve(async (req) => {
         const productId = String(it.productId || '');
         const qty = Math.max(1, Number(it.qty || 1));
 
+        // Private €1 test product: only usable with a server-side secret token.
+        if (productId === PRIVATE_TEST_PRODUCT_ID) {
+          if (items.length !== 1 || qty !== 1) {
+            return new Response(JSON.stringify({ error: 'test_item_must_be_alone' }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+
+          if (body?.gift_code) {
+            return new Response(JSON.stringify({ error: 'test_item_no_discounts' }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+
+          const expected = Deno.env.get('TEST_CHECKOUT_TOKEN') || '';
+          const got = String(getHeader(req, 'x-test-checkout-token') || '');
+          if (!expected || !got || got !== expected) {
+            return new Response(JSON.stringify({ error: 'test_item_forbidden' }), {
+              status: 403,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+
+          subtotalCents += PRIVATE_TEST_PRODUCT_PRICE_CENTS;
+          orderItems.push({
+            kind: 'product',
+            product_id: null,
+            name: locale === 'lt' ? 'Testinis apmokėjimas (privatus) – 1€' : 'Test payment (private) – €1',
+            unit_price_cents: PRIVATE_TEST_PRODUCT_PRICE_CENTS,
+            qty: 1,
+            meta: { private_test: true },
+          });
+          continue;
+        }
+
         const p = await supabase
           .from('products_active_localized')
           .select('product_id,price_cents,currency,name,description,locale')
@@ -116,7 +203,8 @@ Deno.serve(async (req) => {
         });
       } else if (it.kind === 'gift_card') {
         const amountCents = Math.round(Number(it.amountCents || it.unitPriceCents || 0));
-        if (!Number.isFinite(amountCents) || amountCents < 1000) {
+        // Minimum gift card: 50 EUR
+        if (!Number.isFinite(amountCents) || amountCents < 5000) {
           return new Response(JSON.stringify({ error: 'invalid_gift_amount' }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -145,6 +233,13 @@ Deno.serve(async (req) => {
     // Gift code discount (optional): reserve amount and reduce PaymentIntent amount.
     let discountCents = 0;
     let giftCardId: string | null = null;
+
+    if (hasPrivateTestItem && body?.gift_code) {
+      return new Response(JSON.stringify({ error: 'test_item_no_discounts' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     const rawGift = body?.gift_code ? String(body.gift_code) : '';
     if (rawGift) {
@@ -197,6 +292,7 @@ Deno.serve(async (req) => {
       .from('orders')
       .insert({
         customer_id: customerId,
+        auth_user_id: authUserId,
         status: 'pending',
         subtotal_cents: subtotalCents,
         discount_cents: discountCents,
@@ -237,10 +333,191 @@ Deno.serve(async (req) => {
     }
 
     if (totalCents <= 0) {
-      // No payment required; frontend can redirect to success.
-      return new Response(JSON.stringify({ client_secret: null, order_id: orderId, zero_total: true, total_cents: totalCents, currency: 'eur' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      // No payment required; mark paid + send emails here (no Stripe webhook will fire).
+      const paidAt = new Date().toISOString();
+
+      await supabase
+        .from('orders')
+        .update({ status: 'paid', paid_at: paidAt })
+        .eq('id', orderId);
+
+      await supabase.from('order_events').insert({
+        order_id: orderId,
+        actor_type: 'system',
+        event_type: 'status_changed',
+        payload: { status: 'paid' },
       });
+
+      const consume = await supabase.rpc('consume_gift_card_reservation', { p_order_id: orderId });
+      if (consume.error) {
+        await supabase.from('order_events').insert({
+          order_id: orderId,
+          actor_type: 'system',
+          event_type: 'gift_reservation_consume_failed',
+          payload: { error: consume.error.message },
+        });
+      }
+
+      // Issue gift cards (if any gift-card items exist)
+      let pepper: string | null = null;
+
+      const adminItemLines: string[] = [];
+      const giftCardCodes: Array<{ code: string; expiryDate: string }> = [];
+      const customerItemLines: string[] = [];
+
+      for (const it of orderItems) {
+        // Always list items for the admin email.
+        if (it.kind === 'gift_card') {
+          const qty = Number(it.qty || 1);
+          const amountCents = Number(it.unit_price_cents) * qty;
+          adminItemLines.push(`${locale === 'lt' ? 'Dovanų kuponas' : 'Gift card'} ×${qty} (${formatEur(amountCents)})`);
+        } else {
+          const qty = Number(it.qty || 1);
+          adminItemLines.push(`${String(it.name || (locale === 'lt' ? 'Paslauga' : 'Service'))} ×${qty}`);
+        }
+
+        // Customer email list
+        {
+          const qty = Number(it.qty || 1);
+          const meta: any = it.meta || {};
+          const name = String(
+            meta.displayName ||
+              meta.display_name ||
+              meta.title ||
+              meta.name ||
+              it.name ||
+              (locale === 'en' ? 'Item' : 'Prekė')
+          );
+          const amountCents = Number(it.unit_price_cents) * qty;
+          const line = Number.isFinite(amountCents) && amountCents > 0
+            ? `${name} ×${qty} (${formatEur(amountCents)})`
+            : `${name} ×${qty}`;
+          customerItemLines.push(line);
+        }
+
+        if (it.kind !== 'gift_card') continue;
+
+        if (!pepper) {
+          pepper = Deno.env.get('GIFT_CARD_PEPPER') ?? null;
+          if (!pepper) throw new Error('Missing GIFT_CARD_PEPPER');
+        }
+
+        const amountCents = Number(it.unit_price_cents) * Number(it.qty || 1);
+        const code = randomGiftCode();
+        const normalized = normalizeGiftCode(code);
+        const hash = await sha256Hex(`${normalized}:${pepper}`);
+
+        const expiresAt = new Date(paidAt);
+        expiresAt.setMonth(expiresAt.getMonth() + 12);
+
+        const meta: any = it.meta || {};
+        const recipientName = meta.recipientName || meta.recipient_name || null;
+        const buyerName = fullName || null;
+        const buyerEmail = email || null;
+
+        const gcIns = await supabase
+          .from('gift_cards')
+          .insert({
+            code_hash: hash,
+            initial_amount_cents: amountCents,
+            remaining_amount_cents: amountCents,
+            currency: 'EUR',
+            status: 'active',
+            purchased_order_id: orderId,
+            recipient_name: recipientName,
+            recipient_email: null,
+            buyer_name: buyerName,
+            buyer_email: buyerEmail,
+            expires_at: expiresAt.toISOString(),
+          })
+          .select('id,expires_at')
+          .single();
+
+        if (gcIns.error) throw new Error(gcIns.error.message);
+
+        await supabase.from('gift_card_ledger').insert({
+          gift_card_id: gcIns.data.id,
+          type: 'issue',
+          order_id: orderId,
+          amount_cents: amountCents,
+        });
+
+        const expiryDate = new Date(gcIns.data.expires_at).toLocaleDateString(locale === 'lt' ? 'lt-LT' : 'en-US');
+        giftCardCodes.push({ code, expiryDate });
+      }
+
+      // Customer email
+      try {
+        const tpl = renderOrderPaidEmail(locale, formatEur(totalCents), giftCardCodes.length ? giftCardCodes : undefined, customerItemLines);
+        const sent = await sendEmail({
+          to: email,
+          subject: tpl.subject,
+          html: tpl.html,
+          template: tpl.template,
+          locale,
+          related_order_id: orderId,
+        });
+        await supabase.from('email_log').insert({
+          to_email: email,
+          template: tpl.template,
+          locale,
+          related_order_id: orderId,
+          provider_message_id: sent.providerId,
+          status: sent.ok ? 'sent' : 'failed',
+        });
+      } catch {
+        await supabase.from('email_log').insert({
+          to_email: email,
+          template: 'order_paid',
+          locale,
+          related_order_id: orderId,
+          provider_message_id: null,
+          status: 'failed',
+        });
+      }
+
+      // Admin email (optional)
+      const adminEmail = Deno.env.get('ADMIN_EMAIL');
+      if (adminEmail) {
+        try {
+          const tpl = renderAdminNewOrderPaid(formatEur(totalCents), adminItemLines, {
+            email,
+            phone,
+            fullName,
+            marketingOptIn,
+          });
+          const sent = await sendEmail({
+            to: adminEmail,
+            subject: tpl.subject,
+            html: tpl.html,
+            template: tpl.template,
+            locale: 'lt',
+            related_order_id: orderId,
+          });
+          await supabase.from('email_log').insert({
+            to_email: adminEmail,
+            template: tpl.template,
+            locale: 'lt',
+            related_order_id: orderId,
+            provider_message_id: sent.providerId,
+            status: sent.ok ? 'sent' : 'failed',
+          });
+        } catch {
+          await supabase.from('email_log').insert({
+            to_email: adminEmail,
+            template: 'admin_new_order_paid',
+            locale: 'lt',
+            related_order_id: orderId,
+            provider_message_id: null,
+            status: 'failed',
+          });
+        }
+      }
+
+      return new Response(
+        JSON.stringify({ client_secret: null, order_id: orderId, zero_total: true, total_cents: totalCents, currency: 'eur' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
     }
 
     const pi = await stripe.paymentIntents.create({
@@ -251,6 +528,7 @@ Deno.serve(async (req) => {
       metadata: {
         order_id: orderId,
         locale,
+        ...(authUserId ? { auth_user_id: authUserId } : {}),
       },
     });
 
@@ -263,7 +541,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ client_secret: pi.client_secret, order_id: orderId, total_cents: totalCents, currency: 'eur' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (e) {
+  } catch (e: any) {
     const msg = e?.message === 'rate_limited' ? 'rate_limited' : (e?.message || 'server_error');
     const status = e?.message === 'rate_limited' ? 429 : 500;
     return new Response(JSON.stringify({ error: msg }), {

@@ -1,8 +1,8 @@
 import { corsHeaders, handleOptions } from '../_shared/cors.ts';
 import { getServiceClient } from '../_shared/supabase.ts';
-import { getStripe, getWebhookSecret } from '../_shared/stripe.ts';
+import { getStripe, getWebhookSecrets } from '../_shared/stripe.ts';
 import { normalizeGiftCode, randomGiftCode, sha256Hex } from '../_shared/crypto.ts';
-import { renderAdminDispute, renderAdminNewOrderPaid, renderAdminRefund, renderGiftCardRecipientEmail, renderOrderPaidEmail, sendEmail } from '../_shared/email.ts';
+import { renderAdminDispute, renderAdminNewOrderPaid, renderAdminRefund, renderOrderPaidEmail, sendEmail } from '../_shared/email.ts';
 
 declare const Deno: {
   env: { get(name: string): string | undefined };
@@ -36,7 +36,7 @@ async function handleOrderPaid(
 
   const orderRes = await supabase
     .from('orders')
-    .select('id,status,total_cents,customer_id,locale')
+    .select('id,status,total_cents,subtotal_cents,discount_cents,customer_id,locale')
     .eq('id', orderId)
     .single();
   if (orderRes.error) throw new Error(orderRes.error.message);
@@ -78,23 +78,63 @@ async function handleOrderPaid(
   // Fetch customer email
   const cust = await supabase
     .from('customers')
-    .select('email')
+    .select('email,phone,full_name,marketing_opt_in')
     .eq('id', orderRes.data.customer_id)
     .single();
   if (cust.error) throw new Error(cust.error.message);
 
+  const buyerEmail = cust.data.email;
+
   // Issue gift cards if order contains gift-card items
   const items = await supabase
     .from('order_items')
-    .select('id,kind,unit_price_cents,qty,meta')
+    .select('id,kind,name,unit_price_cents,qty,meta')
     .eq('order_id', orderId);
   if (items.error) throw new Error(items.error.message);
 
-  const pepper = Deno.env.get('GIFT_CARD_PEPPER');
-  if (!pepper) throw new Error('Missing GIFT_CARD_PEPPER');
+  // Only required when issuing gift cards.
+  let pepper: string | null = null;
+
+  const adminItemLines: string[] = [];
+  const customerItemLines: string[] = [];
+
+  const giftCardCodes: Array<{ code: string; expiryDate: string }> = [];
 
   for (const it of items.data || []) {
+    // Always list items for the admin email.
+    if (it.kind === 'gift_card') {
+      const qty = Number(it.qty || 1);
+      const amountCents = Number(it.unit_price_cents) * qty;
+      adminItemLines.push(`Dovanų kuponas ×${qty} (${formatEur(amountCents)})`);
+    } else {
+      const qty = Number(it.qty || 1);
+      adminItemLines.push(`${String(it.meta?.displayName || it.meta?.display_name || it.meta?.title || it.meta?.name || it.name || 'Paslauga')} ×${qty}`);
+    }
+
+    // Customer email list (use stored item name and include totals when available).
+    {
+      const qty = Number(it.qty || 1);
+      const name = String(
+        it.meta?.displayName ||
+          it.meta?.display_name ||
+          it.meta?.title ||
+          it.meta?.name ||
+          it.name ||
+          (effectiveLocale === 'en' ? 'Item' : 'Prekė')
+      );
+      const amountCents = Number(it.unit_price_cents) * qty;
+      const line = Number.isFinite(amountCents) && amountCents > 0
+        ? `${name} ×${qty} (${formatEur(amountCents)})`
+        : `${name} ×${qty}`;
+      customerItemLines.push(line);
+    }
+
     if (it.kind !== 'gift_card') continue;
+
+    if (!pepper) {
+      pepper = Deno.env.get('GIFT_CARD_PEPPER') ?? null;
+      if (!pepper) throw new Error('Missing GIFT_CARD_PEPPER');
+    }
 
     const amountCents = Number(it.unit_price_cents) * Number(it.qty || 1);
     const code = randomGiftCode();
@@ -105,9 +145,8 @@ async function handleOrderPaid(
 
     const meta = it.meta || {};
     const recipientName = meta.recipientName || meta.recipient_name || null;
-    const recipientEmail = meta.recipientEmail || meta.recipient_email || null;
-    const buyerName = meta.buyerName || meta.buyer_name || null;
-    const buyerEmail = meta.buyerEmail || meta.buyer_email || null;
+    const buyerName = cust.data.full_name ?? null;
+    const buyerEmail = cust.data.email ?? null;
 
     const gcIns = await supabase
       .from('gift_cards')
@@ -119,7 +158,7 @@ async function handleOrderPaid(
         status: 'active',
         purchased_order_id: orderId,
         recipient_name: recipientName,
-        recipient_email: recipientEmail,
+        recipient_email: null,
         buyer_name: buyerName,
         buyer_email: buyerEmail,
         expires_at: expiresAt.toISOString(),
@@ -136,32 +175,21 @@ async function handleOrderPaid(
       amount_cents: amountCents,
     });
 
+    // Do NOT email the gift card recipient; include codes in the buyer's single order email.
     const expiryDate = new Date(gcIns.data.expires_at).toLocaleDateString(effectiveLocale === 'lt' ? 'lt-LT' : 'en-US');
-    const to = recipientEmail || buyerEmail || cust.data.email;
-
-    const tpl = renderGiftCardRecipientEmail(effectiveLocale, code, expiryDate);
-    const sent = await sendEmail({
-      to,
-      subject: tpl.subject,
-      html: tpl.html,
-      template: tpl.template,
-      locale: effectiveLocale,
-      related_order_id: orderId,
-    });
-
-    await supabase.from('email_log').insert({
-      to_email: to,
-      template: tpl.template,
-      locale: effectiveLocale,
-      related_order_id: orderId,
-      provider_message_id: sent.providerId,
-      status: sent.ok ? 'sent' : 'failed',
-    });
+    giftCardCodes.push({ code, expiryDate });
   }
 
   // Customer email
   {
-    const tpl = renderOrderPaidEmail(orderRes.data.locale === 'en' ? 'en' : 'lt', formatEur(orderRes.data.total_cents));
+    const tpl = renderOrderPaidEmail(
+      orderRes.data.locale === 'en' ? 'en' : 'lt',
+      formatEur(orderRes.data.total_cents),
+      giftCardCodes.length ? giftCardCodes : undefined,
+      customerItemLines,
+      (orderRes.data.discount_cents && orderRes.data.discount_cents > 0) ? formatEur(orderRes.data.discount_cents) : undefined,
+      (orderRes.data.discount_cents && orderRes.data.discount_cents > 0) ? formatEur(orderRes.data.subtotal_cents) : undefined,
+    );
     const sent = await sendEmail({
       to: cust.data.email,
       subject: tpl.subject,
@@ -185,7 +213,12 @@ async function handleOrderPaid(
   {
     const adminEmail = Deno.env.get('ADMIN_EMAIL');
     if (adminEmail) {
-      const tpl = renderAdminNewOrderPaid(formatEur(orderRes.data.total_cents));
+      const tpl = renderAdminNewOrderPaid(formatEur(orderRes.data.total_cents), adminItemLines, {
+        email: cust.data.email ?? null,
+        phone: cust.data.phone ?? null,
+        fullName: cust.data.full_name ?? null,
+        marketingOptIn: typeof cust.data.marketing_opt_in === 'boolean' ? cust.data.marketing_opt_in : null,
+      });
       const sent = await sendEmail({
         to: adminEmail,
         subject: tpl.subject,
@@ -219,18 +252,35 @@ Deno.serve(async (req: Request) => {
   try {
     const sig = req.headers.get('stripe-signature');
     if (!sig) {
+      console.error('[stripe-webhook] missing stripe-signature header');
       return new Response('missing_signature', { status: 400, headers: corsHeaders });
     }
 
-    const rawBody = await req.text();
-    const secret = getWebhookSecret();
-
+    const rawBodyBytes = new Uint8Array(await req.arrayBuffer());
     let event: any;
     try {
-      event = stripe.webhooks.constructEvent(rawBody, sig, secret);
+      const secrets = getWebhookSecrets();
+      let lastErr: unknown = null;
+      for (const secret of secrets) {
+        try {
+          // Use raw bytes to avoid any subtle encoding/normalization changes.
+          // Increase tolerance because Stripe retries/resends can happen much later than 5 minutes.
+          // Idempotency is enforced via the stripe_events table.
+          event = await stripe.webhooks.constructEventAsync(rawBodyBytes, sig, secret, 60 * 60);
+          break;
+        } catch (e) {
+          lastErr = e;
+        }
+      }
+      if (!event) throw lastErr;
     } catch (e) {
-      return new Response('invalid_signature', { status: 400, headers: corsHeaders });
+      const msg = e instanceof Error ? e.message : String(e ?? 'invalid_signature');
+      console.error('[stripe-webhook] invalid signature', msg);
+      // Include message so Stripe dashboard shows whether it's a timestamp tolerance issue vs wrong secret.
+      return new Response(`invalid_signature:${msg}`.slice(0, 500), { status: 400, headers: corsHeaders });
     }
+
+    console.log('[stripe-webhook] event received', { id: event?.id, type: event?.type });
 
     // Idempotency
     const insert = await supabase
@@ -280,6 +330,19 @@ Deno.serve(async (req: Request) => {
       let orderId = pi?.metadata?.order_id as string | undefined;
       const locale: 'lt' | 'en' | undefined = pi?.metadata?.locale === 'en' ? 'en' : (pi?.metadata?.locale ? 'lt' : undefined);
 
+      // Checkout Session metadata does not always propagate to PaymentIntent; recover order_id from Checkout.
+      if (!orderId && pi?.id) {
+        try {
+          const sessions = await stripe.checkout.sessions.list({ payment_intent: pi.id, limit: 1 });
+          const s = sessions?.data?.[0];
+          const recovered = s?.metadata?.order_id as string | undefined;
+          if (recovered) orderId = recovered;
+        } catch (e) {
+          // Keep going; we still have other fallbacks below.
+          console.error('[stripe-webhook] failed to resolve checkout session for PI', e instanceof Error ? e.message : e);
+        }
+      }
+
       if (!orderId && pi?.id) {
         const order = await supabase
           .from('orders')
@@ -291,6 +354,7 @@ Deno.serve(async (req: Request) => {
 
       if (!orderId) {
         await markStripeEventStatus(supabase, event.id, 'failed', 'missing_order_id');
+        console.error('[stripe-webhook] missing order_id for payment_intent.succeeded', { eventId: event.id, piId: pi?.id });
         return new Response('missing_order_id', { status: 200, headers: corsHeaders });
       }
 

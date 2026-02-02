@@ -4,6 +4,11 @@ import { getStripe } from '../_shared/stripe.ts';
 import { normalizeGiftCode, sha256Hex } from '../_shared/crypto.ts';
 import { rateLimit } from '../_shared/rateLimit.ts';
 
+declare const Deno: {
+  env: { get(name: string): string | undefined };
+  serve: (handler: (req: Request) => Promise<Response> | Response) => void;
+};
+
 function successPath(locale: 'lt' | 'en') {
   return locale === 'lt' ? '/lt/sekme' : '/en/success';
 }
@@ -22,7 +27,17 @@ type CartItem = {
   meta?: Record<string, unknown>;
 };
 
-Deno.serve(async (req) => {
+function getBearerToken(req: Request) {
+  const raw = req.headers.get('authorization') || req.headers.get('Authorization') || '';
+  const m = raw.match(/^Bearer\s+(.+)$/i);
+  return m ? m[1].trim() : null;
+}
+
+function looksLikeJwt(token: string) {
+  return token.split('.').length === 3;
+}
+
+Deno.serve(async (req: Request) => {
   const preflight = handleOptions(req);
   if (preflight) return preflight;
 
@@ -56,6 +71,14 @@ Deno.serve(async (req) => {
 
     const supabase = getServiceClient();
     const stripe = getStripe();
+
+    // Optional: attach purchases to the authenticated user.
+    let authUserId: string | null = null;
+    const bearer = getBearerToken(req);
+    if (bearer && looksLikeJwt(bearer)) {
+      const { data, error } = await supabase.auth.getUser(bearer);
+      if (!error && data?.user?.id) authUserId = data.user.id;
+    }
 
     // Upsert customer by email
     const nowIso = new Date().toISOString();
@@ -209,6 +232,7 @@ Deno.serve(async (req) => {
       .from('orders')
       .insert({
         customer_id: customerId,
+        auth_user_id: authUserId,
         status: 'pending',
         subtotal_cents: subtotalCents,
         discount_cents: discountCents,
@@ -255,11 +279,22 @@ Deno.serve(async (req) => {
       customer_email: email,
       line_items: lineItems,
       discounts: stripeDiscounts.length ? stripeDiscounts : undefined,
+      client_reference_id: orderId,
       success_url: `${origin}${successPath(locale)}`,
       cancel_url: `${origin}${cancelPath(locale)}`,
+      // IMPORTANT: session.metadata does NOT automatically propagate to the PaymentIntent.
+      // Adding payment_intent_data.metadata makes `payment_intent.succeeded` sufficient to locate the order.
+      payment_intent_data: {
+        metadata: {
+          order_id: orderId,
+          locale,
+          ...(authUserId ? { auth_user_id: authUserId } : {}),
+        },
+      },
       metadata: {
         order_id: orderId,
         locale,
+        ...(authUserId ? { auth_user_id: authUserId } : {}),
       },
     });
 
@@ -272,7 +307,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ url: session.url, order_id: orderId }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (e) {
+  } catch (e: any) {
     const msg = e?.message === 'rate_limited' ? 'rate_limited' : (e?.message || 'server_error');
     const status = e?.message === 'rate_limited' ? 429 : 500;
     return new Response(JSON.stringify({ error: msg }), {

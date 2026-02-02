@@ -46,7 +46,7 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 /* Custom scrollbar - uses the site's green and a dark or light track option */
 :root {
   --accent-green: #DCF41E; /* primary green used across the site */
-  --scrollbar-track: #000; /* default track (dark) */
+  --scrollbar-track: transparent; /* default track (light) */
 }
 
 /* Prevent accidental horizontal scroll on the page. If a component needs
@@ -74,6 +74,7 @@ body {
 
 *::-webkit-scrollbar-thumb {
   background: var(--accent-green);
+  background-clip: content-box;
   border-radius: 9999px;
   border: 4px solid var(--scrollbar-track); /* slightly larger border to match size */
 }

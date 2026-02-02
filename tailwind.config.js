@@ -5,7 +5,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Outfit', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        heading: ['Outfit', 'sans-serif'],
+        heading: ['Hamburg Hand Display', 'Hamburg', 'Outfit', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       colors: {
         background: '#000000',

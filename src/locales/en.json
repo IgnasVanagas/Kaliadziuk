@@ -30,9 +30,6 @@
     "title": "Gift card",
     "amount": "Amount (EUR)",
     "recipientName": "Recipient name",
-    "recipientEmail": "Recipient email",
-    "buyerName": "Buyer name",
-    "buyerEmail": "Buyer email",
     "addToCart": "Add to cart"
   },
   "cart": {
@@ -81,8 +78,7 @@
   "payment": {
     "title": "Payment",
     "subtitle": "Choose a method and confirm the payment.",
-    "expressTitle": "Express checkout",
-    "cardTitle": "Card and other methods",
+    "expressTitle": "Express checkout",    "orPayWithCard": "Or pay with card",    "cardTitle": "Card and other methods",
     "totalLabel": "Payment",
     "applePayHint": "Apple Pay shows only on Apple devices.",
     "googlePayHint": "Google Pay shows only on supported devices/browsers.",
@@ -104,5 +100,12 @@
     "privacy": "Privacy policy",
     "terms": "Terms",
     "refunds": "Refunds"
+  },
+  "cartDrawer": {
+    "subtitle": "Review your cart or continue browsing.",
+    "continue": "Continue browsing",
+    "goToPayment": "Go to payment",
+    "close": "Close",
+    "qty": "Qty"
   }
 }

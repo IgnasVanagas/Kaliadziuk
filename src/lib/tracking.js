@@ -1,0 +1,5 @@
+export function sendEvent(eventName, params) {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', eventName, params);
+  }
+}

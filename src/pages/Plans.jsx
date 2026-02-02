@@ -4,15 +4,12 @@ import { useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { addItem, loadCart, saveCart } from '../state/cart';
 import { formatEurFromCents } from '../lib/money';
-import CartToast from '../components/CartToast';
 import { getProductImageUrl } from '../lib/productImages';
 
 export default function Plans() {
   const { t } = useTranslation();
   const location = useLocation();
   const locale = useMemo(() => (location.pathname.startsWith('/en') ? 'en' : 'lt'), [location.pathname]);
-
-  const [toastOpen, setToastOpen] = useState(false);
 
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,8 +35,6 @@ export default function Plans() {
     };
   }, [locale]);
 
-  const cartPath = locale === 'lt' ? '/lt/krepselis' : '/en/cart';
-
   if (loading) {
     return <main className="mx-auto max-w-5xl px-6 py-16">{t('common.loading')}</main>;
   }
@@ -59,7 +54,11 @@ export default function Plans() {
       qty: 1,
     });
     saveCart(next);
-    setToastOpen(true);
+    try {
+      window.dispatchEvent(new Event('cart:open'));
+    } catch {
+      // ignore
+    }
   };
 
   return (
@@ -90,13 +89,6 @@ export default function Plans() {
         ))}
       </div>
 
-      <CartToast
-        open={toastOpen}
-        onClose={() => setToastOpen(false)}
-        title={locale === 'lt' ? 'Pridėta į krepšelį' : 'Added to cart'}
-        actionLabel={locale === 'lt' ? 'Atidaryti krepšelį' : 'Open cart'}
-        actionTo={cartPath}
-      />
     </main>
   );
 }

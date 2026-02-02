@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
+const CLEAR_CART_FLAG_KEY = 'clear_cart_after_success_v1';
+
 const stripePromise = (() => {
   const pk = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
   return pk ? loadStripe(pk) : null;
@@ -41,6 +43,23 @@ function clearPaymentSession(orderId) {
   }
 }
 
+function markCartToClearAfterSuccess(orderId) {
+  try {
+    // We clear the cart on the Success page so it works even after 3DS redirects.
+    sessionStorage.setItem(CLEAR_CART_FLAG_KEY, orderId || '1');
+  } catch {
+    // ignore
+  }
+}
+
+function unmarkCartToClearAfterSuccess() {
+  try {
+    sessionStorage.removeItem(CLEAR_CART_FLAG_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 function InnerPayment({ locale, orderId, clientSecret, totalCents, currency }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -50,12 +69,17 @@ function InnerPayment({ locale, orderId, clientSecret, totalCents, currency }) {
   const [error, setError] = useState(null);
 
   const [paymentRequest, setPaymentRequest] = useState(null);
-  const [canPay, setCanPay] = useState(null);
 
   const returnUrl = `${window.location.origin}${successPath(locale)}`;
 
   useEffect(() => {
     if (!stripe || !clientSecret || !totalCents) return;
+
+    // Apple Pay / Google Pay require HTTPS (or localhost).
+    if (typeof window !== 'undefined' && window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+      setPaymentRequest(null);
+      return;
+    }
 
     const pr = stripe.paymentRequest({
       country: 'LT',
@@ -68,13 +92,16 @@ function InnerPayment({ locale, orderId, clientSecret, totalCents, currency }) {
     });
 
     pr.canMakePayment().then((result) => {
-      setCanPay(result);
-      if (result) setPaymentRequest(pr);
+      if (result) {
+        setPaymentRequest(pr);
+      }
     });
 
     pr.on('paymentmethod', async (ev) => {
       setError(null);
       setBusy(true);
+
+      markCartToClearAfterSuccess(orderId);
       try {
         const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
           clientSecret,
@@ -83,6 +110,7 @@ function InnerPayment({ locale, orderId, clientSecret, totalCents, currency }) {
         );
 
         if (confirmError) {
+          unmarkCartToClearAfterSuccess();
           ev.complete('fail');
           setError(confirmError.message || t('cart.payment.failed'));
           return;
@@ -93,6 +121,7 @@ function InnerPayment({ locale, orderId, clientSecret, totalCents, currency }) {
         if (paymentIntent && paymentIntent.status === 'requires_action') {
           const { error: actionError } = await stripe.confirmCardPayment(clientSecret);
           if (actionError) {
+            unmarkCartToClearAfterSuccess();
             setError(actionError.message || t('cart.payment.failed'));
             return;
           }
@@ -100,14 +129,14 @@ function InnerPayment({ locale, orderId, clientSecret, totalCents, currency }) {
 
         clearPaymentSession(orderId);
         window.location.assign(returnUrl);
+      } catch (e) {
+        unmarkCartToClearAfterSuccess();
+        ev.complete('fail');
+        setError(e?.message || t('cart.payment.failed'));
       } finally {
         setBusy(false);
       }
     });
-
-    return () => {
-      // no-op
-    };
   }, [stripe, clientSecret, totalCents, currency, t, returnUrl, orderId]);
 
   const onPay = async () => {
@@ -120,12 +149,14 @@ function InnerPayment({ locale, orderId, clientSecret, totalCents, currency }) {
 
     setBusy(true);
     try {
+      markCartToClearAfterSuccess(orderId);
       const { error: confirmError } = await stripe.confirmPayment({
         elements,
         confirmParams: { return_url: returnUrl },
       });
 
       if (confirmError) {
+        unmarkCartToClearAfterSuccess();
         setError(confirmError.message || t('cart.payment.failed'));
         return;
       }
@@ -148,14 +179,18 @@ function InnerPayment({ locale, orderId, clientSecret, totalCents, currency }) {
         <div className="rounded-2xl border border-black/10 p-5 space-y-3">
           <div className="font-heading font-extrabold">{t('payment.expressTitle')}</div>
           <div className="rounded-2xl border border-black/10 bg-white p-4">
-            <PaymentRequestButtonElement options={{ paymentRequest }} />
+             <PaymentRequestButtonElement options={{ paymentRequest, style: { paymentRequestButton: { theme: 'dark', height: '48px', type: 'default' } } }} />
           </div>
-          {canPay && (canPay.applePay || canPay.googlePay) ? (
-            <p className="text-xs text-black/60">
-              {canPay.applePay ? t('payment.applePayHint') : null}
-              {canPay.googlePay ? t('payment.googlePayHint') : null}
-            </p>
-          ) : null}
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center" aria-hidden="true">
+              <div className="w-full border-t border-black/10" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-[#f2f2f5] px-2 text-sm text-black/40 uppercase tracking-wide font-medium">
+                {t('payment.orPayWithCard')}
+              </span>
+            </div>
+          </div>
         </div>
       ) : null}
 
@@ -166,8 +201,9 @@ function InnerPayment({ locale, orderId, clientSecret, totalCents, currency }) {
         </div>
 
         {error ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
+          <div role="alert" className="rounded-2xl border border-black/10 bg-white px-5 py-4 shadow-sm">
+            <div className="font-semibold">{locale === 'lt' ? 'Klaida' : 'Error'}</div>
+            <div className="mt-1 text-sm text-black/70">{error}</div>
           </div>
         ) : null}
 
@@ -184,8 +220,6 @@ function InnerPayment({ locale, orderId, clientSecret, totalCents, currency }) {
         <a href={cancelPath(locale)} className="block text-center text-sm font-medium text-black/70 hover:text-black">
           {t('payment.cancelLink')}
         </a>
-
-        <p className="text-xs text-black/60">{t('cart.checkoutNote')}</p>
       </div>
     </main>
   );
@@ -206,7 +240,10 @@ export default function Payment() {
     return (
       <main className="mx-auto max-w-3xl px-6 py-16 space-y-4">
         <h1 className="font-heading text-4xl font-extrabold">{t('common.error')}</h1>
-        <p className="text-black/70">Missing VITE_STRIPE_PUBLISHABLE_KEY</p>
+        <div role="alert" className="rounded-2xl border border-black/10 bg-white px-5 py-4 shadow-sm">
+          <div className="font-semibold">{locale === 'lt' ? 'Klaida' : 'Error'}</div>
+          <div className="mt-1 text-sm text-black/70">Missing VITE_STRIPE_PUBLISHABLE_KEY</div>
+        </div>
       </main>
     );
   }
@@ -215,7 +252,10 @@ export default function Payment() {
     return (
       <main className="mx-auto max-w-3xl px-6 py-16 space-y-4">
         <h1 className="font-heading text-4xl font-extrabold">{t('payment.missingTitle')}</h1>
-        <p className="text-black/70">{t('payment.missingBody')}</p>
+        <div role="alert" className="rounded-2xl border border-black/10 bg-white px-5 py-4 shadow-sm">
+          <div className="font-semibold">{locale === 'lt' ? 'Klaida' : 'Error'}</div>
+          <div className="mt-1 text-sm text-black/70">{t('payment.missingBody')}</div>
+        </div>
         <a href={paymentPath(locale).replace('/mokejimas', '/krepselis').replace('/payment', '/cart')} className="rounded-full border border-black/20 px-4 py-2 font-semibold inline-flex">
           {t('payment.backToCart')}
         </a>

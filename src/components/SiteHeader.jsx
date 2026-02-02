@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { loadCart } from '../state/cart';
+import CartDrawer from './CartDrawer.jsx';
+import { useAuth } from '../auth/AuthProvider.jsx';
+
+const fromUploads = (file) => new URL(`../../uploads/${file}`, import.meta.url).pathname;
+const logoUrl = fromUploads('Branding/Pozityvi-full-TP-RGB.png');
 
 function getLocale(pathname) {
   return pathname.startsWith('/en') ? 'en' : 'lt';
@@ -16,6 +21,8 @@ function swapLocalePath(pathname, nextLocale) {
       planai: 'plans',
       'dovanu-kuponas': 'gift-card',
       krepselis: 'cart',
+      prisijungti: 'login',
+      paskyra: 'account',
       privatumas: 'privacy',
       taisykles: 'terms',
       grazinimas: 'refunds',
@@ -26,6 +33,8 @@ function swapLocalePath(pathname, nextLocale) {
       plans: 'planai',
       'gift-card': 'dovanu-kuponas',
       cart: 'krepselis',
+      login: 'prisijungti',
+      account: 'paskyra',
       privacy: 'privatumas',
       terms: 'taisykles',
       refunds: 'grazinimas',
@@ -43,9 +52,11 @@ function swapLocalePath(pathname, nextLocale) {
 export default function SiteHeader() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [cartCount, setCartCount] = useState(() => {
     const cart = loadCart();
     return (cart.items || []).reduce((sum, it) => sum + Number(it.qty || 1), 0);
@@ -85,6 +96,8 @@ export default function SiteHeader() {
     };
     recompute();
 
+    const onCartOpen = () => setDrawerOpen(true);
+
     const onStorage = (e) => {
       if (!e || e.key === null || e.key === 'cart_v1') {
         recompute();
@@ -92,9 +105,11 @@ export default function SiteHeader() {
     };
 
     window.addEventListener('cart:updated', recompute);
+    window.addEventListener('cart:open', onCartOpen);
     window.addEventListener('storage', onStorage);
     return () => {
       window.removeEventListener('cart:updated', recompute);
+      window.removeEventListener('cart:open', onCartOpen);
       window.removeEventListener('storage', onStorage);
     };
   }, []);
@@ -115,6 +130,8 @@ export default function SiteHeader() {
   const mobileToggleClass = 'inline-flex items-center justify-center rounded-full border border-black/40 p-2 text-black md:hidden';
 
   const cartPath = locale === 'lt' ? '/lt/krepselis' : '/en/cart';
+  const accountPath = locale === 'lt' ? '/lt/paskyra' : '/en/account';
+  const loginPath = locale === 'lt' ? '/lt/prisijungti' : '/en/login';
 
   const switchTo = (nextLocale) => {
     try {
@@ -126,11 +143,16 @@ export default function SiteHeader() {
   };
 
   return (
+    <>
     <header className={headerClass}>
       <div className={headerSurfaceClass}>
         <div className={`flex items-center justify-between w-full ${!scrolled ? 'max-w-7xl mx-auto' : ''}`}>
-          <a href={`${homeBase}#hero`} className="text-xl font-bold tracking-tight text-black transition-colors duration-300">
-            Kaliadziuk
+          <a href={`${homeBase}#hero`} className="transition-opacity duration-300 hover:opacity-80">
+            <img 
+              src={logoUrl} 
+              alt="Kaliadziuk" 
+              className={`w-auto object-contain transition-all duration-300 ${scrolled ? 'h-14' : 'h-20'}`} 
+            />
           </a>
 
           <nav className="hidden items-center gap-8 text-sm font-medium md:flex">
@@ -143,18 +165,29 @@ export default function SiteHeader() {
 
           <div className="hidden md:flex items-center gap-3">
             <a
+              href={user ? accountPath : loginPath}
+              className="relative inline-grid h-10 w-10 shrink-0 place-items-center rounded-full border border-black/20"
+              aria-label={user ? (locale === 'lt' ? 'Paskyra' : 'Account') : (locale === 'lt' ? 'Prisijungti' : 'Sign in')}
+            >
+              <svg className="block h-5 w-5 translate-y-[1px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </a>
+
+            <a
               href={cartPath}
               className="relative inline-grid h-10 w-10 shrink-0 place-items-center rounded-full border border-black/20"
               aria-label={locale === 'lt' ? 'Krepšelis' : 'Cart'}
             >
-              <svg className="block h-5 w-5 translate-y-[8px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+              <svg className="block h-5 w-5 translate-y-[1px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h15l-1.5 9h-12z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l-2-2H2" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 21a1 1 0 100-2 1 1 0 000 2zM18 21a1 1 0 100-2 1 1 0 000 2z" />
               </svg>
               {cartCount > 0 ? (
                 <span
-                  className="pointer-events-none absolute right-0 top-1/2 inline-flex h-5 min-w-5 translate-x-4 -translate-y-1/2 items-center justify-center rounded-full glass-green-surface px-1 text-[11px] font-extrabold leading-none text-black"
+                  className="pointer-events-none !absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full glass-green-surface px-1 text-[11px] font-extrabold leading-none text-black"
                   aria-label={locale === 'lt' ? `Krepšelyje: ${cartCount}` : `Cart items: ${cartCount}`}
                 >
                   {cartCount > 99 ? '99+' : cartCount}
@@ -183,8 +216,20 @@ export default function SiteHeader() {
 
       <nav className={`${mobileOpen ? 'block' : 'hidden'} ${mobileMenuBaseClass} px-6 py-4 md:hidden transition-colors duration-300`}>
         <div className="flex items-center justify-between mb-4">
+          <a
+            href={user ? accountPath : loginPath}
+            onClick={() => setMobileOpen(false)}
+            className="inline-flex items-center gap-2 text-sm font-semibold"
+          >
+            <svg className="h-5 w-5 translate-y-[1px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            {user ? (locale === 'lt' ? 'Paskyra' : 'Account') : (locale === 'lt' ? 'Prisijungti' : 'Sign in')}
+          </a>
+
           <a href={cartPath} onClick={() => setMobileOpen(false)} className="inline-flex items-center gap-2 text-sm font-semibold">
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+            <svg className="h-5 w-5 translate-y-[1px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h15l-1.5 9h-12z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l-2-2H2" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 21a1 1 0 100-2 1 1 0 000 2zM18 21a1 1 0 100-2 1 1 0 000 2z" />
@@ -216,5 +261,8 @@ export default function SiteHeader() {
         </a>
       </nav>
     </header>
+
+    <CartDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+    </>
   );
 }

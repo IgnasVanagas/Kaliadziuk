@@ -35,7 +35,6 @@ export default function Admin() {
   const [giftEditStatus, setGiftEditStatus] = useState('active');
   const [giftEditExpiresAt, setGiftEditExpiresAt] = useState('');
   const [giftEditRecipientName, setGiftEditRecipientName] = useState('');
-  const [giftEditRecipientEmail, setGiftEditRecipientEmail] = useState('');
   const [giftEditBuyerName, setGiftEditBuyerName] = useState('');
   const [giftEditBuyerEmail, setGiftEditBuyerEmail] = useState('');
   const [giftAdjustEur, setGiftAdjustEur] = useState('');
@@ -81,7 +80,7 @@ export default function Admin() {
 
     const g = await supabase
       .from('gift_cards')
-      .select('id,remaining_amount_cents,initial_amount_cents,status,expires_at,recipient_name,recipient_email,buyer_name,buyer_email,purchased_order_id,created_at')
+      .select('id,remaining_amount_cents,initial_amount_cents,status,expires_at,recipient_name,buyer_name,buyer_email,purchased_order_id,created_at')
       .order('created_at', { ascending: false })
       .limit(100);
     if (g.error) setErr(g.error.message);
@@ -95,7 +94,7 @@ export default function Admin() {
 
     const res = await supabase
       .from('gift_cards')
-      .select('id,remaining_amount_cents,initial_amount_cents,status,expires_at,recipient_name,recipient_email,buyer_name,buyer_email,purchased_order_id,created_at')
+      .select('id,remaining_amount_cents,initial_amount_cents,status,expires_at,recipient_name,buyer_name,buyer_email,purchased_order_id,created_at')
       .eq('id', giftCardId)
       .single();
 
@@ -108,7 +107,6 @@ export default function Admin() {
     setGiftEditStatus(res.data.status || 'active');
     setGiftEditExpiresAt(res.data.expires_at ? String(res.data.expires_at).slice(0, 16) : '');
     setGiftEditRecipientName(res.data.recipient_name || '');
-    setGiftEditRecipientEmail(res.data.recipient_email || '');
     setGiftEditBuyerName(res.data.buyer_name || '');
     setGiftEditBuyerEmail(res.data.buyer_email || '');
     setGiftAdjustEur('');
@@ -127,12 +125,11 @@ export default function Admin() {
           status: giftEditStatus,
           expires_at: expiresAtIso || (selectedGiftCard?.expires_at ?? null),
           recipient_name: giftEditRecipientName || null,
-          recipient_email: giftEditRecipientEmail || null,
           buyer_name: giftEditBuyerName || null,
           buyer_email: giftEditBuyerEmail || null,
         })
         .eq('id', selectedGiftCardId)
-        .select('id,remaining_amount_cents,initial_amount_cents,status,expires_at,recipient_name,recipient_email,buyer_name,buyer_email,purchased_order_id,created_at')
+        .select('id,remaining_amount_cents,initial_amount_cents,status,expires_at,recipient_name,buyer_name,buyer_email,purchased_order_id,created_at')
         .single();
       if (up.error) throw new Error(up.error.message);
 
@@ -152,7 +149,7 @@ export default function Admin() {
 
         const refreshed = await supabase
           .from('gift_cards')
-          .select('id,remaining_amount_cents,initial_amount_cents,status,expires_at,recipient_name,recipient_email,buyer_name,buyer_email,purchased_order_id,created_at')
+          .select('id,remaining_amount_cents,initial_amount_cents,status,expires_at,recipient_name,buyer_name,buyer_email,purchased_order_id,created_at')
           .eq('id', selectedGiftCardId)
           .single();
         if (refreshed.error) throw new Error(refreshed.error.message);
@@ -182,10 +179,14 @@ export default function Admin() {
       if (!url) throw new Error('Missing VITE_SUPABASE_FUNCTIONS_URL');
       if (!session?.access_token) throw new Error('No session');
 
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      if (!anonKey) throw new Error('Missing VITE_SUPABASE_ANON_KEY');
+
       const resp = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          apikey: anonKey,
           Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({ gift_card_id: giftCardId }),
@@ -536,7 +537,7 @@ export default function Admin() {
                     <td className="p-3">{g.status}</td>
                     <td className="p-3">{formatEurFromCents(g.remaining_amount_cents)} / {formatEurFromCents(g.initial_amount_cents)}</td>
                     <td className="p-3">{g.expires_at ? new Date(g.expires_at).toLocaleDateString('lt-LT') : '-'}</td>
-                    <td className="p-3">{g.recipient_email || '-'}</td>
+                    <td className="p-3">{g.recipient_name || '-'}</td>
                     <td className="p-3">{g.buyer_email || '-'}</td>
                     <td className="p-3" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center gap-3">
@@ -592,10 +593,6 @@ export default function Admin() {
                     <label className="block text-sm">
                       <span className="text-xs text-black/60">Gavėjo vardas</span>
                       <input className="mt-1 w-full rounded-xl border border-black/20 px-3 py-2" value={giftEditRecipientName} onChange={(e) => setGiftEditRecipientName(e.target.value)} />
-                    </label>
-                    <label className="block text-sm">
-                      <span className="text-xs text-black/60">Gavėjo el. paštas</span>
-                      <input className="mt-1 w-full rounded-xl border border-black/20 px-3 py-2" value={giftEditRecipientEmail} onChange={(e) => setGiftEditRecipientEmail(e.target.value)} type="email" />
                     </label>
                   </div>
                   <div className="grid gap-3 md:grid-cols-2">

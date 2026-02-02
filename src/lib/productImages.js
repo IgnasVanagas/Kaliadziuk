@@ -1,4 +1,4 @@
-const fromUploads = (file) => new URL(`../../uploads/${file}`, import.meta.url).href;
+const fromUploads = (file) => new URL(`../../uploads/${file}`, import.meta.url).pathname;
 
 // Program/product images for the fixed seeded product UUIDs.
 const PRODUCT_IMAGE_BY_ID = {
