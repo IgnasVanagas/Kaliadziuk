@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 
 function fromUploads(file) {
-  return new URL(`../../uploads/${file}`, import.meta.url).pathname;
+  return `/uploads/${String(file || '').replace(/^\/+/, '')}`;
 }
 
 function getSiteOrigin() {
@@ -10,33 +10,61 @@ function getSiteOrigin() {
     import.meta.env.VITE_SITE_URL || import.meta.env.VITE_PUBLIC_SITE_URL || ''
   ).trim();
 
-  const runtimeOrigin = typeof window !== 'undefined' ? String(window.location.origin || '') : '';
-  const candidate = envOrigin || runtimeOrigin;
-
-  // Avoid baking localhost into canonical/og URLs (important for prerender).
-  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(candidate)) {
-    return 'https://kaliadziuk.lt';
+  // Always force the production origin on the main domain (handling www redirect logic essentially here for canonicals)
+  // and avoid localhost unless really needed for dev (but usually we want prod urls in canonicals if possible, or just localhost).
+  // The goal: If we are on www.kaliadziuk.lt, we want canonical to be https://kaliadziuk.lt.
+  
+  if (typeof window !== 'undefined') {
+    const { origin } = window.location;
+    // If we are on localhost, keep localhost for testing
+    if (import.meta.env.DEV && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) {
+      return origin;
+    }
   }
 
-  return candidate || 'https://kaliadziuk.lt';
+  // Otherwise, always enforce the primary public domain
+  return 'https://kaliadziuk.lt';
 }
 
 function joinUrl(origin, path) {
+  // If `path` is already absolute (https:, http:, data:, etc.) just use it.
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(String(path || ''))) {
+    return String(path);
+  }
+
   const base = String(origin || '').replace(/\/+$/, '');
   const p = String(path || '').startsWith('/') ? String(path || '') : `/${path || ''}`;
   return base ? `${base}${p}` : p;
 }
 
+function ensureTrailingSlash(path) {
+  const s = String(path || '');
+  if (s === '/' || s.endsWith('/')) return s;
+  // Avoid slashing file paths (images etc) if they have extensions, though our routes don't have extensions.
+  // Simple check: if it has a dot in the last segment, assume file.
+  const lastSegment = s.split('/').pop();
+  if (lastSegment && lastSegment.includes('.')) return s;
+  
+  return `${s}/`;
+}
+
 function toEnglishPath(pathname) {
-  if (!pathname) return '/en';
-  if (pathname === '/lt') return '/en';
-  return pathname.replace(/^\/lt\b/, '/en');
+  if (!pathname || pathname === '/') return '/en/';
+  // Ensure we consistently handle the slash-renormalization
+  let p = pathname;
+  if (p.endsWith('/')) p = p.slice(0, -1);
+
+  if (p === '/lt') return '/en/';
+  return ensureTrailingSlash(p.replace(/^\/lt\b/, '/en'));
 }
 
 function toLithuanianPath(pathname) {
-  if (!pathname) return '/lt';
-  if (pathname === '/en') return '/lt';
-  return pathname.replace(/^\/en\b/, '/lt');
+  if (!pathname || pathname === '/') return '/lt/';
+  let p = pathname;
+  if (p.endsWith('/')) p = p.slice(0, -1);
+
+  if (p === '/en') return '/lt/';
+  return ensureTrailingSlash(p.replace(/^\/en\b/, '/lt'));
 }
 
 function seoForRoute(locale, pathname) {
@@ -44,8 +72,8 @@ function seoForRoute(locale, pathname) {
 
   // Defaults (home)
   let title = isEn
-    ? 'Personal trainer in Vilnius – Pavel Kaliadziuk | Fat loss & muscle gain'
-    : 'Asmeninis treneris Vilniuje – Pavel Kaliadziuk | Raumenų auginimas, svorio metimas';
+    ? 'Personal trainer in Vilnius | Pavel Kaliadziuk'
+    : 'Asmeninis treneris Vilniuje | Pavel Kaliadziuk';
 
   let description = isEn
     ? 'Personal trainer in Vilnius. Pavel Kaliadziuk helps with muscle gain, fat loss, and pain-free training through personal sessions and online plans.'
@@ -72,6 +100,16 @@ function seoForRoute(locale, pathname) {
       : 'Padovanokite asmeninę treniruotę ar planą. Pasirinkite sumą, o pirmus žingsnius suderinsime asmeniškai.';
   }
 
+  if (/^\/(lt\/anketa|en\/questionnaire)\b/.test(pathname)) {
+    title = isEn
+      ? 'Personal plan questionnaire | Pavel Kaliadziuk'
+      : 'Asmeninio plano anketa | Pavel Kaliadziuk';
+    description = isEn
+      ? 'A short questionnaire to personalize your training plan and understand goals, lifestyle, and health context.'
+      : 'Trumpa anketa, padedanti personalizuoti treniruočių planą pagal tikslus, gyvenimo būdą ir sveikatos kontekstą.';
+    robots = 'noindex,nofollow';
+  }
+
   // Keep transactional pages out of search results.
   if (/^\/(lt\/krepselis|en\/cart|lt\/mokejimas|en\/payment|lt\/sekme|en\/success|lt\/atsaukta|en\/cancel)\b/.test(pathname)) {
     robots = 'noindex,nofollow';
@@ -92,27 +130,28 @@ export default function Seo({ locale }) {
   const effectiveLocale = locale === 'en' ? 'en' : 'lt';
   const { title, description, robots } = seoForRoute(effectiveLocale, pathname);
 
-  const canonical = joinUrl(origin, pathname);
+  const pathnameWithSlash = ensureTrailingSlash(pathname);
+  const canonical = joinUrl(origin, pathnameWithSlash);
   const ltUrl = joinUrl(origin, toLithuanianPath(pathname));
   const enUrl = joinUrl(origin, toEnglishPath(pathname));
 
   const ogImage = joinUrl(origin, fromUploads('Branding/Žalias-full-TP-RGB.png'));
 
-  const jsonLd = pathname === '/lt' || pathname === '/en'
+  const jsonLd = pathname === '/lt' || pathname === '/en' || pathname === '/lt/' || pathname === '/en/'
     ? {
         '@context': 'https://schema.org',
         '@graph': [
           {
             '@type': 'WebSite',
             name: 'Coach Kaliadziuk',
-            url: joinUrl(origin, effectiveLocale === 'en' ? '/en' : '/lt'),
+            url: joinUrl(origin, effectiveLocale === 'en' ? '/en/' : '/lt/'),
             inLanguage: effectiveLocale,
           },
           {
             '@type': 'Person',
             name: 'Pavel Kaliadziuk',
             jobTitle: effectiveLocale === 'en' ? 'Personal trainer' : 'Asmeninis treneris',
-            url: joinUrl(origin, effectiveLocale === 'en' ? '/en' : '/lt'),
+            url: joinUrl(origin, effectiveLocale === 'en' ? '/en/' : '/lt/'),
             areaServed: {
               '@type': 'City',
               name: 'Vilnius',

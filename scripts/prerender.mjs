@@ -8,19 +8,21 @@ import puppeteer from 'puppeteer';
 const DIST_DIR = path.resolve(process.cwd(), 'dist');
 
 const ROUTES = [
+  // Root (redirects to /lt or /en in-app; saved as dist/index.html)
+  '/',
   // Main indexable pages
-  '/lt',
-  '/en',
-  '/lt/planai',
-  '/en/plans',
-  '/lt/dovanu-kuponas',
-  '/en/gift-card',
-  '/lt/privatumas',
-  '/en/privacy',
-  '/lt/taisykles',
-  '/en/terms',
-  '/lt/grazinimas',
-  '/en/refunds',
+  '/lt/',
+  '/en/',
+  '/lt/planai/',
+  '/en/plans/',
+  '/lt/dovanu-kuponas/',
+  '/en/gift-card/',
+  '/lt/privatumas/',
+  '/en/privacy/',
+  '/lt/taisykles/',
+  '/en/terms/',
+  '/lt/grazinimas/',
+  '/en/refunds/',
 ];
 
 function sleep(ms) {
@@ -52,6 +54,14 @@ function routeToOutputFile(route) {
   // "lt/planai" -> dist/lt/planai/index.html
   const dir = path.join(DIST_DIR, clean);
   return path.join(dir, 'index.html');
+}
+
+function routeToNavigate(route) {
+  // Our SPA root (/) immediately client-redirects to /lt or /en, which produces
+  // an effectively empty HTML snapshot. For SEO/prerendering we want a real
+  // homepage at dist/index.html, so we render the canonical LT homepage.
+  if (route === '/') return '/lt';
+  return route;
 }
 
 function startPreviewServer(port) {
@@ -109,7 +119,8 @@ async function main() {
       });
 
       for (const route of ROUTES) {
-        const url = `${baseUrl}${route}`;
+        const navigateRoute = routeToNavigate(route);
+        const url = `${baseUrl}${navigateRoute}`;
         console.log(`[prerender] Rendering ${route}`);
 
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60_000 });

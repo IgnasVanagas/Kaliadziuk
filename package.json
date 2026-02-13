@@ -4,10 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node ./node_modules/vite/bin/vite.js",
-    "build": "node ./node_modules/vite/bin/vite.js build && node scripts/copy-branding.mjs",
+    "dev": "node scripts/sync-uploads.mjs && node ./node_modules/vite/bin/vite.js",
+    "build": "npm run build:seo",
+    "build:fast": "node scripts/generate-image-variants.mjs && node scripts/sync-uploads.mjs && node ./node_modules/vite/bin/vite.js build && node scripts/copy-branding.mjs",
     "build:prerender": "node scripts/prerender.mjs",
-    "build:seo": "node ./node_modules/vite/bin/vite.js build && node scripts/prerender.mjs && node scripts/copy-branding.mjs",
+    "build:seo": "node scripts/generate-image-variants.mjs && node scripts/sync-uploads.mjs && node ./node_modules/vite/bin/vite.js build && node scripts/prerender.mjs && node scripts/copy-branding.mjs",
+    "thumbs:avatars": "node scripts/generate-avatar-thumbs.mjs",
+    "images:optimize": "node scripts/generate-image-variants.mjs",
+    "sync:uploads": "node scripts/sync-uploads.mjs",
     "preview": "node ./node_modules/vite/bin/vite.js preview"
   },
   "dependencies": {
@@ -30,6 +34,7 @@
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.32",
     "puppeteer": "^24.36.1",
+    "sharp": "^0.34.5",
     "tailwindcss": "^3.4.10",
     "vite": "^5.4.1"
   }

@@ -7,6 +7,25 @@ function parseLocale(pathname) {
   return pathname.startsWith('/en') ? 'en' : 'lt';
 }
 
+function sanitizeNext(rawNext, fallbackPath) {
+  const next = String(rawNext || '').trim();
+  if (!next) return fallbackPath;
+  if (!next.startsWith('/')) return fallbackPath;
+  if (next.startsWith('//')) return fallbackPath;
+  if (next.includes('\n') || next.includes('\r')) return fallbackPath;
+
+  // Reject absolute URLs like "https://..." even if URLSearchParams returns a decoded value.
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(next)) return fallbackPath;
+
+  try {
+    const url = new URL(next, window.location.origin);
+    if (url.origin !== window.location.origin) return fallbackPath;
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return fallbackPath;
+  }
+}
+
 export default function Auth() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -14,7 +33,9 @@ export default function Auth() {
 
   const locale = useMemo(() => parseLocale(location.pathname), [location.pathname]);
   const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
-  const next = params.get('next') || (locale === 'en' ? '/en/account' : '/lt/paskyra');
+  const rawNext = params.get('next');
+  const fallbackNext = locale === 'en' ? '/en/account' : '/lt/paskyra';
+  const next = useMemo(() => sanitizeNext(rawNext, fallbackNext), [rawNext, fallbackNext]);
 
   const [mode, setMode] = useState('login'); // login | register | reset
   const [email, setEmail] = useState('');

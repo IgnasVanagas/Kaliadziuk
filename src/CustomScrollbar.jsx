@@ -15,46 +15,92 @@ export default function CustomScrollbar() {
   useEffect(() => {
     if (!isDesktop) return;
 
-    const handleScroll = () => {
-      if (!trackRef.current || !thumbRef.current) return;
-      const { scrollHeight, clientHeight, scrollTop } = document.documentElement;
-      const trackHeight = trackRef.current.clientHeight;
-      
-      // If content fits, hide thumb
-      if (scrollHeight <= clientHeight) {
-        thumbRef.current.style.display = 'none';
-        return;
-      } else {
-        thumbRef.current.style.display = 'block';
-      }
-      
-      const thumbH = Math.max(
-        (clientHeight / scrollHeight) * trackHeight,
-        40 
-      );
-      
-      const maxScroll = scrollHeight - clientHeight;
-      const maxThumb = trackHeight - thumbH;
-      const progress = scrollTop / maxScroll;
-      const thumbTop = progress * maxThumb;
-
-      thumbRef.current.style.height = `${thumbH}px`;
-      thumbRef.current.style.transform = `translateY(${thumbTop}px)`;
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    window.addEventListener('resize', handleScroll);
-    
-    // Use ResizeObserver to detect content changes
-    const observer = new ResizeObserver(handleScroll);
-    observer.observe(document.body);
-    
-    handleScroll();
+    document.documentElement.classList.add('custom-scrollbar-active');
+    document.body.classList.add('custom-scrollbar-active');
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
-      observer.disconnect();
+      document.documentElement.classList.remove('custom-scrollbar-active');
+      document.body.classList.remove('custom-scrollbar-active');
+    };
+  }, [isDesktop]);
+
+  useEffect(() => {
+    if (!isDesktop) return;
+
+    let rafId = 0;
+    let trackHeight = 0;
+    let lastThumbH = -1;
+    let lastThumbTop = -1;
+    let lastHidden = null;
+
+    const measureTrack = () => {
+      if (!trackRef.current) return;
+      trackHeight = trackRef.current.getBoundingClientRect().height;
+    };
+
+    const update = () => {
+      rafId = 0;
+      if (!trackRef.current || !thumbRef.current) return;
+
+      const { scrollHeight, clientHeight, scrollTop } = document.documentElement;
+      const shouldHide = scrollHeight <= clientHeight || trackHeight <= 0;
+
+      if (lastHidden !== shouldHide) {
+        thumbRef.current.style.display = shouldHide ? 'none' : 'block';
+        lastHidden = shouldHide;
+      }
+      if (shouldHide) return;
+
+      const thumbH = Math.max((clientHeight / scrollHeight) * trackHeight, 40);
+      const maxScroll = scrollHeight - clientHeight;
+      const maxThumb = trackHeight - thumbH;
+      const progress = maxScroll > 0 ? scrollTop / maxScroll : 0;
+      const thumbTop = progress * maxThumb;
+
+      // Avoid needless style churn during scroll
+      if (Math.abs(thumbH - lastThumbH) > 0.5) {
+        thumbRef.current.style.height = `${thumbH}px`;
+        lastThumbH = thumbH;
+      }
+      if (Math.abs(thumbTop - lastThumbTop) > 0.5) {
+        thumbRef.current.style.transform = `translateY(${thumbTop}px)`;
+        lastThumbTop = thumbTop;
+      }
+    };
+
+    const scheduleUpdate = () => {
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(update);
+    };
+
+    measureTrack();
+    scheduleUpdate();
+
+    const onResize = () => {
+      measureTrack();
+      scheduleUpdate();
+    };
+
+    window.addEventListener('scroll', scheduleUpdate, { passive: true });
+    window.addEventListener('resize', onResize);
+
+    // Track height changes (e.g., viewport changes)
+    const trackObserver = new ResizeObserver(() => {
+      measureTrack();
+      scheduleUpdate();
+    });
+    if (trackRef.current) trackObserver.observe(trackRef.current);
+
+    // Content changes can affect scrollHeight
+    const contentObserver = new ResizeObserver(scheduleUpdate);
+    contentObserver.observe(document.documentElement);
+
+    return () => {
+      window.removeEventListener('scroll', scheduleUpdate);
+      window.removeEventListener('resize', onResize);
+      trackObserver.disconnect();
+      contentObserver.disconnect();
+      if (rafId) window.cancelAnimationFrame(rafId);
     };
   }, [isDesktop]);
 
@@ -63,6 +109,7 @@ export default function CustomScrollbar() {
     
     let startY = 0;
     let startScrollTop = 0;
+    let scrollRatio = 0;
     let isDragging = false;
 
     const onMouseDown = (e) => {
@@ -70,6 +117,15 @@ export default function CustomScrollbar() {
       isDragging = true;
       startY = e.clientY;
       startScrollTop = document.documentElement.scrollTop;
+
+      // Cache drag math to avoid layout reads in mousemove
+      const { scrollHeight, clientHeight } = document.documentElement;
+      const trackHeight = trackRef.current?.getBoundingClientRect().height ?? 0;
+      const thumbHeight = thumbRef.current?.getBoundingClientRect().height ?? 0;
+      const maxScroll = scrollHeight - clientHeight;
+      const maxThumb = trackHeight - thumbHeight;
+      scrollRatio = maxThumb > 0 ? maxScroll / maxThumb : 0;
+
       document.body.style.userSelect = 'none';
       if (thumbRef.current) thumbRef.current.classList.add('brightness-90');
     };
@@ -77,14 +133,8 @@ export default function CustomScrollbar() {
     const onMouseMove = (e) => {
       if (!isDragging) return;
       const deltaY = e.clientY - startY;
-      const { scrollHeight, clientHeight } = document.documentElement;
-      const trackHeight = trackRef.current.clientHeight;
-      const thumbHeight = thumbRef.current.clientHeight;
-      
-      const maxScroll = scrollHeight - clientHeight;
-      const maxThumb = trackHeight - thumbHeight;
-      
-      const scrollRatio = maxScroll / maxThumb;
+
+      if (!scrollRatio) return;
       const newScroll = startScrollTop + (deltaY * scrollRatio);
       
       window.scrollTo(0, newScroll);

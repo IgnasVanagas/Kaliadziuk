@@ -29,7 +29,9 @@
   "giftCard": {
     "title": "Gift card",
     "amount": "Amount (EUR)",
-    "recipientName": "Recipient name",
+    "recipientName": "Recipient's name",
+    "buyerName": "Your name",
+    "buyerEmail": "Your email",
     "addToCart": "Add to cart"
   },
   "cart": {

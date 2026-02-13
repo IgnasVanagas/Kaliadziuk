@@ -1,4 +1,4 @@
-import { corsHeaders, handleOptions } from '../_shared/cors.ts';
+import { getCorsHeaders, handleOptions } from '../_shared/cors.ts';
 import { rateLimit } from '../_shared/rateLimit.ts';
 import { renderAdminContactForm, sendEmail } from '../_shared/email.ts';
 import { getServiceClient } from '../_shared/supabase.ts';
@@ -18,9 +18,48 @@ function clamp(s: string, max: number) {
   return s.slice(0, max);
 }
 
+function getIp(req: Request): string {
+  const xf = req.headers.get('x-forwarded-for');
+  if (xf) return xf.split(',')[0].trim();
+  const real = req.headers.get('x-real-ip');
+  if (real) return real.trim();
+  return 'unknown';
+}
+
+async function verifyTurnstile(args: { token: string; ip?: string | null }) {
+  const secret = Deno.env.get('TURNSTILE_SECRET_KEY');
+  if (!secret || !secret.trim()) {
+    return { enforced: false, ok: true as const };
+  }
+
+  const token = String(args.token || '').trim();
+  if (!token) {
+    return { enforced: true, ok: false as const, error: 'missing_captcha' as const };
+  }
+
+  const form = new URLSearchParams();
+  form.set('secret', secret.trim());
+  form.set('response', token);
+  if (args.ip && args.ip !== 'unknown') form.set('remoteip', args.ip);
+
+  const resp = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: form.toString(),
+  });
+
+  const data: any = await resp.json().catch(() => null);
+  if (data?.success) {
+    return { enforced: true, ok: true as const };
+  }
+  return { enforced: true, ok: false as const, error: 'captcha_failed' as const };
+}
+
 Deno.serve(async (req: Request) => {
   const preflight = handleOptions(req);
   if (preflight) return preflight;
+
+  const corsHeaders = getCorsHeaders(req);
 
   if (req.method !== 'POST') {
     return new Response('method_not_allowed', { status: 405, headers: corsHeaders });
@@ -32,11 +71,29 @@ Deno.serve(async (req: Request) => {
     const body: any = await req.json();
     const locale: 'lt' | 'en' = body?.locale === 'en' ? 'en' : 'lt';
 
+    // Honeypot: bots often fill hidden fields.
+    const website = clamp(asTrimmedString(body?.website), 200);
+    if (website) {
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const name = clamp(asTrimmedString(body?.name), 120) || null;
     const email = clamp(asTrimmedString(body?.email), 200);
     const phone = clamp(asTrimmedString(body?.phone), 60) || null;
     const message = clamp(asTrimmedString(body?.message), 4000);
     const pageUrl = clamp(asTrimmedString(body?.page_url), 500) || null;
+
+    const captchaToken = clamp(asTrimmedString(body?.turnstile_token ?? body?.cf_turnstile_response ?? body?.captcha_token), 3000);
+    const captcha = await verifyTurnstile({ token: captchaToken, ip: getIp(req) });
+    if (!captcha.ok) {
+      return new Response(JSON.stringify({ error: captcha.error }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     if (!email || !message) {
       return new Response(JSON.stringify({ error: 'missing_required_fields' }), {
@@ -89,9 +146,12 @@ Deno.serve(async (req: Request) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (e: any) {
-    const code = String(e?.message || e || 'error');
-    const status = code === 'rate_limited' ? 429 : 500;
-    return new Response(JSON.stringify({ error: code }), {
+    const isRateLimited = String(e?.message || '') === 'rate_limited';
+    if (!isRateLimited) {
+      console.error('[contact-form] error', e);
+    }
+    const status = isRateLimited ? 429 : 500;
+    return new Response(JSON.stringify({ error: isRateLimited ? 'rate_limited' : 'server_error' }), {
       status,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

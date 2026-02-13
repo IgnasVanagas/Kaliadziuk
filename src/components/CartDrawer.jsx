@@ -66,7 +66,21 @@ export default function CartDrawer({ open, onClose }) {
   const cartPath = locale === 'lt' ? '/lt/krepselis' : '/en/cart';
 
   const onRemove = (index) => {
-    const next = removeItem(loadCart(), index);
+    const c = loadCart();
+    const itemToRemove = c.items[index];
+    if (itemToRemove) {
+      sendEvent('remove_from_cart', {
+        currency: 'EUR',
+        value: (itemToRemove.unitPriceCents || 0) / 100,
+        items: [{
+          item_id: itemToRemove.productId || 'gift_card',
+          item_name: itemToRemove.name,
+          price: (itemToRemove.unitPriceCents || 0) / 100,
+          quantity: itemToRemove.qty || 1,
+        }]
+      });
+    }
+    const next = removeItem(c, index);
     saveCart(next);
   };
 
@@ -109,7 +123,15 @@ export default function CartDrawer({ open, onClose }) {
                 {cart.items.map((it, idx) => (
                   <div key={`${it.kind}-${it.productId ?? 'na'}-${idx}`} className="flex gap-4 rounded-2xl border border-black/10 p-4">
                     {it.imageUrl ? (
-                      <img src={it.imageUrl} alt="" className="h-14 w-14 rounded-xl object-cover" loading="lazy" />
+                      <img
+                        src={it.imageUrl}
+                        alt=""
+                        className="h-14 w-14 rounded-xl object-cover"
+                        loading="lazy"
+                        decoding="async"
+                        width={56}
+                        height={56}
+                      />
                     ) : (
                       <div className="h-14 w-14 rounded-xl bg-black/5" aria-hidden="true" />
                     )}

@@ -18,6 +18,7 @@ import Admin from './pages/Admin';
 import NotFound from './pages/NotFound';
 import Auth from './pages/Auth';
 import Account from './pages/Account';
+import Questionnaire from './pages/Questionnaire';
 import RequireAuth from './auth/RequireAuth.jsx';
 
 function RootRedirect() {
@@ -86,6 +87,11 @@ export default function AppRouter() {
 
         <Route path="/lt/planai" element={<Plans />} />
         <Route path="/en/plans" element={<Plans />} />
+
+        <Route path="/lt/anketa" element={<Navigate to="/lt/anketa/1" replace />} />
+        <Route path="/lt/anketa/:step" element={<Questionnaire />} />
+        <Route path="/en/questionnaire" element={<Navigate to="/en/questionnaire/1" replace />} />
+        <Route path="/en/questionnaire/:step" element={<Questionnaire />} />
 
         <Route path="/lt/dovanu-kuponas" element={<GiftCard />} />
         <Route path="/en/gift-card" element={<GiftCard />} />

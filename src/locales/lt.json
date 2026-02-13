@@ -30,6 +30,8 @@
     "title": "Dovanų kuponas",
     "amount": "Suma (EUR)",
     "recipientName": "Gavėjo vardas",
+    "buyerName": "Jūsų vardas",
+    "buyerEmail": "Jūsų el. paštas",
     "addToCart": "Į krepšelį"
   },
   "cart": {

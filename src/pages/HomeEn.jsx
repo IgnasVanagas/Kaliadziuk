@@ -15,13 +15,13 @@ export default function HomeEn() {
 
       <div className="flex gap-3">
         <Link
-          to={`/${locale}/plans`}
+          to={`/${locale}/plans/`}
           className="inline-flex items-center justify-center rounded-full glass-green-surface px-6 py-3 text-lg font-extrabold text-black"
         >
           {t('home.ctaPlans')}
         </Link>
         <Link
-          to={`/${locale}/gift-card`}
+          to={`/${locale}/gift-card/`}
           className="inline-flex items-center justify-center rounded-full border border-black/20 px-6 py-3 text-lg font-extrabold"
         >
           {t('home.ctaGift')}

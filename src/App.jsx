@@ -1,5 +1,5 @@
 ﻿import { useEffect, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import 'keen-slider/keen-slider.min.css';
@@ -10,11 +10,60 @@ import { sendEvent } from './lib/tracking';
 
 const fromUploads = (file) => new URL(`../uploads/${file}`, import.meta.url).pathname;
 
-const heroImageDesktop = fromUploads('IMG_0443-scaled.jpg');
-const heroImageMobile = fromUploads('IMG_0441-modified-scaled-e1750335226133.jpg');
+const heroImageDesktop = fromUploads('_optimized/IMG_0443-scaled-2560w.webp');
+const heroImageDesktopAvif = fromUploads('_optimized/IMG_0443-scaled-2560w.avif');
+const heroImageMobile = fromUploads('_optimized/IMG_0441-modified-scaled-e1750335226133-1485w.webp');
+const heroImageMobileAvif = fromUploads('_optimized/IMG_0441-modified-scaled-e1750335226133-1485w.avif');
+const heroImageSrcSetDesktopWebp = [
+  `${fromUploads('_optimized/IMG_0443-scaled-640w.webp')} 640w`,
+  `${fromUploads('_optimized/IMG_0443-scaled-768w.webp')} 768w`,
+  `${fromUploads('_optimized/IMG_0443-scaled-960w.webp')} 960w`,
+  `${fromUploads('_optimized/IMG_0443-scaled-1024w.webp')} 1024w`,
+  `${fromUploads('_optimized/IMG_0443-scaled-1280w.webp')} 1280w`,
+  `${fromUploads('_optimized/IMG_0443-scaled-1440w.webp')} 1440w`,
+  `${fromUploads('_optimized/IMG_0443-scaled-1600w.webp')} 1600w`,
+  `${fromUploads('_optimized/IMG_0443-scaled-1920w.webp')} 1920w`,
+  `${fromUploads('_optimized/IMG_0443-scaled-2560w.webp')} 2560w`,
+].join(', ');
+const heroImageSrcSetDesktopAvif = [
+  `${fromUploads('_optimized/IMG_0443-scaled-640w.avif')} 640w`,
+  `${fromUploads('_optimized/IMG_0443-scaled-768w.avif')} 768w`,
+  `${fromUploads('_optimized/IMG_0443-scaled-960w.avif')} 960w`,
+  `${fromUploads('_optimized/IMG_0443-scaled-1024w.avif')} 1024w`,
+  `${fromUploads('_optimized/IMG_0443-scaled-1280w.avif')} 1280w`,
+  `${fromUploads('_optimized/IMG_0443-scaled-1440w.avif')} 1440w`,
+  `${fromUploads('_optimized/IMG_0443-scaled-1600w.avif')} 1600w`,
+  `${fromUploads('_optimized/IMG_0443-scaled-1920w.avif')} 1920w`,
+  `${fromUploads('_optimized/IMG_0443-scaled-2560w.avif')} 2560w`,
+].join(', ');
+const heroImageSrcSetMobileWebp = [
+  `${fromUploads('_optimized/IMG_0441-modified-scaled-e1750335226133-320w.webp')} 320w`,
+  `${fromUploads('_optimized/IMG_0441-modified-scaled-e1750335226133-480w.webp')} 480w`,
+  `${fromUploads('_optimized/IMG_0441-modified-scaled-e1750335226133-640w.webp')} 640w`,
+  `${fromUploads('_optimized/IMG_0441-modified-scaled-e1750335226133-768w.webp')} 768w`,
+  `${fromUploads('_optimized/IMG_0441-modified-scaled-e1750335226133-960w.webp')} 960w`,
+  `${fromUploads('_optimized/IMG_0441-modified-scaled-e1750335226133-1024w.webp')} 1024w`,
+  `${fromUploads('_optimized/IMG_0441-modified-scaled-e1750335226133-1280w.webp')} 1280w`,
+  `${fromUploads('_optimized/IMG_0441-modified-scaled-e1750335226133-1440w.webp')} 1440w`,
+  `${fromUploads('_optimized/IMG_0441-modified-scaled-e1750335226133-1485w.webp')} 1485w`,
+].join(', ');
+const heroImageSrcSetMobileAvif = [
+  `${fromUploads('_optimized/IMG_0441-modified-scaled-e1750335226133-320w.avif')} 320w`,
+  `${fromUploads('_optimized/IMG_0441-modified-scaled-e1750335226133-480w.avif')} 480w`,
+  `${fromUploads('_optimized/IMG_0441-modified-scaled-e1750335226133-640w.avif')} 640w`,
+  `${fromUploads('_optimized/IMG_0441-modified-scaled-e1750335226133-768w.avif')} 768w`,
+  `${fromUploads('_optimized/IMG_0441-modified-scaled-e1750335226133-960w.avif')} 960w`,
+  `${fromUploads('_optimized/IMG_0441-modified-scaled-e1750335226133-1024w.avif')} 1024w`,
+  `${fromUploads('_optimized/IMG_0441-modified-scaled-e1750335226133-1280w.avif')} 1280w`,
+  `${fromUploads('_optimized/IMG_0441-modified-scaled-e1750335226133-1440w.avif')} 1440w`,
+  `${fromUploads('_optimized/IMG_0441-modified-scaled-e1750335226133-1485w.avif')} 1485w`,
+].join(', ');
 const successImage = fromUploads('grupine5.jpg');
 
-const contactImage = fromUploads('IMG_0469-scaled.jpg');
+const contactImage = fromUploads('_optimized/IMG_0469-scaled-2560w.webp');
+const contactImageAvif = fromUploads('_optimized/IMG_0469-scaled-2560w.avif');
+const contactImageSrcSetWebp = `${fromUploads('_optimized/IMG_0469-scaled-2560w.webp')} 2560w`;
+const contactImageSrcSetAvif = `${fromUploads('_optimized/IMG_0469-scaled-2560w.avif')} 2560w`;
 
 const heroStatsByLocale = {
   lt: [
@@ -29,16 +78,32 @@ const heroStatsByLocale = {
   ],
 };
 
-const Hero = ({ stats, backgroundDesktop, backgroundMobile, title, ctaLabel }) => (
+const Hero = ({ stats, backgroundDesktop, backgroundMobile, title, subtitle, ctaLabel, ctaLink, imageAlt }) => (
   <section id="hero" className="relative min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)] lg:min-h-[calc(100vh-6rem)] overflow-hidden text-white">
     <picture className="pointer-events-none absolute inset-0 z-0">
-      {backgroundMobile ? <source media="(max-width: 768px)" srcSet={backgroundMobile} /> : null}
+      {backgroundMobile ? (
+        <>
+          <source
+            type="image/avif"
+            media="(max-width: 768px)"
+            srcSet={heroImageSrcSetMobileAvif}
+            sizes="100vw"
+          />
+          <source
+            type="image/webp"
+            media="(max-width: 768px)"
+            srcSet={heroImageSrcSetMobileWebp}
+            sizes="100vw"
+          />
+        </>
+      ) : null}
+      <source type="image/avif" srcSet={heroImageSrcSetDesktopAvif} sizes="100vw" />
+      <source type="image/webp" srcSet={heroImageSrcSetDesktopWebp} sizes="100vw" />
       <img
         src={backgroundDesktop}
-        alt=""
+        alt={imageAlt}
         className="h-full w-full object-cover"
         style={{ objectPosition: 'center 30%' }}
-        aria-hidden="true"
         loading="eager"
       />
     </picture>
@@ -71,13 +136,27 @@ const Hero = ({ stats, backgroundDesktop, backgroundMobile, title, ctaLabel }) =
         <h1 className="font-heading text-3xl font-extrabold leading-tight sm:text-4xl md:text-5xl lg:text-6xl drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)]">
           {title}
         </h1>
+        {subtitle ? (
+          <p className="text-base text-white/90 sm:text-lg">
+            {subtitle}
+          </p>
+        ) : null}
         <div className="flex w-full justify-center flex-col gap-4 sm:w-auto sm:flex-row">
-          <a
-            href="#programos"
-            className="inline-flex items-center justify-center rounded-full glass-green-surface px-6 py-3 text-xl font-extrabold text-black shadow-lg transition-transform duration-150 hover:-translate-y-1 sm:px-8 sm:py-4 sm:text-2xl"
-          >
-            {ctaLabel}
-          </a>
+          {!ctaLink || ctaLink.startsWith('#') ? (
+            <a
+              href={ctaLink || "#programos"}
+              className="inline-flex items-center justify-center rounded-full glass-green-surface px-6 py-3 text-xl font-extrabold text-black shadow-lg transition-transform duration-150 hover:-translate-y-1 sm:px-8 sm:py-4 sm:text-2xl"
+            >
+              {ctaLabel}
+            </a>
+          ) : (
+            <Link
+              to={ctaLink}
+              className="inline-flex items-center justify-center rounded-full glass-green-surface px-6 py-3 text-xl font-extrabold text-black shadow-lg transition-transform duration-150 hover:-translate-y-1 sm:px-8 sm:py-4 sm:text-2xl"
+            >
+              {ctaLabel}
+            </Link>
+          )}
         </div>
       </div>
 
@@ -182,7 +261,7 @@ const programsLt = [
       'Individualus sporto planas pagal Jūsų poreikius',
       'Mitybos gairės raumenų augimui',
       '1 asmeninė treniruotė (technikos, apkrovų ir silpnų vietų įvertinimui)',
-      'Struktūruotas progresas, paremtas hipertrofijos principais',
+      'Skaitmeninis progreso dienoraštis',
       'Lojalumo bonusas: atnaujinimas tik 50 €',
     ],
   },
@@ -396,150 +475,162 @@ const programsByLocale = {
 const storiesLt = [
   {
     name: 'Ingrida Brazytė-Česevičienė',
-    avatar: fromUploads('atsiliepimai/470469671_9420998764591504_1367316031802033160_n-e1743524043787.jpg'),
+    avatar: fromUploads('_optimized/atsiliepimai/470469671_9420998764591504_1367316031802033160_n-e1743524043787-320w.webp'),
     quote:
       '“Pavelas – profesionalus, atidus, nuoširdus treneris ir puikus motyvatorius! Lankausi jau daugiau nei tris mėnesius, ir dar nė viena treniruotė nebuvo tokia pati. Treniruotės pralekia greitai ir nenuobodžiai! Svarbiausia – po kiekvienos treniruotės jaučiu, kad turiu raumenukus, tačiau niekada nebuvo taip, kad dėl stipraus skausmo neišlipčiau iš lovos.”',
   },
   {
     name: 'Dovydas Sem',
-    avatar: fromUploads('atsiliepimai/485767155_2433248600372198_5450357866485351546_n-e1743523994763.jpg'),
+    avatar: fromUploads('_optimized/atsiliepimai/485767155_2433248600372198_5450357866485351546_n-e1743523994763-320w.webp'),
     quote:
       '“Sportuoju pas Pavelą jau antrus metus ir tikrai nesiruošiu sustoti! Drįsčiau teigti, kad treniruotės su juo – geriausias mano pasirinkimas. Jis gali jaunimui padėti susikurti itin tvirtą pagrindą sporte, supažindinti su įvairiais pratimais ir jų veikimo principais bei skatinti sveiką gyvenseną. Su šiuo treneriu niekada nebūna nuobodu – pratimų įvairovė ir nuolatinis bendravimas tiesiog kviečia į salę!”',
   },
   {
     name: 'Artūras Kozlov',
-    avatar: fromUploads('atsiliepimai/394284740_6710013242385928_5528573044851569625_n.jpg'),
+    avatar: fromUploads('_optimized/atsiliepimai/394284740_6710013242385928_5528573044851569625_n-320w.webp'),
     quote:
       '“Atsakingas, kvalifikuotas ir savo darbą mylintis treneris. Matosi, kad kiekvienai treniruotei kruopščiai pasiruošia – parenka tinkamą krūvį ir ateina su būtent tau pritaikytu treniruotės planu, o ne „copy-paste“ schema visiems. Pratimai įvairūs ir įdomūs, nėra monotonijos – visada išmoksti kažką naujo. Kas labai svarbu – Pavelas yra be galo dėmesingas: visos treniruotės metu stebi techniką, paaiškina kiekvieno pratimo paskirtį ir naudą. Jokio broko tikrai nepraleis!”',
   },
   {
     name: 'Julia Gatsko',
-    avatar: fromUploads('atsiliepimai/Picture1 (1).jpg'),
+    avatar: fromUploads('_optimized/atsiliepimai/Picture1 (1)-320w.webp'),
     quote:
       '“Pasha išsiskiria profesionalumu ir moksliniu požiūriu – jis atsižvelgia į tavo sveikatą ir kūno būklę, padeda ne tik atrodyti sportiškai, bet ir jaustis geriau. Su juo treniruojuosi beveik metus ir matau didelius pokyčius tiek fizinėje formoje, tiek savijautoje. Labai rekomenduoju!”',
   },
   {
     name: 'Justė Perveneckaitė',
-    avatar: fromUploads('atsiliepimai/Picture2-1.jpg'),
+    avatar: fromUploads('_optimized/atsiliepimai/Picture2-1-277w.webp'),
     quote:
       '“Esu sportininkė, kuri anksčiau susidūrė su įvairiais raumenų disbalansais, tačiau trenerio sudaryta individuali programa padėjo juos išspręsti ir sustiprėti. Ypač vertinu jo pagalbą atsistatymo procese bei traumų prevencijoje, kas man labai svarbu siekiant ilgalaikių rezultatų. Treneris itin malonus, dėmesingas ir visada nuoširdžiai atsako į visus rūpimus klausimus.”',
   },
   {
     name: 'Edvard Korovacki',
-    avatar: fromUploads('atsiliepimai/Picture3 (1).jpg'),
+    avatar: fromUploads('_optimized/atsiliepimai/Picture3 (1)-320w.webp'),
     quote:
       '“Pavelas – išskirtinis treneris, įvertinantis asmeninius poreikius, motyvuojantis ir suteikiantis aiškų grįžtamąjį ryšį. Jo žinios apima ne tik pratimus, bet ir mitybą bei atsistatymą, todėl rezultatai – realūs. Treniruotės visada pilnos pozityvios energijos, o su juo jautiesi laukiamas ir įkvėptas kiekvieną kartą.”',
   },
   {
     name: 'Greta Valasinavičiūtė',
-    avatar: fromUploads('atsiliepimai/373064400_6180419855414750_1227222582074733444_n.jpg'),
+    avatar: fromUploads('_optimized/atsiliepimai/373064400_6180419855414750_1227222582074733444_n-320w.webp'),
     quote:
       '“Pavelas – nuostabus treneris, o kiekviena treniruotė pas jį – motyvacijos, energijos ir žinių šaltinis. Su nekantrumu laukiu kiekvienos treniruotės! Profesionalumas garantuotas – rekomenduoju!”',
   },
   {
     name: 'Tadas Kibirkštis',
-    avatar: fromUploads('atsiliepimai/367460586_6616155658420913_6885742354305016905_n.jpg'),
+    avatar: fromUploads('_optimized/atsiliepimai/367460586_6616155658420913_6885742354305016905_n-320w.webp'),
     quote:
       '“Pavelas – tikras savo srities profesionalas. Įsigilina į situaciją, atidžiai parenka pratimus pagal būklę ir savijautą, o rezultatas jaučiasi iškart. Jis – žmogus, mylintis savo darbą ir atsiduodantis jam 100 %. Ačiū Jam ir tikrai rekomenduoju kitiems!”',
   },
   {
     name: 'Ūlė Julija Masteikaitė',
-    avatar: fromUploads('atsiliepimai/Screenshot-2025-03-19-at-5.40.07 PM.png'),
+    avatar: fromUploads('_optimized/atsiliepimai/Screenshot-2025-03-19-at-5.40.07 PM-320w.webp'),
     quote:
       '“Pavelas yra the absolute best 🫶 Susidūrus su nugaros skausmo problema, padėjo ją spręsti bei pasiūlė daug prevencinių pratimų. Viską aiškina suuuuper detaliai - ne tik kaip atlikti pratimą, bet taip pat ir kokie raumenys dirba bei visapusę pratimo naudą. Po treniruotės lieki ne tik pasportavęs, bet ir sužinojęs daug dalykų apie savo kūną, laikyseną, mobilumą.”',
   },
   {
     name: 'Roma Šablinskienė',
-    avatar: fromUploads('atsiliepimai/459630769_10230433925305293_4458957318428687233_n.jpg'),
+    avatar: fromUploads('_optimized/atsiliepimai/459630769_10230433925305293_4458957318428687233_n-320w.webp'),
     quote:
       '“Kaip visišką nedraugystę su sportu paversti meile sportui? Lengva – tereikia Pavelo pagalbos! Labai atsargiai, ilgai dairydamasi iš tolo ieškojau, kas man padėtų prisijaukinti šį „žvėrį“. Įvairūs bandymai grupinėse treniruotėse būdavo trumpalaikiai, todėl beveik buvau nurašiusi sportą kaip „ne mano arkliuką“. Tačiau jau po pirmos treniruotės supratau, kad su Pavelu – tobula chemija! Jis tikras profesionalas, nenaudojantis vienos schemos visiems. Respektas!”',
   },
   {
     name: 'Evelina Jurčiukonytė',
-    avatar: fromUploads('atsiliepimai/302925805_5629860167034966_3216542933912186510_n.jpg'),
+    avatar: fromUploads('_optimized/atsiliepimai/302925805_5629860167034966_3216542933912186510_n-320w.webp'),
     quote:
       '“Vienas geriausių sprendimų – treniruotis pas Pavelą! Jis puikiai išmano savo darbą, įsiklauso į kliento poreikius bei norus, yra labai atsakingas, mylintis savo profesiją ir tiksliai žinantis, ką daro. Treniruotės praskrieja akimirksniu!”',
   },
   {
     name: 'Anna Levkovich',
-    avatar: fromUploads('atsiliepimai/image00001 (2).jpeg'),
+    avatar: fromUploads('_optimized/atsiliepimai/image00001 (2)-320w.webp'),
     quote:
       '“Sportuoju pas Pavelą jau virš trejų metų ir tai geriausia, kas nutiko mano savijautai. Per šį laiką dingo nugaros skausmai bei migrena, o kūnas akivaizdžiai sutvirtėjo. Pavelas yra neįtikėtinai dėmesingas: jis ne tik atsižvelgia į moterišką ciklą, bet ir profesionaliai padėjo man atsistatyti po mastektomijos su specialiai pritaikytu planu. Nors važiuoju pas jį per visą miestą, rasti tokį empatišką specialistą yra tokia pat sėkmė, kaip rasti „savo“ gydytoją ar psichologą.”',
+  },
+  {
+    name: 'Gabrielė Juozapavičiūtė',
+    avatar: '/uploads/atsiliepimai/_thumbs/IMG_8426.jpeg',
+    quote:
+      '“Niekada nemaniau, kad sporto klubas man gali patikti – kol nepradėjau treniruotis su Pavelu. Su juo treniruotės niekada nėra nuobodžios! Visi pratimai parenkami individualiai, atsižvelgiant į mano tikslus ir iššūkius, todėl kiekviena treniruotė yra prasminga ir tikslinga. Po užsiėmimų visada jaučiuosi stipresnė, tvirtesnė ir labiau pasitikinti savimi. Pavelas – vienas geriausių trenerių Lietuvoje, ir esu labai dėkinga už galimybę sportuoti prižiūrint tokiam aukšto lygio profesionalui.”',
   },
 ];
 
 const storiesEn = [
   {
     name: 'Ingrida Brazytė-Česevičienė',
-    avatar: fromUploads('atsiliepimai/470469671_9420998764591504_1367316031802033160_n-e1743524043787.jpg'),
+    avatar: fromUploads('_optimized/atsiliepimai/470469671_9420998764591504_1367316031802033160_n-e1743524043787-320w.webp'),
     quote:
       '“Pavel is a professional, attentive and sincere coach—and a great motivator! I’ve been training for over three months and no two sessions have been the same. Workouts fly by and never feel boring. Most importantly, after each session I feel my muscles working, but it’s never been so painful that I couldn’t get out of bed.”',
   },
   {
     name: 'Dovydas Sem',
-    avatar: fromUploads('atsiliepimai/485767155_2433248600372198_5450357866485351546_n-e1743523994763.jpg'),
+    avatar: fromUploads('_optimized/atsiliepimai/485767155_2433248600372198_5450357866485351546_n-e1743523994763-320w.webp'),
     quote:
       '“I’ve been training with Pavel for my second year now and I’m definitely not stopping! I’d say working out with him has been my best choice. He helps young people build a strong foundation, introduces a wide range of exercises and how they work, and encourages a healthy lifestyle. With this coach it’s never boring—exercise variety and constant communication make you want to come to the gym!”',
   },
   {
     name: 'Artūras Kozlov',
-    avatar: fromUploads('atsiliepimai/394284740_6710013242385928_5528573044851569625_n.jpg'),
+    avatar: fromUploads('_optimized/atsiliepimai/394284740_6710013242385928_5528573044851569625_n-320w.webp'),
     quote:
       '“A responsible, qualified coach who truly loves his work. You can see he prepares carefully for every session—chooses the right load and comes with a plan tailored specifically to you, not a copy‑paste scheme for everyone. Exercises are varied and interesting—there’s no monotony and you always learn something new. Most importantly, Pavel is extremely attentive: throughout the session he watches your technique, explains what each exercise is for and its benefits. He definitely doesn’t let any mistakes slip!”',
   },
   {
     name: 'Julia Gatsko',
-    avatar: fromUploads('atsiliepimai/Picture1 (1).jpg'),
+    avatar: fromUploads('_optimized/atsiliepimai/Picture1 (1)-320w.webp'),
     quote:
       '“Pasha stands out with his professionalism and scientific approach—he considers your health and body condition, helping you not only look fit but also feel better. I’ve been training with him for almost a year and see great improvements in both fitness and overall well-being. Highly recommended!”',
   },
   {
     name: 'Justė Perveneckaitė',
-    avatar: fromUploads('atsiliepimai/Picture2-1.jpg'),
+    avatar: fromUploads('_optimized/atsiliepimai/Picture2-1-277w.webp'),
     quote:
       '“I’m an athlete who used to deal with various muscle imbalances, but the coach’s personalized program helped me resolve them and get stronger. I especially value his support in recovery and injury prevention, which is crucial for long-term progress. He’s very kind, attentive, and always sincerely answers every question.”',
   },
   {
     name: 'Edvard Korovacki',
-    avatar: fromUploads('atsiliepimai/Picture3 (1).jpg'),
+    avatar: fromUploads('_optimized/atsiliepimai/Picture3 (1)-320w.webp'),
     quote:
       '“Pavel is an outstanding trainer who considers personal needs, motivates, and gives clear feedback. His knowledge covers not only exercises but also nutrition and recovery, helping to achieve real results. Trainings are always full of positive energy, and with him you feel welcome and inspired every time.”',
   },
   {
     name: 'Greta Valasinavičiūtė',
-    avatar: fromUploads('atsiliepimai/373064400_6180419855414750_1227222582074733444_n.jpg'),
+    avatar: fromUploads('_optimized/atsiliepimai/373064400_6180419855414750_1227222582074733444_n-320w.webp'),
     quote:
       '“Pavel is an amazing coach, and every workout with him is a source of motivation, energy and knowledge. I look forward to every session! Professionalism guaranteed—highly recommend!”',
   },
   {
     name: 'Tadas Kibirkštis',
-    avatar: fromUploads('atsiliepimai/367460586_6616155658420913_6885742354305016905_n.jpg'),
+    avatar: fromUploads('_optimized/atsiliepimai/367460586_6616155658420913_6885742354305016905_n-320w.webp'),
     quote:
       '“Pavel is a true professional. He dives into the situation, carefully selects exercises based on your condition and how you feel, and the result is noticeable immediately. He’s someone who loves his work and gives it 100%. Thank you—and I definitely recommend him to others!”',
   },
   {
     name: 'Ūlė Julija Masteikaitė',
-    avatar: fromUploads('atsiliepimai/Screenshot-2025-03-19-at-5.40.07 PM.png'),
+    avatar: fromUploads('_optimized/atsiliepimai/Screenshot-2025-03-19-at-5.40.07 PM-320w.webp'),
     quote:
       '“Pavel is the absolute best 🫶 When I faced back pain, he helped me address it and suggested plenty of preventive exercises. He explains everything super thoroughly—not only how to do an exercise, but also which muscles work and the full benefit. After a workout you leave not only having trained, but also having learned a lot about your body, posture and mobility.”',
   },
   {
     name: 'Roma Šablinskienė',
-    avatar: fromUploads('atsiliepimai/459630769_10230433925305293_4458957318428687233_n.jpg'),
+    avatar: fromUploads('_optimized/atsiliepimai/459630769_10230433925305293_4458957318428687233_n-320w.webp'),
     quote:
       '“How do you turn a total dislike of sport into love for it? Easy—you just need Pavel’s help! Very carefully, for a long time, I looked for someone who could help me ‘tame this beast’. My attempts at group workouts were short‑lived, so I had almost written off sport as ‘not my thing’. But after the very first session I understood that with Pavel it’s perfect chemistry! He’s a true professional who doesn’t use one scheme for everyone. Respect!”',
   },
   {
     name: 'Evelina Jurčiukonytė',
-    avatar: fromUploads('atsiliepimai/302925805_5629860167034966_3216542933912186510_n.jpg'),
+    avatar: fromUploads('_optimized/atsiliepimai/302925805_5629860167034966_3216542933912186510_n-320w.webp'),
     quote:
       '“One of the best decisions—training with Pavel! He really knows his craft, listens to the client’s needs and wishes, is very responsible, loves his profession and knows exactly what he’s doing. Workouts fly by in an instant!”',
   },
   {
     name: 'Anna Levkovich',
-    avatar: fromUploads('atsiliepimai/image00001 (2).jpeg'),
+    avatar: fromUploads('_optimized/atsiliepimai/image00001 (2)-320w.webp'),
     quote:
       '“I’ve been training with Pavel for over three years and it’s the best thing that’s happened to my well-being. During this time my back pain and migraines disappeared, and my body has clearly become stronger. Pavel is incredibly attentive: he not only considers the female cycle, but also helped me recover professionally after a mastectomy with a specially adapted plan. Even though I travel across the city to train with him, finding such an empathetic specialist is as lucky as finding ‘your’ doctor or psychologist.”',
+  },
+  {
+    name: 'Gabrielė Juozapavičiūtė',
+    avatar: '/uploads/atsiliepimai/_thumbs/IMG_8426.jpeg',
+    quote:
+      '“I never thought I could enjoy the gym – until I started training with Pavel. Training with him is never boring! All exercises are selected individually, taking into account my goals and challenges, so every workout is meaningful and purposeful. After sessions I always feel stronger, firmer and more confident. Pavel is one of the best trainers in Lithuania, and I am very grateful for the opportunity to train under the supervision of such a high-level professional.”',
   },
 ];
 
@@ -555,12 +646,12 @@ const transformationsLt = [
     goal: 'Geras fizinis pasiruošimas ir mažesnis riebalinis audinys',
     result: 'Priaugo 15 kg raumenų per 9 mėnesius',
     before: {
-      image: fromUploads('atsiliepimai/before-2.jpg'),
+      image: fromUploads('_optimized/atsiliepimai/before-2-960w.webp'),
       label: 'Foto prieš',
       weight: '105 kg',
     },
     after: {
-      image: fromUploads('atsiliepimai/after-2.jpg'),
+      image: fromUploads('_optimized/atsiliepimai/after-2-960w.webp'),
       label: 'Foto po',
       weight: '90 kg',
     },
@@ -571,13 +662,13 @@ const transformationsLt = [
     goal: 'Bendras fizinis pasiruošimas su akcentu į svorio metimą',
     result: 'Numetė 30 kg per metus',
     before: {
-      image: fromUploads('atsiliepimai/before-3.jpg'),
+      image: fromUploads('_optimized/atsiliepimai/before-3-960w.webp'),
       label: 'Foto prieš',
       weight: '118 kg',
       objectPosition: '60% top',
     },
     after: {
-      image: fromUploads('atsiliepimai/after-3.jpg'),
+      image: fromUploads('_optimized/atsiliepimai/after-3-960w.webp'),
       label: 'Foto po',
       weight: '88 kg',
       objectPosition: '60% top',
@@ -589,12 +680,12 @@ const transformationsLt = [
     goal: 'Sumažinti riebalinį audinį išlaikant raumeninę masę',
     result: 'Numetė 42 kg per pusę metų',
     before: {
-      image: fromUploads('atsiliepimai/before-1.jpg'),
+      image: fromUploads('_optimized/atsiliepimai/before-1-960w.webp'),
       label: 'Foto prieš',
       weight: '125 kg',
     },
     after: {
-      image: fromUploads('atsiliepimai/after-1.jpg'),
+      image: fromUploads('_optimized/atsiliepimai/after-1-960w.webp'),
       label: 'Foto po',
       weight: '83 kg',
     },
@@ -605,12 +696,12 @@ const transformationsLt = [
     goal: 'Atsikratyti riebalinės masės',
     result: 'Numetė 13 kg riebalinės masės per 2 mėnesius',
     before: {
-      image: fromUploads('atsiliepimai/image00001.jpeg'),
+      image: fromUploads('_optimized/atsiliepimai/image00001-960w.webp'),
       label: 'Foto prieš',
       weight: '113 kg',
     },
     after: {
-      image: fromUploads('atsiliepimai/image00002.jpeg'),
+      image: fromUploads('_optimized/atsiliepimai/image00002-960w.webp'),
       label: 'Foto po',
       weight: '99 kg',
     },
@@ -621,12 +712,12 @@ const transformationsLt = [
     goal: 'Daugiau energijos, stipresnė sveikata ir lengvesnis kūnas',
     result: 'Numetė 7 kg per 4 mėnesius',
     before: {
-      image: fromUploads('atsiliepimai/Unknown-4 (1).jpg'),
+      image: fromUploads('_optimized/atsiliepimai/Unknown-4 (1)-768w.webp'),
       label: 'Foto prieš',
       weight: '67 kg',
     },
     after: {
-      image: fromUploads('atsiliepimai/Po2-1.jpg'),
+      image: fromUploads('_optimized/atsiliepimai/Po2-1-768w.webp'),
       label: 'Foto po',
       weight: '60 kg',
     },
@@ -637,12 +728,12 @@ const transformationsLt = [
     goal: 'Raumenų hipertrofija ir jėgos didinimas',
     result: 'Priaugo 10 kg raumenų per 11 mėnesių',
     before: {
-      image: fromUploads('atsiliepimai/IMG_6824-scaled.jpg'),
+      image: fromUploads('_optimized/atsiliepimai/IMG_6824-scaled-960w.webp'),
       label: 'Foto prieš',
       weight: '63 kg',
     },
     after: {
-      image: fromUploads('atsiliepimai/Bicepsa-scaled.jpg'),
+      image: fromUploads('_optimized/atsiliepimai/Bicepsa-scaled-960w.webp'),
       label: 'Foto po',
       weight: '73 kg',
     },
@@ -656,12 +747,12 @@ const transformationsEn = [
     goal: 'Better overall fitness and lower body fat',
     result: 'Gained 15 kg of muscle in 9 months',
     before: {
-      image: fromUploads('atsiliepimai/before-2.jpg'),
+      image: fromUploads('_optimized/atsiliepimai/before-2-960w.webp'),
       label: 'Before photo',
       weight: '105 kg',
     },
     after: {
-      image: fromUploads('atsiliepimai/after-2.jpg'),
+      image: fromUploads('_optimized/atsiliepimai/after-2-960w.webp'),
       label: 'After photo',
       weight: '90 kg',
     },
@@ -672,13 +763,13 @@ const transformationsEn = [
     goal: 'Overall fitness with a focus on fat loss',
     result: 'Lost 30 kg in 1 year',
     before: {
-      image: fromUploads('atsiliepimai/before-3.jpg'),
+      image: fromUploads('_optimized/atsiliepimai/before-3-960w.webp'),
       label: 'Before photo',
       weight: '118 kg',
       objectPosition: '60% top',
     },
     after: {
-      image: fromUploads('atsiliepimai/after-3.jpg'),
+      image: fromUploads('_optimized/atsiliepimai/after-3-960w.webp'),
       label: 'After photo',
       weight: '88 kg',
       objectPosition: '60% top',
@@ -690,12 +781,12 @@ const transformationsEn = [
     goal: 'Reduce body fat while maintaining muscle mass',
     result: 'Lost 42 kg in 6 months',
     before: {
-      image: fromUploads('atsiliepimai/before-1.jpg'),
+      image: fromUploads('_optimized/atsiliepimai/before-1-960w.webp'),
       label: 'Before photo',
       weight: '125 kg',
     },
     after: {
-      image: fromUploads('atsiliepimai/after-1.jpg'),
+      image: fromUploads('_optimized/atsiliepimai/after-1-960w.webp'),
       label: 'After photo',
       weight: '83 kg',
     },
@@ -706,12 +797,12 @@ const transformationsEn = [
     goal: 'Lose body fat',
     result: 'Lost 13 kg of body fat in 2 months',
     before: {
-      image: fromUploads('atsiliepimai/image00001.jpeg'),
+      image: fromUploads('_optimized/atsiliepimai/image00001-960w.webp'),
       label: 'Before photo',
       weight: '113 kg',
     },
     after: {
-      image: fromUploads('atsiliepimai/image00002.jpeg'),
+      image: fromUploads('_optimized/atsiliepimai/image00002-960w.webp'),
       label: 'After photo',
       weight: '99 kg',
     },
@@ -722,12 +813,12 @@ const transformationsEn = [
     goal: 'More energy, stronger health, and a lighter body',
     result: 'Lost 7 kg in 4 months',
     before: {
-      image: fromUploads('atsiliepimai/Unknown-4 (1).jpg'),
+      image: fromUploads('_optimized/atsiliepimai/Unknown-4 (1)-768w.webp'),
       label: 'Before photo',
       weight: '67 kg',
     },
     after: {
-      image: fromUploads('atsiliepimai/Po2-1.jpg'),
+      image: fromUploads('_optimized/atsiliepimai/Po2-1-768w.webp'),
       label: 'After photo',
       weight: '60 kg',
     },
@@ -738,12 +829,12 @@ const transformationsEn = [
     goal: 'Muscle hypertrophy and strength increase',
     result: 'Gained 10 kg of muscle in 11 months',
     before: {
-      image: fromUploads('atsiliepimai/IMG_6824-scaled.jpg'),
+      image: fromUploads('_optimized/atsiliepimai/IMG_6824-scaled-960w.webp'),
       label: 'Before photo',
       weight: '63 kg',
     },
     after: {
-      image: fromUploads('atsiliepimai/Bicepsa-scaled.jpg'),
+      image: fromUploads('_optimized/atsiliepimai/Bicepsa-scaled-960w.webp'),
       label: 'After photo',
       weight: '73 kg',
     },
@@ -802,7 +893,7 @@ const notHelpListByLocale = {
 const servicesLt = [
   {
     title: 'Testavimo treniruotė su kūno analize ir programos sudarymu',
-    image: fromUploads('testavimas4.jpg'),
+    image: fromUploads('_optimized/testavimas4-960w.webp'),
     description:
       'Pirmas žingsnis į aiškius rezultatus! Atliekame išsamią kūno analizę ir paruošiame programą pagal tavo tikslus.',
     features: [
@@ -814,7 +905,7 @@ const servicesLt = [
   },
   {
     title: 'Treniruotės jūsų įmonėje',
-    image: fromUploads('IMG_0458-scaled.jpg'),
+    image: fromUploads('_optimized/IMG_0458-scaled-960w.webp'),
     description:
       'Suteikite komandai daugiau energijos ir geresnę savijautą. Trumpi, efektyvūs užsiėmimai darbo metu motyvuoja ir sutelkia.',
     features: [
@@ -825,49 +916,49 @@ const servicesLt = [
   },
   {
     title: 'Asmeninės treniruotės – Vilniuje ir Varėnoje',
-    image: fromUploads('IMG_0481-scaled.jpg'),
+    image: fromUploads('_optimized/IMG_0481-scaled-960w.webp'),
     description:
       'Individualus dėmesys, aiškus planas ir realūs rezultatai. Gauk profesionalų palaikymą kiekviename žingsnyje.',
     features: ['100 % dėmesio vienam klientui', 'Aiškios treniruočių struktūros', 'Motyvacija ir atsakomybė'],
   },
   {
     title: 'Online coaching',
-    image: fromUploads('Planu_darymas3.jpg'),
+    image: fromUploads('_optimized/Planu_darymas3-960w.webp'),
     description:
       'Sportuok bet kur – gautas planas, palaikymas ir atsakomybė padeda išlikti kelyje į tikslą net kelionėje.',
     features: ['Individualus nuotolinis planas', 'Reguliarus palaikymas ir grįžtamasis ryšys', 'Treniruočių korekcijos pagal progresą'],
   },
   {
     title: 'Treniruotės jūsų namuose',
-    image: fromUploads('grupine8.jpg'),
+    image: fromUploads('_optimized/grupine8-960w.webp'),
     description:
       'Treneris atvyksta pas jus! Patogus ir saugus sportas, pritaikytas jūsų erdvei, tikslams ir galimybėms.',
     features: ['Inventoriaus pritaikymas namų erdvei', 'Treniruočių grafikas pagal jūsų laiką', 'Asmeninis dėmesys ir saugumas'],
   },
   {
     title: 'Grupinės treniruotės – Varėnoje ir Vilniuje',
-    image: fromUploads('grupine1.jpg'),
+    image: fromUploads('_optimized/grupine1-960w.webp'),
     description:
       'Energija, kuri užkrečia! Sportuokite mažose ar didelėse grupėse, jauskite palaikymą ir bendrumą.',
     features: ['Skirtingo dydžio grupės', 'Motyvuojanti ir pozityvi atmosfera', 'Idealiai tinka socialiai motyvuotiems sportui'],
   },
   {
     title: 'Sportas poroje',
-    image: fromUploads('IMG_0451-scaled.jpg'),
+    image: fromUploads('_optimized/IMG_0451-scaled-960w.webp'),
     description:
       'Labai populiarus pasirinkimas! Dviguba motyvacija ir bendras tikslas stiprina kūną bei santykį.',
     features: ['Planai pritaikyti dviem žmonėms', 'Bendro progreso sekimas', 'Treniruotės, kurios stiprina ryšį'],
   },
   {
     title: 'Paauglių grupinės treniruotės – Varėnoje',
-    image: fromUploads('paaugliu-grupine.jpg'),
+    image: fromUploads('_optimized/paaugliu-grupine-960w.webp'),
     description:
       'Saugi, smagi ir lavinanti aplinka jauniems sportininkams. Stiprėk, gerink laikyseną, pasitikėjimą ir fizinį pasirengimą!',
     features: ['Amžiui pritaikyti pratimai', 'Dėmesys laikysenai ir fiziniam pasirengimui', 'Palaikanti ir draugiška bendruomenė'],
   },
   {
     title: 'Senjorų treniruotės – sporto salėje ir baseine',
-    image: fromUploads('senjoru5.jpg'),
+    image: fromUploads('_optimized/senjoru5-960w.webp'),
     description:
       'Švelnios, bet veiksmingos treniruotės geresnei savijautai, lankstumui ir gyvenimo džiaugsmui. Judėjimas tinka visiems!',
     features: ['Mažo poveikio pratimai salėje ir baseine', 'Gerina lankstumą ir balansą', 'Pritaikoma individualioms galimybėms'],
@@ -877,7 +968,7 @@ const servicesLt = [
 const servicesEn = [
   {
     title: 'Assessment training + body analysis + plan setup',
-    image: fromUploads('testavimas4.jpg'),
+    image: fromUploads('_optimized/testavimas4-960w.webp'),
     description: 'A clear starting point: assess, understand your body, and build the right plan for your goal.',
     features: [
       'Muscle balance, posture and body composition overview',
@@ -888,49 +979,49 @@ const servicesEn = [
   },
   {
     title: 'Workplace training for your company',
-    image: fromUploads('IMG_0458-scaled.jpg'),
+    image: fromUploads('_optimized/IMG_0458-scaled-960w.webp'),
     description: 'Boost energy and well-being with short, effective sessions during the workday.',
     features: ['Schedule aligned with your team', 'Short but efficient sessions', 'Supports productivity and team culture'],
   },
   {
     title: 'Personal training — Vilnius and Varėna',
-    image: fromUploads('IMG_0481-scaled.jpg'),
+    image: fromUploads('_optimized/IMG_0481-scaled-960w.webp'),
     description: 'Individual attention, a clear plan, and real results with accountability.',
     features: ['100% focus on you', 'Clear training structure', 'Motivation and responsibility'],
   },
   {
     title: 'Online coaching',
-    image: fromUploads('Planu_darymas3.jpg'),
+    image: fromUploads('_optimized/Planu_darymas3-960w.webp'),
     description: 'Train anywhere with a plan, feedback and accountability that keeps you on track.',
     features: ['Personal remote plan', 'Regular support and feedback', 'Adjustments based on progress'],
   },
   {
     title: 'Training at your home',
-    image: fromUploads('grupine8.jpg'),
+    image: fromUploads('_optimized/grupine8-960w.webp'),
     description: 'Convenient and safe training adapted to your space, goals, and capabilities.',
     features: ['Adapted to your space/equipment', 'Schedule that fits you', 'Personal attention and safety'],
   },
   {
     title: 'Group training — Varėna and Vilnius',
-    image: fromUploads('grupine1.jpg'),
+    image: fromUploads('_optimized/grupine1-960w.webp'),
     description: 'High-energy sessions with community support and a great atmosphere.',
     features: ['Different group sizes', 'Positive motivating atmosphere', 'Great if you like social training'],
   },
   {
     title: 'Partner training (2 people)',
-    image: fromUploads('IMG_0451-scaled.jpg'),
+    image: fromUploads('_optimized/IMG_0451-scaled-960w.webp'),
     description: 'A popular choice: shared goals and double motivation build consistency.',
     features: ['Plans for two', 'Shared progress tracking', 'Sessions that build habits'],
   },
   {
     title: 'Teen group training — Varėna',
-    image: fromUploads('paaugliu-grupine.jpg'),
+    image: fromUploads('_optimized/paaugliu-grupine-960w.webp'),
     description: 'A safe and fun environment: strength, posture, confidence, and athletic basics.',
     features: ['Age-appropriate exercises', 'Focus on posture and fundamentals', 'Supportive community'],
   },
   {
     title: 'Senior training — gym and pool',
-    image: fromUploads('senjoru5.jpg'),
+    image: fromUploads('_optimized/senjoru5-960w.webp'),
     description: 'Gentle but effective training for flexibility, balance, and better daily well-being.',
     features: ['Low-impact training', 'Improves flexibility and balance', 'Adapted to your capabilities'],
   },
@@ -994,9 +1085,35 @@ const groupServicesByLocale = {
   en: groupServicesEn,
 };
 
+const vilniusOutletLogo = (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="150"
+    height="35"
+    viewBox="0 0 150 35"
+    fill="none"
+    className="h-12 w-auto"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M65.2265 25.9346H71.1084V9.69616H79.2906C81.6097 9.69616 82.166 10.1677 82.166 12.0168V25.9283H88.0667V12.0292C88.0667 10.0747 88.748 9.69616 90.942 9.68996L96.2239 9.67755C98.6679 9.67755 99.1117 10.2174 99.1117 12.054V25.9408H105V10.751C105.019 6.01041 101.975 4.03103 97.9616 4.02482L90.6857 4.01241C86.8228 4.01241 86.0977 4.81906 85.1288 5.8739C84.085 4.83767 83.3599 4.01862 79.4844 4.01862H65.2202V25.9346H65.2265ZM43.2239 23.0182L35.6668 34.9876L43.2052 35L62.1386 4.00621H55.2378L46.5743 17.5641L38.2608 4.01862H30.8599L43.2177 23.0182H43.2239ZM5.82576 18.0294C5.82576 19.6675 6.48208 20.1143 8.28855 20.1143H21.5714V9.68996H9.15115C6.76962 9.68996 5.83201 9.78924 5.83826 11.75L5.82576 18.0232V18.0294ZM21.6151 25.9656L21.5964 27.9946C21.5839 29.1984 20.4712 29.4528 19.6461 29.4528H3.44423V34.9442L19.9524 34.9628C23.7091 34.9628 27.4095 33.2688 27.422 28.4165L27.4721 4H8.80736C3.66925 4.00621 -0.018681 4.51502 7.11874e-05 11.5949L0.0250741 19.3883C0.0438263 24.7928 3.75676 25.9718 7.63847 25.9718H21.6151V25.9656Z"
+      fill="black"
+    />
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M131.97 3.8147e-06H138.03V30H131.97V18.0265H120V11.9675H131.97V3.8147e-06ZM138.096 18.0265L142.834 11.9675H150V18.0265H138.096Z"
+      fill="#00AEEF"
+    />
+  </svg>
+);
+
 const partnerLogos = [
-  { name: 'Vilnius Outlet', logo: fromUploads('logo-light.svg') },
-  { name: 'VSC', logo: fromUploads('image.png') },
+  { name: 'Vilnius Outlet', logoInline: vilniusOutletLogo, link: 'https://maps.app.goo.gl/d3iY2LjH72AQD8vcA' },
+  { name: 'VSC', logo: fromUploads('image.png'), link: 'https://maps.app.goo.gl/1biqtcWhnr4dDt5v5' },
 ];
 
 function AnimatedCounter({ from = 0, to, suffix = '', delay = 0 }) {
@@ -1076,6 +1193,22 @@ function AnimatedCounter({ from = 0, to, suffix = '', delay = 0 }) {
 function App({ locale = 'lt' }) {
   const activeLocale = locale === 'en' ? 'en' : 'lt';
   const location = useLocation();
+
+  useEffect(() => {
+    const items = activeLocale === 'lt' ? programsLt : programsEn;
+    sendEvent('view_item_list', {
+      item_list_id: 'main_plans',
+      item_list_name: 'Main Plans',
+      items: items.map((p) => ({
+        item_id: p.productId,
+        item_name: p.cartName || p.title,
+        price: (p.unitPriceCents || 0) / 100,
+        currency: 'EUR',
+        quantity: 1,
+      })),
+    });
+  }, [activeLocale]);
+
   const [isDesktop, setIsDesktop] = useState(false);
   const [contactNotice, setContactNotice] = useState(null);
   const [contactError, setContactError] = useState(null);
@@ -1434,7 +1567,35 @@ function App({ locale = 'lt' }) {
   );
 
   useEffect(() => {
-    AOS.init({ once: true, duration: 700, easing: 'ease-out-cubic' });
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const mobileQuery = window.matchMedia('(max-width: 767px)');
+
+    const initAos = () => {
+      AOS.init({
+        once: true,
+        duration: mobileQuery.matches ? 560 : 700,
+        easing: 'ease-out-cubic',
+        offset: mobileQuery.matches ? 90 : 120,
+        disable: false,
+      });
+      AOS.refreshHard();
+    };
+
+    initAos();
+
+    const handleChange = () => initAos();
+    mobileQuery.addEventListener('change', handleChange);
+    prefersReducedMotion.addEventListener('change', handleChange);
+    window.addEventListener('load', AOS.refreshHard);
+    window.addEventListener('orientationchange', AOS.refreshHard);
+    window.setTimeout(() => AOS.refreshHard(), 350);
+
+    return () => {
+      mobileQuery.removeEventListener('change', handleChange);
+      prefersReducedMotion.removeEventListener('change', handleChange);
+      window.removeEventListener('load', AOS.refreshHard);
+      window.removeEventListener('orientationchange', AOS.refreshHard);
+    };
   }, []);
 
   return (
@@ -1449,7 +1610,14 @@ function App({ locale = 'lt' }) {
               ? 'Asmeninis treneris Vilniuje: raumenų auginimas ir svorio metimas'
               : 'Personal trainer in Vilnius: muscle gain and fat loss'
           }
-          ctaLabel={activeLocale === 'lt' ? 'Peržiūrėti planus' : 'View plans'}
+          subtitle={null}
+          imageAlt={
+            activeLocale === 'lt'
+              ? 'Asmeninis treneris Vilniuje treniruoje'
+              : 'Personal trainer in Vilnius during training'
+          }
+          ctaLabel={activeLocale === 'lt' ? 'Gauti asmeninį pasiūlymą' : 'Get personal offer'}
+          ctaLink={activeLocale === 'lt' ? '/lt/anketa' : '/en/questionnaire'}
         />
 
         <section id="apie-mane" className="bg-white py-20 text-black">
@@ -1458,8 +1626,12 @@ function App({ locale = 'lt' }) {
               <div>
                 <figure className="rounded-2xl overflow-hidden">
                   <img
-                    src={fromUploads('IMG_0462-scaled-e1750332801471.jpg')}
-                    alt={activeLocale === 'lt' ? 'Apie mane' : 'About me'}
+                    src={fromUploads('_optimized/IMG_0462-scaled-e1750332801471-1347w.webp')}
+                    alt={
+                      activeLocale === 'lt'
+                        ? 'Asmeninis treneris Pavel Kaliadziuk – apie mane'
+                        : 'Personal trainer Pavel Kaliadziuk – about me'
+                    }
                     className="w-full h-full object-cover"
                     loading="lazy"
                   />
@@ -1473,6 +1645,7 @@ function App({ locale = 'lt' }) {
                       <p>
                         Labas, aš Pavel Kaliadziuk — asmeninis treneris Vilniuje, sveikatingumo treneris ir biomechanikos specialistas,
                         jau daugiau nei aštuonerius metus padedantis žmonėms raumenų auginimo, svorio metimo ir judėjimo be skausmo kelyje.
+                        Asmeninis treneris Vilniuje: raumenų auginimas ir svorio metimas.
                       </p>
                       <p>
                         Mano kelionė sporte prasidėjo dar būnant septynerių. Nuo pat vaikystės jutau tą vidinę ugnį — norą atrasti save,
@@ -1685,7 +1858,12 @@ function App({ locale = 'lt' }) {
 
         <section id="sekmes" className="relative overflow-hidden py-28 text-white">
           <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-            <img src={successImage} alt="" className="h-full w-full object-cover" loading="lazy" />
+            <img
+              src={successImage}
+              alt={activeLocale === 'lt' ? 'Klientų transformacijų fonas' : 'Client transformations background'}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
             <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/70 to-black/80" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.15),_transparent_60%)]" />
           </div>
@@ -1814,25 +1992,35 @@ function App({ locale = 'lt' }) {
                                   : photo.key === 'before'
                                     ? 'Before'
                                     : 'After';
-                              const altSuffix = activeLocale === 'lt' ? (photo.key === 'before' ? 'foto prieš' : 'foto po') : photoLabel.toLowerCase();
+                              const altSuffix = activeLocale === 'lt'
+                                ? (photo.key === 'before' ? 'transformacijos foto prieš' : 'transformacijos foto po')
+                                : `transformation ${photoLabel.toLowerCase()}`;
+
+                              const weightText = String(photo.weight || '').trim();
+                              const weightParts = weightText ? weightText.split(/\s+/) : [];
+                              const weightValue = weightParts[0] || weightText;
+                              const weightUnit = weightParts.slice(1).join(' ');
 
                               return (
-                            <figure
-                              key={photo.key}
-                                className="relative flex-1 overflow-hidden rounded-3xl border border-white/15"
-                            >
-                              <img
-                                src={photo.image}
-                                alt={`${item.name} ${altSuffix}`}
-                                className="h-64 w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02] md:h-72 lg:h-[420px]"
-                                style={{ objectPosition: photo.objectPosition || 'center top' }}
-                                loading="lazy"
-                              />
-                              <figcaption className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/70 px-4 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-white">
-                                <span>{photoLabel}</span>
-                                <span className="text-sm tracking-normal">{photo.weight}</span>
-                              </figcaption>
-                            </figure>
+                                <figure
+                                  key={photo.key}
+                                  className="relative flex-1 overflow-hidden rounded-3xl border border-white/15"
+                                >
+                                  <img
+                                    src={photo.image}
+                                    alt={`${item.name} ${altSuffix}`}
+                                    className="h-64 w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02] md:h-72 lg:h-[420px]"
+                                    style={{ objectPosition: photo.objectPosition || 'center top' }}
+                                    loading="lazy"
+                                  />
+                                  <figcaption className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/70 px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-white sm:tracking-[0.3em]">
+                                    <span>{photoLabel}</span>
+                                    <span className="flex flex-col items-end leading-none text-sm tracking-normal">
+                                      <span>{weightValue}</span>
+                                      {weightUnit ? <span className="text-[10px] uppercase tracking-[0.2em]">{weightUnit}</span> : null}
+                                    </span>
+                                  </figcaption>
+                                </figure>
                               );
                             })()
                           ))}
@@ -1934,12 +2122,46 @@ function App({ locale = 'lt' }) {
         </section>
 
         <section
-          className="relative overflow-hidden py-36 sm:py-48 lg:py-80 bg-cover"
-          style={{ backgroundImage: `url(${fromUploads('IMG_0469-scaled.jpg')})`, backgroundPosition: 'center 83%', minHeight: 'clamp(520px, 135vw, 920px)' }}
+          className="relative overflow-hidden py-24 sm:py-32 lg:py-56"
+          style={{ minHeight: 'clamp(420px, 96vw, 820px)' }}
         >
-          {/* subtle dark overlay so text stays readable; increased slightly for better contrast */}
-          <div className="absolute inset-0 -z-10 bg-black/70" aria-hidden="true" />
-          <div className="relative z-10">
+          <picture className="pointer-events-none absolute inset-0 z-0">
+            <source type="image/avif" srcSet={contactImageSrcSetAvif} sizes="100vw" />
+            <source type="image/webp" srcSet={contactImageSrcSetWebp} sizes="100vw" />
+            <img
+              src={contactImage}
+              alt={activeLocale === 'lt' ? 'Kontaktų skilties fonas' : 'Contact section background'}
+              srcSet={contactImageSrcSetWebp}
+              sizes="100vw"
+              className="h-full w-full object-cover object-[center_50%] md:object-[center_65%]"
+              loading="lazy"
+            />
+          </picture>
+
+          {/* Layered overlays for consistent text contrast - Mobile (Lighter) */}
+          <div
+            className="pointer-events-none absolute inset-0 z-10 md:hidden"
+            aria-hidden="true"
+            style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.35) 40%, rgba(0,0,0,0.2) 65%, rgba(0,0,0,0.12) 100%)' }}
+          />
+          <div
+            className="pointer-events-none absolute inset-0 z-15 md:hidden"
+            aria-hidden="true"
+            style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 60%)' }}
+          />
+
+          {/* Layered overlays for consistent text contrast - Desktop (Original) */}
+          <div
+            className="pointer-events-none absolute inset-0 z-10 hidden md:block"
+            aria-hidden="true"
+            style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.25) 65%, rgba(0,0,0,0.15) 100%)' }}
+          />
+          <div
+            className="pointer-events-none absolute inset-0 z-15 hidden md:block"
+            aria-hidden="true"
+            style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 60%)' }}
+          />
+          <div className="relative z-20">
             <div className="mx-auto max-w-6xl px-6 text-white" data-aos="fade-up">
               <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.6fr)] lg:items-center">
                 <div className="space-y-5">
@@ -1970,18 +2192,18 @@ function App({ locale = 'lt' }) {
                 </div>
               </div>
               <div className="mt-10 flex flex-col gap-4 text-sm sm:flex-row">
-                <a
-                  href={activeLocale === 'lt' ? '/lt/dovanu-kuponas' : '/en/gift-card'}
+                <Link
+                  to={activeLocale === 'lt' ? '/lt/dovanu-kuponas' : '/en/gift-card'}
                   className="inline-flex items-center justify-center rounded-full glass-green-surface px-6 py-3 font-semibold text-black transition duration-200 hover:-translate-y-0.5"
                 >
                   {activeLocale === 'lt' ? 'Pirkti dovanų kuponą' : 'Buy a gift voucher'}
-                </a>
-                <a
-                  href="#programos"
+                </Link>
+                <Link
+                  to={activeLocale === 'lt' ? '/lt/anketa' : '/en/questionnaire'}
                   className="inline-flex items-center justify-center rounded-full border border-white px-6 py-3 font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:text-accent"
                 >
-                  {activeLocale === 'lt' ? 'Peržiūrėti planus' : 'View plans'}
-                </a>
+                  {activeLocale === 'lt' ? 'Išbandyti nemokamai' : 'Try for free'}
+                </Link>
               </div>
             </div>
           </div>
@@ -2011,12 +2233,18 @@ function App({ locale = 'lt' }) {
                     >
                       <div>
                         <div className="flex items-center gap-4">
-                          <img
-                            src={story.avatar}
-                            alt={story.name}
-                            className="h-14 w-14 rounded-full object-cover"
-                            loading="lazy"
-                          />
+                          {story.avatar ? (
+                            <img
+                              src={story.avatar}
+                              alt={activeLocale === 'lt' ? `Kliento nuotrauka — ${story.name}` : `Client photo — ${story.name}`}
+                              className="h-14 w-14 rounded-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-200 text-xl font-bold text-slate-500 uppercase">
+                              {story.name.charAt(0)}
+                            </div>
+                          )}
                           <div>
                             <h3 className="font-heading text-lg font-semibold text-slate-900">{story.name}</h3>
                           </div>
@@ -2139,23 +2367,32 @@ function App({ locale = 'lt' }) {
                 <div className="mt-8 space-y-4">
                   <h3 className="font-heading text-4xl font-black uppercase">{activeLocale === 'lt' ? 'Mane rasite:' : 'You can find me at:'}</h3>
                   {partnerLogos.map(partner => (
-                    <div
+                    <a
                       key={partner.name}
-                      className="flex items-center justify-between gap-4 rounded-3xl border border-slate-200 bg-white px-6 py-4 shadow-sm"
+                      href={partner.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between gap-4 rounded-3xl border border-slate-200 bg-white px-6 py-4 shadow-sm transition hover:border-black/20 hover:shadow-md"
                     >
-                      <img
-                        src={partner.logo}
-                        alt={activeLocale === 'lt' ? `${partner.name} logotipas` : `${partner.name} logo`}
-                        className="h-12 w-auto"
-                        loading="lazy"
-                      />
+                      {partner.logoInline ? (
+                        <span aria-label={activeLocale === 'lt' ? `${partner.name} logotipas` : `${partner.name} logo`}>
+                          {partner.logoInline}
+                        </span>
+                      ) : (
+                        <img
+                          src={partner.logo}
+                          alt={activeLocale === 'lt' ? `${partner.name} logotipas` : `${partner.name} logo`}
+                          className="h-12 w-auto"
+                          loading="lazy"
+                        />
+                      )}
                       <div className="ml-auto flex items-center gap-3 text-right">
                         <span className="text-lg font-semibold text-black">{partner.name}</span>
                         <span className="text-2xl text-black" aria-hidden="true">
                           &rarr;
                         </span>
                       </div>
-                    </div>
+                    </a>
                   ))}
                 </div>
               </div>
@@ -2299,12 +2536,26 @@ function App({ locale = 'lt' }) {
                     required
                   />
                 </div>
-                <label className="flex items-start gap-3 text-sm text-black">
-                  <input
-                    type="checkbox"
-                    className="mt-1 h-5 w-5 rounded border border-slate-400 bg-white text-accent focus:ring-accent"
-                    required
-                  />
+                <label className="flex items-center gap-3 text-sm text-black cursor-pointer group">
+                  <div className="relative flex h-5 w-5 items-center justify-center">
+                    <input
+                      type="checkbox"
+                      className="peer sr-only"
+                      required
+                    />
+                    <div className="h-5 w-5 rounded-full border-2 border-slate-300 bg-white transition-all peer-checked:border-[#DCF41E] peer-checked:bg-[#DCF41E] peer-focus:ring-2 peer-focus:ring-[#DCF41E] peer-focus:ring-offset-2"></div>
+                    <svg 
+                      className="pointer-events-none absolute left-1/2 top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 text-black opacity-0 transition-opacity peer-checked:opacity-100" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="4" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  </div>
                   <span>
                     {activeLocale === 'lt' ? 'Sutinku su ' : 'I agree to the '}
                     <a
@@ -2342,7 +2593,53 @@ function App({ locale = 'lt' }) {
 
       <footer className="border-t border-black bg-white py-10">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 text-sm text-black md:flex-row md:items-center md:justify-between">
-          <p>Kaliadziuk &copy; 2025. Visos teises saugomos.</p>
+          <p>Kaliadziuk &copy; 2026. Visos teises saugomos.</p>
+          <div className="flex items-center gap-4">
+            <a
+              href="https://www.instagram.com/pavel_kaliadziuk/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-black transition hover:text-accent"
+              aria-label="Instagram"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+              </svg>
+            </a>
+            <a
+              href="https://www.facebook.com/povilas.pasa.3/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-black transition hover:text-accent"
+              aria-label="Facebook"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+              </svg>
+            </a>
+          </div>
           <a
             href={activeLocale === 'lt' ? '/lt/privatumas' : '/en/privacy'}
             className="text-sm font-medium text-black transition hover:text-accent"

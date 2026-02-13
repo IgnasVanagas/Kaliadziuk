@@ -1,6 +1,8 @@
 import { PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { sendEvent } from '../lib/tracking';
 
 export default function StripePaymentForm({ locale, returnUrl }) {
   const stripe = useStripe();
@@ -10,6 +12,16 @@ export default function StripePaymentForm({ locale, returnUrl }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
+  // Track that user sees the payment form
+  useEffect(() => {
+    // We can assume if this component mounts, the payment info step has started/is visible
+    // "add_payment_info" typically means "user successfully submitted payment info" OR "user entered the payment flow".
+    // GA4 docs say: "when a user submits their payment information".
+    // However, since we don't control the submit button here (we do, but it's stripe elements), 
+    // let's fire it when they click Pay, or broadly when this component functions.
+    // Actually, let's fire it when they click Pay (onPay).
+  }, []);
+
   const onPay = async () => {
     setError(null);
 
@@ -17,6 +29,14 @@ export default function StripePaymentForm({ locale, returnUrl }) {
       setError(t('cart.payment.notReady'));
       return;
     }
+
+    sendEvent('add_payment_info', {
+      payment_type: 'stripe',
+      currency: 'EUR',
+      // We don't have total value easily here without props, but it's optional for this event usually
+      // unless we pass it down. 
+      // Checking `StripePaymentForm` usages would clarify if we can pass `value`.
+    });
 
     setBusy(true);
     try {

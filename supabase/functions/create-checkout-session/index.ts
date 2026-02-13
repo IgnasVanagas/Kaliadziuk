@@ -1,4 +1,4 @@
-import { corsHeaders, handleOptions } from '../_shared/cors.ts';
+import { getCorsHeaders, handleOptions } from '../_shared/cors.ts';
 import { getServiceClient } from '../_shared/supabase.ts';
 import { getStripe } from '../_shared/stripe.ts';
 import { normalizeGiftCode, sha256Hex } from '../_shared/crypto.ts';
@@ -40,6 +40,12 @@ function looksLikeJwt(token: string) {
 Deno.serve(async (req: Request) => {
   const preflight = handleOptions(req);
   if (preflight) return preflight;
+
+  const corsHeaders = getCorsHeaders(req);
+
+  if (req.method !== 'POST') {
+    return new Response('method_not_allowed', { status: 405, headers: corsHeaders });
+  }
 
   try {
     await rateLimit(req, 'create-checkout-session', 20, 60);
@@ -308,9 +314,12 @@ Deno.serve(async (req: Request) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (e: any) {
-    const msg = e?.message === 'rate_limited' ? 'rate_limited' : (e?.message || 'server_error');
-    const status = e?.message === 'rate_limited' ? 429 : 500;
-    return new Response(JSON.stringify({ error: msg }), {
+    const isRateLimited = String(e?.message || '') === 'rate_limited';
+    if (!isRateLimited) {
+      console.error('[create-checkout-session] error', e);
+    }
+    const status = isRateLimited ? 429 : 500;
+    return new Response(JSON.stringify({ error: isRateLimited ? 'rate_limited' : 'server_error' }), {
       status,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

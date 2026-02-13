@@ -1,58 +1,53 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { addItem, loadCart, saveCart } from '../state/cart';
+
+const fromUploads = (file) => new URL(`../../uploads/${file}`, import.meta.url).pathname;
+const contactImage = fromUploads('_optimized/IMG_0469-scaled-2560w.webp');
+const contactImageSrcSetWebp = `${fromUploads('_optimized/IMG_0469-scaled-2560w.webp')} 2560w`;
+const contactImageSrcSetAvif = `${fromUploads('_optimized/IMG_0469-scaled-2560w.avif')} 2560w`;
 
 export default function GiftCard() {
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
   const locale = useMemo(() => (location.pathname.startsWith('/en') ? 'en' : 'lt'), [location.pathname]);
 
-  const [amount, setAmount] = useState('50');
+  const [amount, setAmount] = useState('200');
   const [recipientName, setRecipientName] = useState('');
-  const [error, setError] = useState(null);
+  const [errorPopup, setErrorPopup] = useState(null);
 
-  const heroImage = useMemo(() => new URL(`../../uploads/IMG_0488-scaled.jpg`, import.meta.url).pathname, []);
-
-  useEffect(() => {
-    const scrollY = window.scrollY || 0;
-    const prevHtmlOverflow = document.documentElement.style.overflow;
-    const prevHtmlOverscroll = document.documentElement.style.overscrollBehavior;
-    const prevBodyOverflow = document.body.style.overflow;
-    const prevBodyPosition = document.body.style.position;
-    const prevBodyTop = document.body.style.top;
-    const prevBodyLeft = document.body.style.left;
-    const prevBodyRight = document.body.style.right;
-    const prevBodyWidth = document.body.style.width;
-
-    document.documentElement.style.overflow = 'hidden';
-    document.documentElement.style.overscrollBehavior = 'none';
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = '0';
-    document.body.style.right = '0';
-    document.body.style.width = '100%';
-
-    return () => {
-      document.documentElement.style.overflow = prevHtmlOverflow;
-      document.documentElement.style.overscrollBehavior = prevHtmlOverscroll;
-      document.body.style.overflow = prevBodyOverflow;
-      document.body.style.position = prevBodyPosition;
-      document.body.style.top = prevBodyTop;
-      document.body.style.left = prevBodyLeft;
-      document.body.style.right = prevBodyRight;
-      document.body.style.width = prevBodyWidth;
-      window.scrollTo(0, scrollY);
-    };
-  }, []);
+  const base = `/${locale}`;
 
   const onAdd = () => {
-    setError(null);
-    const amountEur = Number(String(amount).replace(',', '.'));
+    const amountVal = amount.replace(',', '.');
+    // Allow empty during typing, but validate on submit
+    if (!amountVal) {
+      setErrorPopup({
+        title: locale === 'lt' ? 'Klaida' : 'Error',
+        message: locale === 'lt' ? 'Įveskite sumą' : 'Enter amount'
+      });
+      return;
+    }
+
+    const amountEur = Number(amountVal);
     const amountCents = Math.round(amountEur * 100);
+
+    // Validate number and minimum amount (50 EUR)
     if (!Number.isFinite(amountCents) || amountCents < 5000) {
-      setError(locale === 'lt' ? 'Minimali suma: 50 EUR' : 'Minimum amount: 50 EUR');
+      setErrorPopup({
+        title: locale === 'lt' ? 'Klaida' : 'Error',
+        message: locale === 'lt' ? 'Minimali suma: 50 EUR' : 'Minimum amount: 50 EUR'
+      });
+      return;
+    }
+
+    if (!recipientName) {
+      setErrorPopup({
+        title: locale === 'lt' ? 'Klaida' : 'Error',
+        message: locale === 'lt' ? 'Užpildykite visus laukus' : 'Please fill all fields'
+      });
       return;
     }
 
@@ -66,67 +61,118 @@ export default function GiftCard() {
       qty: 1,
       meta: {
         recipientName,
+        // Buyer details collected at checkout
+        buyerName: '',
+        buyerEmail: '',
       },
     });
     saveCart(next);
-    try {
-      window.dispatchEvent(new Event('cart:open'));
-    } catch {
-      // ignore
+    navigate(`${base}/${locale === 'lt' ? 'krepselis' : 'cart'}`);
+  };
+
+  const handleAmountChange = (e) => {
+    const val = e.target.value;
+    // Allow numbers only
+    if (/^\d*$/.test(val)) {
+      setAmount(val);
     }
   };
 
   return (
-    <main className="h-[100svh] overflow-hidden bg-white text-black">
-      <section className="relative h-full overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${heroImage})` }}
-          aria-hidden="true"
-        />
-        <div className="absolute inset-0 bg-black/55" aria-hidden="true" />
-        <div className="relative mx-auto flex h-full max-w-4xl items-center px-6 pb-8 pt-24 box-border sm:pt-28">
-        <div className="w-full rounded-[32px] border border-white/15 bg-white/90 p-5 shadow-[0_30px_90px_rgba(0,0,0,0.35)] backdrop-blur sm:p-7">
-          <div className="grid gap-3">
-            {error ? (
-              <div role="alert" className="rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm text-black shadow-sm">
-                <div className="font-semibold">{locale === 'lt' ? 'Klaida' : 'Error'}</div>
-                <div className="mt-1 text-black/70">{error}</div>
+    <main className="relative min-h-[calc(100vh-5rem)] flex flex-col items-center justify-center px-6 py-16 text-white overflow-hidden">
+        {/* Background */}
+        <picture className="pointer-events-none absolute inset-0 z-0">
+          <source type="image/avif" srcSet={contactImageSrcSetAvif} sizes="100vw" />
+          <source type="image/webp" srcSet={contactImageSrcSetWebp} sizes="100vw" />
+          <img
+            src={contactImage}
+            alt=""
+            className="h-full w-full object-cover object-[center_50%] md:object-[center_65%]"
+          />
+        </picture>
+        
+        {/* Overlays */}
+        <div className="pointer-events-none absolute inset-0 z-10 bg-black/40" aria-hidden="true" />
+
+      <div className="relative z-20 w-full max-w-md space-y-8">
+        <h1 className="text-center font-heading text-4xl font-extrabold uppercase tracking-tight text-white drop-shadow-md">
+          {t('giftCard.title')}
+        </h1>
+
+        <div className="rounded-[2.5rem] bg-white/95 backdrop-blur-sm p-8 shadow-2xl ring-1 ring-white/20 sm:p-10 text-black">
+          <div className="space-y-6">
+            <label className="block space-y-2">
+              <span className="text-sm font-bold uppercase tracking-wider text-black/60">{t('giftCard.amount')}</span>
+              <div className="relative">
+                <input
+                  className="w-full rounded-2xl border-0 bg-slate-50 px-6 py-4 text-lg font-bold text-slate-900 shadow-inner ring-1 ring-black/5 transition focus:bg-white focus:ring-2 focus:ring-black placeholder:text-slate-400 outline-none"
+                  value={amount}
+                  onChange={handleAmountChange}
+                  inputMode="numeric"
+                  placeholder="200"
+                />
               </div>
-            ) : null}
-            <label className="block">
-              <span className="text-sm font-semibold text-slate-900">{t('giftCard.amount')}</span>
-              <input
-                className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-black placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
-                value={amount}
-                onChange={e => {
-                  setAmount(e.target.value);
-                  if (error) setError(null);
-                }}
-                inputMode="decimal"
-              />
             </label>
 
-            <label className="block">
-              <span className="text-sm font-semibold text-slate-900">{t('giftCard.recipientName')}</span>
+            <label className="block space-y-2">
+              <span className="text-sm font-bold uppercase tracking-wider text-black/60">{t('giftCard.recipientName')}</span>
               <input
-                className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-black placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+                className="w-full rounded-2xl border-0 bg-slate-50 px-6 py-4 text-base font-medium text-slate-900 shadow-inner ring-1 ring-black/5 transition focus:bg-white focus:ring-2 focus:ring-black placeholder:text-slate-400 outline-none"
                 value={recipientName}
                 onChange={e => setRecipientName(e.target.value)}
+                placeholder={locale === 'lt' ? 'Vardas Pavardė' : 'Full Name'}
               />
             </label>
 
             <button
               type="button"
               onClick={onAdd}
-              className="mt-2 inline-flex w-full items-center justify-center rounded-full glass-green-surface px-6 py-3 text-base font-extrabold text-black transition-transform duration-150 hover:-translate-y-0.5"
+              className="mt-4 flex w-full items-center justify-center rounded-full glass-green-surface py-4 text-xl font-extrabold text-black transition hover:scale-[1.02] active:scale-[0.98]"
             >
               {t('giftCard.addToCart')}
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Error / Validation Popup */}
+      {errorPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full p-8 relative scale-100 animate-in zoom-in-95 duration-200 border-l-4 border-red-500">
+            <button 
+              onClick={() => setErrorPopup(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              
+              <h3 className="text-xl font-bold text-gray-900">
+                {errorPopup.title}
+              </h3>
+              
+              <p className="text-gray-600 whitespace-pre-line">
+                {errorPopup.message}
+              </p>
+              
+              <button
+                onClick={() => setErrorPopup(null)}
+                className="w-full py-3 px-4 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-medium transition-all transform active:scale-95"
+              >
+                {locale === 'lt' ? 'Supratau' : 'Got it'}
+              </button>
+            </div>
+          </div>
         </div>
-      </section>
+      )}
     </main>
   );
 }

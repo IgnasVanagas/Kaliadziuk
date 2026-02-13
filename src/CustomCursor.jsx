@@ -2,55 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 
 export default function CustomCursor() {
   const cursorRef = useRef(null);
+  const rafRef = useRef(0);
+  const latestPosRef = useRef({ x: 0, y: 0 });
+  const hoveringRef = useRef(false);
+  const clickingRef = useRef(false);
+  const visibleRef = useRef(false);
   const [clicking, setClicking] = useState(false);
   const [hovering, setHovering] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    // Direct mouse movement update for instant responsiveness
-    const onMouseMove = (e) => {
-      if (!isVisible) setIsVisible(true);
-      if (cursorRef.current) {
-        cursorRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
-      }
-    };
-
-    const onMouseDown = () => setClicking(true);
-    const onMouseUp = () => setClicking(false);
-
-    // Subtle hover state detection
-    const onMouseOver = (e) => {
-      const target = e.target;
-      const isInteractive = 
-        target.tagName === 'A' || 
-        target.tagName === 'BUTTON' ||
-        target.closest('a') || 
-        target.closest('button') ||
-        target.closest('[role="button"]') ||
-        target.matches('input, textarea, select, label');
-        
-      setHovering(!!isInteractive);
-    };
-
-    // Reset hovering when leaving interactive elements
-    const onMouseOut = (e) => {
-      setHovering(false);
-    };
-
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mousedown', onMouseDown);
-    document.addEventListener('mouseup', onMouseUp);
-    document.addEventListener('mouseover', onMouseOver);
-    document.addEventListener('mouseout', onMouseOut);
-
-    return () => {
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mousedown', onMouseDown);
-      document.removeEventListener('mouseup', onMouseUp);
-      document.removeEventListener('mouseover', onMouseOver);
-      document.removeEventListener('mouseout', onMouseOut);
-    };
-  }, [isVisible]);
 
   // Device check
   const [isDesktop, setIsDesktop] = useState(false);
@@ -62,6 +21,82 @@ export default function CustomCursor() {
     window.addEventListener('resize', checkDevice);
     return () => window.removeEventListener('resize', checkDevice);
   }, []);
+
+  useEffect(() => {
+    if (!isDesktop) return;
+
+    const applyPosition = () => {
+      rafRef.current = 0;
+      if (!cursorRef.current) return;
+      const { x, y } = latestPosRef.current;
+      cursorRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    };
+
+    const schedulePosition = () => {
+      if (rafRef.current) return;
+      rafRef.current = window.requestAnimationFrame(applyPosition);
+    };
+
+    // Direct mouse movement update for instant responsiveness
+    const onMouseMove = (e) => {
+      latestPosRef.current = { x: e.clientX, y: e.clientY };
+      if (!visibleRef.current) {
+        visibleRef.current = true;
+        setIsVisible(true);
+      }
+      schedulePosition();
+    };
+
+    const onMouseDown = () => {
+      if (clickingRef.current) return;
+      clickingRef.current = true;
+      setClicking(true);
+    };
+
+    const onMouseUp = () => {
+      if (!clickingRef.current) return;
+      clickingRef.current = false;
+      setClicking(false);
+    };
+
+    // Subtle hover state detection
+    const onMouseOver = (e) => {
+      const target = e.target;
+      const isInteractive =
+        target.tagName === 'A' ||
+        target.tagName === 'BUTTON' ||
+        target.closest('a') ||
+        target.closest('button') ||
+        target.closest('[role="button"]') ||
+        target.matches('input, textarea, select, label');
+
+      if (hoveringRef.current === Boolean(isInteractive)) return;
+      hoveringRef.current = Boolean(isInteractive);
+      setHovering(hoveringRef.current);
+    };
+
+    // Reset hovering when leaving interactive elements
+    const onMouseOut = () => {
+      if (!hoveringRef.current) return;
+      hoveringRef.current = false;
+      setHovering(false);
+    };
+
+    document.addEventListener('mousemove', onMouseMove, { passive: true });
+    document.addEventListener('mousedown', onMouseDown);
+    document.addEventListener('mouseup', onMouseUp);
+    document.addEventListener('mouseover', onMouseOver, { passive: true });
+    document.addEventListener('mouseout', onMouseOut, { passive: true });
+
+    return () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mousedown', onMouseDown);
+      document.removeEventListener('mouseup', onMouseUp);
+      document.removeEventListener('mouseover', onMouseOver);
+      document.removeEventListener('mouseout', onMouseOut);
+      if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
+    };
+  }, [isDesktop]);
 
   if (!isDesktop) return null;
 

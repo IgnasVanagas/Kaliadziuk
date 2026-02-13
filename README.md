@@ -18,6 +18,12 @@ Run:
 - `npm install`
 - `npm run dev`
 
+Production build (recommended for SEO):
+- `npm run build` (includes prerendered HTML into `dist/`)
+
+Fast build (no prerender):
+- `npm run build:fast`
+
 ## Hostinger SPA rewrites
 This repo includes [public/.htaccess](public/.htaccess) so Hostinger/Apache serves `index.html` for all non-file routes.
 

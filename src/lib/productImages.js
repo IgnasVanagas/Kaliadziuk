@@ -1,4 +1,4 @@
-const fromUploads = (file) => new URL(`../../uploads/${file}`, import.meta.url).pathname;
+const fromUploads = (file) => `/uploads/${String(file || '').replace(/^\/+/, '')}`;
 
 // Program/product images for the fixed seeded product UUIDs.
 const PRODUCT_IMAGE_BY_ID = {

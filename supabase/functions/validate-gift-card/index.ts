@@ -1,11 +1,22 @@
-import { corsHeaders, handleOptions } from '../_shared/cors.ts';
+import { getCorsHeaders, handleOptions } from '../_shared/cors.ts';
 import { getServiceClient } from '../_shared/supabase.ts';
 import { normalizeGiftCode, sha256Hex } from '../_shared/crypto.ts';
 import { rateLimit } from '../_shared/rateLimit.ts';
 
-Deno.serve(async (req) => {
+declare const Deno: {
+  env: { get(name: string): string | undefined };
+  serve: (handler: (req: any) => Promise<any> | any) => void;
+};
+
+Deno.serve(async (req: any) => {
   const preflight = handleOptions(req);
   if (preflight) return preflight;
+
+  const corsHeaders = getCorsHeaders(req);
+
+  if (req.method !== 'POST') {
+    return new Response('method_not_allowed', { status: 405, headers: corsHeaders });
+  }
 
   try {
     await rateLimit(req, 'validate-gift-card', 30, 60);
@@ -53,10 +64,13 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ discount_cents: discount }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (e) {
-    const msg = e?.message === 'rate_limited' ? 'rate_limited' : (e?.message || 'server_error');
-    const status = e?.message === 'rate_limited' ? 429 : 500;
-    return new Response(JSON.stringify({ error: msg }), {
+  } catch (e: any) {
+    const isRateLimited = String(e?.message || '') === 'rate_limited';
+    if (!isRateLimited) {
+      console.error('[validate-gift-card] error', e);
+    }
+    const status = isRateLimited ? 429 : 500;
+    return new Response(JSON.stringify({ error: isRateLimited ? 'rate_limited' : 'server_error' }), {
       status,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

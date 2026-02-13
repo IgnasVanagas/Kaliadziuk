@@ -4,7 +4,8 @@ import { loadCart } from '../state/cart';
 import CartDrawer from './CartDrawer.jsx';
 import { useAuth } from '../auth/AuthProvider.jsx';
 
-const fromUploads = (file) => new URL(`../../uploads/${file}`, import.meta.url).pathname;
+// Use `.pathname` (not `.href`) so prerendered HTML doesn't bake in localhost origins.
+const fromUploads = (file) => `/uploads/${String(file || '').replace(/^\/+/, '')}`;
 const logoUrl = fromUploads('Branding/Pozityvi-full-TP-RGB.png');
 
 function getLocale(pathname) {
@@ -28,6 +29,7 @@ function swapLocalePath(pathname, nextLocale) {
       grazinimas: 'refunds',
       sekme: 'success',
       atsaukta: 'cancel',
+      anketa: 'questionnaire',
     },
     en: {
       plans: 'planai',
@@ -40,13 +42,16 @@ function swapLocalePath(pathname, nextLocale) {
       refunds: 'grazinimas',
       success: 'sekme',
       cancel: 'atsaukta',
+      questionnaire: 'anketa',
     },
   };
 
   const mappedFirst = rest.length ? (mapping[currentLocale]?.[rest[0]] || rest[0]) : '';
   const nextRest = rest.length ? [mappedFirst, ...rest.slice(1)] : [];
 
-  return `/${nextLocale}/${nextRest.join('/')}`.replace(/\/$/, '') || `/${nextLocale}`;
+  const newPath = `/${nextLocale}/${nextRest.join('/')}`;
+  // Ensure trailing slash if it's not the root (though /en/ and /lt/ are roots for those locales)
+  return newPath.endsWith('/') ? newPath : `${newPath}/`;
 }
 
 export default function SiteHeader() {
@@ -63,7 +68,7 @@ export default function SiteHeader() {
   });
 
   const locale = useMemo(() => getLocale(location.pathname), [location.pathname]);
-  const homeBase = `/${locale}`;
+  const homeBase = `/${locale}/`;
 
   const navItems = useMemo(() => {
     if (locale === 'en') {
@@ -114,13 +119,13 @@ export default function SiteHeader() {
     };
   }, []);
 
-  const headerClass = `fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
+  const headerClass = `fixed top-0 left-0 right-0 z-50 transition-transform duration-700 ${
     scrolled ? 'translate-y-4' : 'translate-y-0'
   }`;
-  const headerSurfaceClass = `w-full px-6 transition-all duration-300 backdrop-saturate-150 ${
+  const headerSurfaceClass = `w-full px-6 transition-all duration-700 backdrop-saturate-150 ${
     scrolled
-      ? 'mx-auto max-w-6xl rounded-full border border-white/30 glass-green py-3 text-black shadow-[0_35px_90px_rgba(0,0,0,0.35)]'
-      : 'mx-auto max-w-none border-b border-black/10 bg-white py-5 text-black shadow-[0_12px_45px_rgba(15,23,42,0.08)]'
+      ? 'mx-auto max-w-6xl !rounded-[2rem] border border-white/30 glass-green py-3 text-black shadow-[0_35px_90px_rgba(0,0,0,0.35)]'
+      : 'mx-auto max-w-full rounded-none border-b border-black/10 bg-white py-5 text-black shadow-[0_12px_45px_rgba(15,23,42,0.08)]'
   }`;
   const desktopLinkClass = 'transition text-black hover:text-slate-900';
   const desktopCtaClass = 'inline-flex items-center justify-center rounded-full bg-black px-6 py-2 text-sm font-semibold text-white transition hover:bg-slate-900';
@@ -129,9 +134,9 @@ export default function SiteHeader() {
   const mobileCtaClass = 'mt-6 inline-flex w-full items-center justify-center rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-900';
   const mobileToggleClass = 'inline-flex items-center justify-center rounded-full border border-black/40 p-2 text-black md:hidden';
 
-  const cartPath = locale === 'lt' ? '/lt/krepselis' : '/en/cart';
-  const accountPath = locale === 'lt' ? '/lt/paskyra' : '/en/account';
-  const loginPath = locale === 'lt' ? '/lt/prisijungti' : '/en/login';
+  const cartPath = locale === 'lt' ? '/lt/krepselis/' : '/en/cart/';
+  const accountPath = locale === 'lt' ? '/lt/paskyra/' : '/en/account/';
+  const loginPath = locale === 'lt' ? '/lt/prisijungti/' : '/en/login/';
 
   const switchTo = (nextLocale) => {
     try {
@@ -151,7 +156,10 @@ export default function SiteHeader() {
             <img 
               src={logoUrl} 
               alt="Kaliadziuk" 
-              className={`w-auto object-contain transition-all duration-300 ${scrolled ? 'h-14' : 'h-20'}`} 
+              className={`w-auto object-contain transition-all duration-700 ${scrolled ? 'h-10' : 'h-14'}`} 
+              decoding="async"
+              width={3223}
+              height={677}
             />
           </a>
 
@@ -169,6 +177,9 @@ export default function SiteHeader() {
               className="relative inline-grid h-10 w-10 shrink-0 place-items-center rounded-full border border-black/20"
               aria-label={user ? (locale === 'lt' ? 'Paskyra' : 'Account') : (locale === 'lt' ? 'Prisijungti' : 'Sign in')}
             >
+              <span className="sr-only">
+                {user ? (locale === 'lt' ? 'Paskyra' : 'Account') : (locale === 'lt' ? 'Prisijungti' : 'Sign in')}
+              </span>
               <svg className="block h-5 w-5 translate-y-[1px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                 <circle cx="12" cy="7" r="4" />
@@ -180,6 +191,7 @@ export default function SiteHeader() {
               className="relative inline-grid h-10 w-10 shrink-0 place-items-center rounded-full border border-black/20"
               aria-label={locale === 'lt' ? 'Krepšelis' : 'Cart'}
             >
+              <span className="sr-only">{locale === 'lt' ? 'Krepšelis' : 'Cart'}</span>
               <svg className="block h-5 w-5 translate-y-[1px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h15l-1.5 9h-12z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l-2-2H2" />
@@ -200,8 +212,8 @@ export default function SiteHeader() {
               <button type="button" onClick={() => switchTo('en')} className={`px-2 py-1 rounded-full text-xs font-semibold ${locale === 'en' ? 'bg-black text-white' : ''}`}>EN</button>
             </div>
 
-            <a href={`${homeBase}#kontaktai`} className={desktopCtaClass}>
-              {locale === 'lt' ? 'Išbandyti nemokamai' : 'Try for free'}
+            <a href={`${homeBase}#programos`} className={desktopCtaClass}>
+              {locale === 'lt' ? 'Peržiūrėti planus' : 'View plans'}
             </a>
           </div>
 
@@ -256,8 +268,8 @@ export default function SiteHeader() {
           ))}
         </div>
 
-        <a href={`${homeBase}#kontaktai`} onClick={() => setMobileOpen(false)} className={mobileCtaClass}>
-          {locale === 'lt' ? 'Išbandyti nemokamai' : 'Try for free'}
+        <a href={`${homeBase}#programos`} onClick={() => setMobileOpen(false)} className={mobileCtaClass}>
+          {locale === 'lt' ? 'Peržiūrėti planus' : 'View plans'}
         </a>
       </nav>
     </header>

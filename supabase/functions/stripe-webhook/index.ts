@@ -1,4 +1,4 @@
-import { corsHeaders, handleOptions } from '../_shared/cors.ts';
+import { getCorsHeaders, handleOptions } from '../_shared/cors.ts';
 import { getServiceClient } from '../_shared/supabase.ts';
 import { getStripe, getWebhookSecrets } from '../_shared/stripe.ts';
 import { normalizeGiftCode, randomGiftCode, sha256Hex } from '../_shared/crypto.ts';
@@ -244,6 +244,12 @@ Deno.serve(async (req: Request) => {
   // Stripe will not send OPTIONS, but keeping CORS consistent helps local testing
   const preflight = handleOptions(req);
   if (preflight) return preflight;
+
+  const corsHeaders = getCorsHeaders(req);
+
+  if (req.method !== 'POST') {
+    return new Response('method_not_allowed', { status: 405, headers: corsHeaders });
+  }
 
   const supabase = getServiceClient();
   const stripe = getStripe();

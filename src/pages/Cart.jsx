@@ -116,8 +116,8 @@ export default function Cart() {
   const subtotal = computeSubtotalCents(cart);
   const total = computeTotalCents(cart);
   const base = `/${locale}`;
-  const termsPath = locale === 'lt' ? '/lt/taisykles' : '/en/terms';
-  const privacyPath = locale === 'lt' ? '/lt/privatumas' : '/en/privacy';
+  const termsPath = locale === 'lt' ? '/lt/taisykles/' : '/en/terms/';
+  const privacyPath = locale === 'lt' ? '/lt/privatumas/' : '/en/privacy/';
 
   const onRemove = (index) => {
     setCart(c => removeItem(c, index));
@@ -166,10 +166,32 @@ export default function Cart() {
       setUiError('Missing VITE_STRIPE_PUBLISHABLE_KEY');
       return;
     }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email) {
       setUiError(locale === 'lt' ? 'Įveskite el. paštą.' : 'Email is required.');
       return;
     }
+    if (!emailRegex.test(email)) {
+      setUiError(locale === 'lt' ? 'Neteisingas el. pašto formatas.' : 'Invalid email format.');
+      return;
+    }
+
+    if (!phone) {
+      setUiError(locale === 'lt' ? 'Įveskite telefono numerį.' : 'Phone number is required.');
+      return;
+    }
+    const cleanPhone = phone.replace(/\s+/g, '');
+    const phoneRegex = /^(\+370|8)\d{8}$|^\+\d{8,15}$/;
+    if (!phoneRegex.test(cleanPhone)) {
+      setUiError(locale === 'lt' ? 'Neteisingas telefono numeris.' : 'Invalid phone number format.');
+      return;
+    }
+
+    if (!fullName || fullName.trim().length < 2) {
+      setUiError(locale === 'lt' ? 'Įveskite vardą ir pavardę.' : 'Full name is required.');
+      return;
+    }
+
     if (!acceptTerms || !acceptPrivacy) {
       setUiError(locale === 'lt' ? 'Pažymėkite taisykles ir privatumo politiką.' : 'Please accept terms and privacy policy.');
       return;
@@ -333,6 +355,9 @@ export default function Cart() {
                     alt={it.name ? String(it.name) : ''}
                     className="h-14 w-14 rounded-xl object-cover border border-black/10"
                     loading="lazy"
+                    decoding="async"
+                    width={56}
+                    height={56}
                   />
                 ) : null}
                 <div>

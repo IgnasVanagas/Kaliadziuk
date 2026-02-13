@@ -5,7 +5,7 @@ on public.customers
 for select
 to authenticated
 using (
-  lower(email) = lower(auth.jwt() ->> 'email')
+  lower(email) = lower((select coalesce(current_setting('request.jwt.claims', true), '{}')::jsonb) ->> 'email')
 );
 
 -- Update orders policy to allow access if auth_user_id matches OR if customer email matches.
@@ -20,7 +20,7 @@ using (
   exists (
     select 1 from public.customers c
     where c.id = orders.customer_id
-      and lower(c.email) = lower(auth.jwt() ->> 'email')
+      and lower(c.email) = lower((select coalesce(current_setting('request.jwt.claims', true), '{}')::jsonb) ->> 'email')
   )
 );
 
@@ -39,7 +39,7 @@ using (
       and (
         o.auth_user_id = auth.uid()
         or
-        lower(c.email) = lower(auth.jwt() ->> 'email')
+        lower(c.email) = lower((select coalesce(current_setting('request.jwt.claims', true), '{}')::jsonb) ->> 'email')
       )
   )
 );
