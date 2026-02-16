@@ -26,12 +26,19 @@ const copyByLocale = {
         kicker: 'Emocinis įtraukimas',
         goalQuestion: 'Koks tavo pagrindinis tikslas šiandien?',
         goals: [
-          'Atsikratyti nugaros/sąnarių skausmo ir judėti laisvai.',
-          'Sumažinti kūno svorį ir sustiprėti.',
-          'Padidinti raumenų masę ir pagerinti laikyseną.',
-          'Pasiekti maksimalų fizinį efektyvumą (profesionalus lygis).'
+          'Atsikratyti nugaros/sąnarių skausmo ir judėti laisvai',
+          'Sumažinti kūno svorį ir sustiprėti',
+          'Padidinti raumenų masę ir pagerinti laikyseną',
+          'Pasiekti maksimalų fizinį efektyvumą (profesionalus lygis)'
         ],
         motivationQuestion: 'Ar anksčiau esi bandęs (-usi) sportuoti savarankiškai? Kas labiausiai trukdė pasiekti rezultatą?',
+        motivationOptions: [
+          'Trūko aiškaus plano ar sistemos',
+          'Trūko motyvacijos ir palaikymo',
+          'Sustabdė traumos ar skausmai',
+          'Neteko bandyti',
+          'Kita (įrašyti savo variantą)...'
+        ],
         motivationPlaceholder: 'Trumpai ir konkrečiai...'
       },
       {
@@ -41,16 +48,16 @@ const copyByLocale = {
         kicker: 'Kasdienybės kontekstas',
         workdayQuestion: 'Apibūdink savo darbo dieną:',
         workdayOptions: [
-          'Pasyvus sėdimas darbas (prie kompiuterio/vairo).',
-          'Lengvas judėjimas (pardavimai, konsultavimas).',
-          'Aktyvus fizinis darbas.'
+          'Pasyvus sėdimas darbas (prie kompiuterio/vairo)',
+          'Lengvas judėjimas (pardavimai, konsultavimas)',
+          'Aktyvus fizinis darbas'
         ],
         sleepQuestion: 'Įvertink savo miego kokybę (nuo 1 iki 10):',
         trackerQuestion: 'Ar naudoji pulsometrą ar išmanųjį laikrodį sekimui?',
         trackerOptions: [
-          'Taip, nuolat.',
-          'Turiu, bet naudoju retai.',
-          'Ne, nenaudoju.'
+          'Taip, nuolat',
+          'Turiu, bet naudoju retai',
+          'Ne, nenaudoju'
         ]
       },
       {
@@ -60,14 +67,18 @@ const copyByLocale = {
         kicker: 'Skausmo identifikavimas',
         discomfortQuestion: 'Pažymėk diskomfortą judesiuose arba sveikatos būkles:',
         discomfortOptions: [
-          'Pasilenkiant į priekį (nugaros apačia).',
-          'Keliant daiktą virš galvos (pečiai).',
-          'Einant ar lipant laiptais (keliai/klubai).',
-          'Sukant korpusą į šonus.',
-          'Turiu plokščiapėdystę.',
-          'Nejaučiu jokio diskomforto / nusiskundimų.'
+          'Pasilenkiant į priekį (nugaros apačia)',
+          'Keliant daiktą virš galvos (pečiai)',
+          'Einant ar lipant laiptais (keliai/klubai)',
+          'Sukant korpusą į šonus',
+          'Turiu plokščiapėdystę',
+          'Nejaučiu jokio diskomforto / nusiskundimų'
         ],
         injuryQuestion: 'Ar esi turėjęs (-usi) traumų, kurios vis dar primena apie save?',
+        injuryOptions: [
+          'Ne',
+          'Taip'
+        ],
         injuryPlaceholder: 'Pvz., "Kelio trauma prieš 2 metus"',
       },
       {
@@ -81,8 +92,8 @@ const copyByLocale = {
         heightLabel: 'Ūgis (cm)',
         familyQuestion: 'Ar tavo artimoje giminėje yra buvę širdies susirgimų atvejų?',
         familyOptions: [
-          'Ne.',
-          'Taip (tėvai/seneliai).'
+          'Ne',
+          'Taip (tėvai/seneliai)'
         ],
         genderQuestion: 'Kokia tavo lytis?',
         genderOptions: [
@@ -91,9 +102,9 @@ const copyByLocale = {
         ],
         stressQuestion: 'Kaip įvertintum savo streso lygį?',
         stressOptions: [
-          'Streso lygis žemas.',
-          'Vidutinis streso lygis.',
-          'Aukštas streso lygis.'
+          'Streso lygis žemas',
+          'Vidutinis streso lygis',
+          'Aukštas streso lygis'
         ]
       }
     ],
@@ -132,12 +143,19 @@ const copyByLocale = {
         kicker: 'Emotional engagement',
         goalQuestion: 'What is your primary goal today?',
         goals: [
-          'Get rid of back/joint pain and move freely.',
-          'Lose body weight and get stronger.',
-          'Increase muscle mass and improve posture.',
-          'Reach maximum physical performance (professional level).'
+          'Get rid of back/joint pain and move freely',
+          'Lose body weight and get stronger',
+          'Increase muscle mass and improve posture',
+          'Reach maximum physical performance (professional level)'
         ],
         motivationQuestion: 'Have you tried training on your own before? What blocked your results the most?',
+        motivationOptions: [
+          'Lack of clear plan or system',
+          'Lack of motivation and support',
+          'Injuries or pain stopped me',
+          'No visible results in a short time',
+          'Other (please specify)...'
+        ],
         motivationPlaceholder: 'Short and specific...'
       },
       {
@@ -147,16 +165,16 @@ const copyByLocale = {
         kicker: 'Daily context',
         workdayQuestion: 'Describe your workday:',
         workdayOptions: [
-          'Sedentary desk/driver work.',
-          'Light movement (sales, consulting).',
-          'Active physical work.'
+          'Sedentary desk/driver work',
+          'Light movement (sales, consulting)',
+          'Active physical work'
         ],
         sleepQuestion: 'Rate your sleep quality (1 to 10):',
         trackerQuestion: 'Do you use a heart-rate monitor or smart watch?',
         trackerOptions: [
-          'Yes, regularly.',
-          'I have one, but rarely use it.',
-          'No, I do not use one.'
+          'Yes, regularly',
+          'I have one, but rarely use it',
+          'No, I do not use one'
         ]
       },
       {
@@ -166,14 +184,18 @@ const copyByLocale = {
         kicker: 'Pain identification',
         discomfortQuestion: 'Select discomfort during movements or conditions:',
         discomfortOptions: [
-          'Forward bending (lower back).',
-          'Lifting an object overhead (shoulders).',
-          'Walking or climbing stairs (knees/hips).',
-          'Rotating the torso to the sides.',
-          'I have flat feet.',
-          'No discomfort / no complaints.'
+          'Forward bending (lower back)',
+          'Lifting an object overhead (shoulders)',
+          'Walking or climbing stairs (knees/hips)',
+          'Rotating the torso to the sides',
+          'I have flat feet',
+          'No discomfort / no complaints'
         ],
         injuryQuestion: 'Have you had injuries that still affect you?',
+        injuryOptions: [
+          'No',
+          'Yes'
+        ],
         injuryPlaceholder: 'E.g., "Knee injury 2 years ago"'
       },
       {
@@ -187,8 +209,8 @@ const copyByLocale = {
         heightLabel: 'Height (cm)',
         familyQuestion: 'Has anyone in your close family had heart conditions?',
         familyOptions: [
-          'No.',
-          'Yes (parents/grandparents).'
+          'No',
+          'Yes (parents/grandparents)'
         ],
         genderQuestion: 'What is your gender?',
         genderOptions: [
@@ -197,9 +219,9 @@ const copyByLocale = {
         ],
         stressQuestion: 'How would you rate your stress level?',
         stressOptions: [
-          'Low stress level.',
-          'Medium stress level.',
-          'High stress level.'
+          'Low stress level',
+          'Medium stress level',
+          'High stress level'
         ]
       }
     ],
@@ -338,10 +360,14 @@ export default function Questionnaire() {
     }
   }, []);
 
-  // Save progress
+  // Save progress with debounce to prevent slider lag
   useEffect(() => {
-    const payload = { goal, motivation, workday, sleep, tracker, discomforts, injury, age, weight, height, family, stress, gender, email, phone };
-    localStorage.setItem('questionnaire_progress', JSON.stringify(payload));
+    const timer = setTimeout(() => {
+      const payload = { goal, motivation, workday, sleep, tracker, discomforts, injury, age, weight, height, family, stress, gender, email, phone };
+      localStorage.setItem('questionnaire_progress', JSON.stringify(payload));
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, [goal, motivation, workday, sleep, tracker, discomforts, injury, age, weight, height, family, stress, gender, email, phone]);
 
   const handleSubmit = async () => {
@@ -676,13 +702,36 @@ export default function Questionnaire() {
                     
                     <div>
                       <label className="mb-4 block text-lg font-bold text-slate-800">{content.stages[0].motivationQuestion}</label>
-                      <textarea
-                        value={motivation}
-                        onChange={(event) => setMotivation(event.target.value)}
-                        rows={3}
-                        className="w-full rounded-2xl border-0 bg-slate-50 px-6 py-4 text-base text-slate-900 shadow-inner ring-1 ring-black/5 transition focus:bg-white focus:ring-2 focus:ring-black placeholder:text-slate-400"
-                        placeholder={content.stages[0].motivationPlaceholder}
-                      />
+                      <div className="grid gap-3 sm:grid-cols-1">
+                        {content.stages[0].motivationOptions.slice(0, -1).map((item) => (
+                          <ToggleButton
+                            key={item}
+                            label={item}
+                            active={motivation === item}
+                            onClick={() => setMotivation(item)}
+                          />
+                        ))}
+                        
+                        {/* Other Option Logic */}
+                        <div className="space-y-3">
+                          <ToggleButton
+                            label={content.stages[0].motivationOptions[content.stages[0].motivationOptions.length - 1]}
+                            active={motivation && !content.stages[0].motivationOptions.slice(0, -1).includes(motivation)}
+                            onClick={() => setMotivation(content.stages[0].motivationOptions[content.stages[0].motivationOptions.length - 1])}
+                          />
+                          
+                          {motivation && !content.stages[0].motivationOptions.slice(0, -1).includes(motivation) && (
+                            <textarea
+                              value={motivation === content.stages[0].motivationOptions[content.stages[0].motivationOptions.length - 1] ? '' : motivation}
+                              onChange={(event) => setMotivation(event.target.value)}
+                              rows={2}
+                              className="w-full rounded-2xl border-0 bg-slate-50 px-6 py-4 text-base text-slate-900 shadow-inner ring-1 ring-black/5 transition focus:bg-white focus:ring-2 focus:ring-black placeholder:text-slate-400 animate-in fade-in zoom-in-95 duration-200"
+                              placeholder={content.stages[0].motivationPlaceholder}
+                              autoFocus
+                            />
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -773,12 +822,44 @@ export default function Questionnaire() {
 
                   <div>
                      <label className="mb-4 block text-lg font-bold text-slate-800">{content.stages[2].injuryQuestion}</label>
-                     <input
-                        value={injury}
-                        onChange={(event) => setInjury(event.target.value)}
-                        className="w-full rounded-2xl border-0 bg-slate-50 px-6 py-4 text-base text-slate-900 shadow-inner ring-1 ring-black/5 transition focus:bg-white focus:ring-2 focus:ring-black placeholder:text-slate-400"
-                        placeholder={content.stages[2].injuryPlaceholder}
-                      />
+                     <div className="space-y-4">
+                       <div className="flex gap-3">
+                         {content.stages[2].injuryOptions.map((option, idx) => {
+                           const isNo = idx === 0; // "Ne."
+                           const isSelected = isNo 
+                             ? injury === option
+                             : injury !== content.stages[2].injuryOptions[0]; // Active if not "Ne." (so empty or text)
+                           
+                           return (
+                             <ToggleButton
+                               key={option}
+                               label={option}
+                               active={isSelected}
+                               onClick={() => {
+                                 if (isNo) {
+                                   setInjury(option);
+                                 } else {
+                                   if (injury === content.stages[2].injuryOptions[0]) {
+                                      setInjury(''); // Clear "Ne." to allow typing
+                                   }
+                                   // If already typing/empty, do nothing, just keep focus/state
+                                 }
+                               }}
+                             />
+                           );
+                         })}
+                       </div>
+                       
+                       {injury !== content.stages[2].injuryOptions[0] && (
+                         <input
+                            value={injury}
+                            onChange={(event) => setInjury(event.target.value)}
+                            className="w-full rounded-2xl border-0 bg-slate-50 px-6 py-4 text-base text-slate-900 shadow-inner ring-1 ring-black/5 transition focus:bg-white focus:ring-2 focus:ring-black placeholder:text-slate-400 animate-in fade-in zoom-in-95 duration-200"
+                            placeholder={content.stages[2].injuryPlaceholder}
+                            autoFocus={injury === ''}
+                          />
+                       )}
+                     </div>
                   </div>
                 </div>
               </div>

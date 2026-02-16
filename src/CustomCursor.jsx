@@ -15,7 +15,10 @@ export default function CustomCursor() {
   const [isDesktop, setIsDesktop] = useState(false);
   useEffect(() => {
     const checkDevice = () => {
-      setIsDesktop(window.matchMedia('(pointer: fine)').matches);
+      // Check for fine pointer OR large screen width as fallback
+      const hasFinePointer = window.matchMedia('(pointer: fine)').matches;
+      const isLargeScreen = window.innerWidth >= 1024;
+      setIsDesktop(hasFinePointer || isLargeScreen);
     };
     checkDevice();
     window.addEventListener('resize', checkDevice);
@@ -103,7 +106,7 @@ export default function CustomCursor() {
   return (
     <div 
       ref={cursorRef} 
-      className="pointer-events-none fixed left-0 top-0 z-[9999] mix-blend-difference"
+      className="pointer-events-none fixed left-0 top-0 z-[10000] mix-blend-difference"
       style={{ willChange: 'transform' }}
     >
       <div 

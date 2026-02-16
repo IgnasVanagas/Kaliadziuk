@@ -187,14 +187,55 @@ const PROGRAM_IDS = {
 
 const programsLt = [
   {
+    productId: '55555555-5555-5555-5555-555555555555', // VIP Plan (Stable ID)
+    cartName: 'VIP individualus koučingas',
+    unitPriceCents: 49900, // 499€
+    title: 'VIP individualus koučingas',
+    subtitle: 'Maksimalus dėmesys (12 savaičių)',
+    description:
+      'Aukščiausios kokybės programa su visiškai individualia priežiūra, kasdienu bendravimu ir giliausia analize. Tie, kas nori greičiausių ir užtikrintų rezultatų.',
+    price: '499€', // Anchor Price
+    duration: '12 savaičių',
+    hasDietician: true,
+    image: fromUploads('grupine1.jpg'), // Start with a placeholder or reuse one
+    result: 'Maksimalūs rezultatai per trumpiausią laiką, pilna transformacija ir nuolatinis trenerio palaikymas.',
+    highlights: [
+      {
+        title: 'Kasdienė komunikacija',
+        detail: 'Nuolatinis ryšys ir priežiūra kiekviename žingsnyje.',
+      },
+      {
+        title: 'Technikos analizė',
+        detail: 'Vaizdo įrašų analizė ir technikos korekcijos realiu laiku.',
+      },
+      {
+        title: 'Individualus mitybos planas',
+        detail: 'Visiškai pritaikytas mitybos planas su receptais ir pirkinių sąrašais.',
+      },
+      {
+        title: 'Psichologinis palaikymas',
+        detail: 'Mentorystė ir motyvacija sunkiausiomis akimirkomis.',
+      },
+    ],
+    extras: [
+      'Viskas, kas įeina į standartines programas',
+      'Kasdienė atskaitomybė ir palaikymas',
+      'Neribotos konsultacijos',
+      'Technikos vaizdo analizė',
+      'Pirmenybė gaunant atsakymus',
+    ],
+    isPremium: true, // Marker for styling if needed
+  },
+  {
     productId: PROGRAM_IDS.weightLoss,
     cartName: 'Svorio metimo programa',
-    unitPriceCents: 20000,
+    unitPriceCents: 19900,
     title: 'Svorio metimo programa',
     subtitle: '8–12 savaičių',
     description:
       'Programa skirta tiems, kurie nori saugiai, tvariai ir be chaoso sumažinti svorį bei išsiugdyti sveikus įpročius.',
-    price: '200€',
+    price: '199€',
+    // Removed duplicate anchor props
     duration: '8–12 savaičių',
     hasDietician: true,
     image: fromUploads('brokolis.jpg'),
@@ -228,12 +269,12 @@ const programsLt = [
   {
     productId: PROGRAM_IDS.muscleGain,
     cartName: 'Raumenų auginimo programa',
-    unitPriceCents: 20000,
+    unitPriceCents: 19900,
     title: 'Raumenų auginimo programa',
     subtitle: '8–12 savaičių',
     description:
       'Programa skirta tiems, kurie nori auginti liesą raumeninę masę, treniruotis protingai ir suprasti hipertrofiją per mokslo prizmę.',
-    price: '200€',
+    price: '199€',
     duration: '8–12 savaičių',
     hasDietician: true,
     image: fromUploads('paaugliu4.jpg'),
@@ -266,14 +307,48 @@ const programsLt = [
     ],
   },
   {
+    productId: '66666666-6666-6666-6666-666666666666', // Home Training Plus (Stable ID)
+    cartName: 'Namų treniruotės su asmenine priežiūra',
+    unitPriceCents: 29900, // 299€
+    title: 'Namų treniruotės + Asmeninė priežiūra',
+    subtitle: 'Su nuolatine priežiūra (8 savaitės)',
+    description:
+      'Tiems, kas nori sportuoti namuose, bet su griežta trenerio priežiūra, technikos taisymu ir nuolatiniu palaikymu.',
+    price: '299€', // Anchor Price
+    duration: '8 savaitės',
+    image: fromUploads('grupine3.jpg'), // Reuse or placeholder
+    result: 'Profesionali trenerio priežiūra namų sąlygomis – lyg sportuotumėte salėje su treneriu.',
+    highlights: [
+      {
+        title: 'Vaizdo analizė',
+        detail: 'Siunčiate pratimo atlikimo video, gaunate korekcijas.',
+      },
+      {
+        title: 'Nuolatinis ryšys',
+        detail: 'Galimybė klausti ir konsultuotis bet kuriuo metu.',
+      },
+      {
+        title: 'Adaptacija',
+        detail: 'Programos koregavimas pagal savijautą ir progresą.',
+      },
+    ],
+    extras: [
+      'Viskas, kas įeina į standartinę namų programą',
+      'Video technikos analizė',
+      'Nuolatinis bendravimas',
+      'Programos adaptacija eigoje',
+    ],
+    isPremium: true,
+  },
+  {
     productId: PROGRAM_IDS.homeTraining,
     cartName: 'Namų treniruočių programa',
-    unitPriceCents: 15000,
+    unitPriceCents: 14700,
     title: 'Namų treniruočių programa',
     subtitle: '6–8 savaitės',
     description:
       'Programa skirta tiems, kurie nori treniruoti visą kūną namuose, sutaupyti laiką ir pasiekti tvirtą, atletišką kūną – be sporto salės.',
-    price: '150€',
+    price: '147€',
     duration: '6–8 savaitės',
     image: fromUploads('grupine8.jpg'),
     result: 'Stiprus, funkcionalus kūnas, geresnė savijauta ir aiškus planas, kaip treniruotis namuose be chaoso.',
@@ -307,12 +382,12 @@ const programsLt = [
   {
     productId: PROGRAM_IDS.mobility,
     cartName: 'Mobilumo lavinimo programa',
-    unitPriceCents: 10000,
+    unitPriceCents: 9700,
     title: 'Mobilumo lavinimo programa',
     subtitle: 'Kasdienė mankšta (6–8 savaitės)',
     description:
       'Programa skirta tiems, kurie nori judėti laisviau, geriau jaustis kūne ir formuoti discipliną per kasdienį, sąmoningą judėjimą.',
-    price: '100€',
+    price: '97€',
     duration: '6–8 savaitės',
     image: fromUploads('testavimas8.jpg'),
     result: 'Mažiau įtampos, daugiau judėjimo laisvės, geresnė laikysena ir stipresnis ryšys su kūnu.',
@@ -1741,18 +1816,26 @@ function App({ locale = 'lt' }) {
                   : 'Choose a program for your goals — each one is tailored to your needs and capabilities.'}
               </p>
             </div>
-            <div className="mt-16 grid gap-10 pb-6 xl:grid-cols-2">
+            <div className="mt-16 grid gap-8 pb-6 lg:grid-cols-2 xl:grid-cols-3">
               {programsByLocale[activeLocale].map((plan, index) => (
                 <article
                   key={plan.title}
-                  className="flex flex-col overflow-hidden rounded-[40px] border border-slate-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.1)] transition duration-500 hover:-translate-y-2"
+                  className={`flex flex-col overflow-hidden rounded-[40px] border bg-white shadow-[0_30px_90px_rgba(15,23,42,0.1)] transition duration-500 hover:-translate-y-2 ${
+                    plan.isPremium ? 'border-yellow-400 ring-4 ring-yellow-400/20' : 'border-slate-200'
+                  }`}
                   data-aos="fade-up"
                   data-aos-delay={index * 80}
                 >
-                  <div className="relative h-[320px] sm:h-[360px] shrink-0">
+                  <div className="relative h-[380px] sm:h-[360px] shrink-0">
                     <img src={plan.image} alt={plan.title} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/70" />
-                    <div className="relative z-10 flex h-full flex-col justify-between p-8 sm:p-10 text-white">
+                    <div
+                      className={`absolute inset-0 bg-gradient-to-b ${
+                        plan.isPremium
+                          ? 'from-yellow-900/20 via-black/40 to-black/90'
+                          : 'from-transparent via-black/20 to-black/70'
+                      }`}
+                    />
+                    <div className="relative z-10 flex h-full flex-col justify-between p-6 sm:p-10 text-white">
                       <button
                         type="button"
                         onClick={() => toggleProgramExpandedMobile(plan.productId)}
@@ -1762,11 +1845,18 @@ function App({ locale = 'lt' }) {
                       >
                         {expandedProgramIdsMobile?.[plan.productId] ? '-' : '+'}
                       </button>
-                      <div className="space-y-4">
-                        <p className="text-sm font-semibold uppercase tracking-widest text-white/70">{plan.subtitle}</p>
+                      <div className="space-y-3 sm:space-y-4">
+                        {plan.isPremium && (
+                          <span className="inline-block rounded-full bg-yellow-400 px-3 py-1 text-xs font-bold uppercase tracking-widest text-black mb-2">
+                             VIP / Premium
+                          </span>
+                        )}
+                        <p className={`text-sm font-semibold uppercase tracking-widest ${plan.isPremium ? 'text-yellow-400' : 'text-white/70'}`}>
+                          {plan.subtitle}
+                        </p>
                         <h3 className="font-heading text-2xl font-black leading-tight sm:text-4xl">{plan.title}</h3>
                       </div>
-                      <div className="flex flex-wrap gap-4 text-sm font-semibold">
+                      <div className="flex flex-wrap gap-3 sm:gap-4 text-sm font-semibold pr-14 md:pr-0">
                         <span className="glass-card rounded-full px-4 py-2 text-white/90">{plan.duration}</span>
                         {plan.hasDietician && (
                           <span className="glass-card flex items-center gap-2 rounded-full px-4 py-2 text-white/90">
@@ -1778,29 +1868,33 @@ function App({ locale = 'lt' }) {
                             {activeLocale === 'lt' ? 'Parengta su dietologu' : 'Approved by dietician'}
                           </span>
                         )}
-                        <span className="glass-card rounded-full px-4 py-2 text-white">{plan.price}</span>
+                        <span className={`glass-card rounded-full px-4 py-2 text-white ${plan.isPremium ? 'bg-yellow-500/20 border-yellow-400/50 text-yellow-400' : ''}`}>
+                          {plan.price}
+                        </span>
                       </div>
                     </div>
                   </div>
                   <div
                     id={`program-details-${plan.productId || index}`}
-                    className={`flex flex-col flex-1 gap-8 bg-white p-8 sm:p-10 text-slate-900 ${expandedProgramIdsMobile?.[plan.productId] ? 'flex' : 'hidden'} md:flex`}
+                    className={`flex flex-col flex-1 gap-6 bg-white p-6 sm:p-8 text-slate-900 ${expandedProgramIdsMobile?.[plan.productId] ? 'flex' : 'hidden'} md:flex`}
                   >
                     <p className="text-base leading-relaxed text-slate-600">{plan.description}</p>
 
-                    <div className="grid gap-6 md:grid-cols-2">
-                      {plan.highlights.map(highlight => (
+                    <div className="py-2">
+                      {plan.highlights.map((highlight, index) => (
                         <div
                           key={highlight.title}
-                          className="rounded-3xl border border-slate-100 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]"
+                          className={`py-6 flex flex-col gap-1 ${
+                            index !== plan.highlights.length - 1 ? 'border-b border-slate-100' : ''
+                          }`}
                         >
-                          <p className="text-sm font-semibold uppercase tracking-widest text-slate-500">{highlight.title}</p>
-                          <p className="mt-4 text-sm text-slate-600">{highlight.detail}</p>
+                          <p className="text-xs font-bold uppercase tracking-widest text-slate-500">{highlight.title}</p>
+                          <p className="text-sm font-medium text-slate-900 leading-relaxed">{highlight.detail}</p>
                         </div>
                       ))}
                     </div>
                     <div className="space-y-4">
-                      <p className="text-sm font-semibold uppercase tracking-widest text-slate-400">
+                      <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
                         {activeLocale === 'lt' ? 'Į paketą įeina' : "What's included"}
                       </p>
                       <ul className="space-y-4">
@@ -1819,11 +1913,11 @@ function App({ locale = 'lt' }) {
 
                     <div className="mt-auto space-y-8">
                       {plan.result && (
-                        <div className="rounded-3xl bg-slate-50 p-6 border border-slate-100">
-                          <p className="font-heading text-base font-extrabold uppercase tracking-wide text-slate-900 mb-2">
+                        <div className="pt-6 border-t border-slate-100">
+                          <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">
                             {activeLocale === 'lt' ? 'Rezultatas' : 'The Result'}
                           </p>
-                          <p className="text-base font-medium text-slate-700 leading-relaxed">{plan.result}</p>
+                          <p className="text-base font-medium text-slate-900 leading-relaxed">{plan.result}</p>
                         </div>
                       )}
                       <div className="flex flex-wrap items-center gap-4">
