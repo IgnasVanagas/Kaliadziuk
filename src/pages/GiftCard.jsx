@@ -4,9 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { addItem, loadCart, saveCart } from '../state/cart';
 
 const fromUploads = (file) => new URL(`../../uploads/${file}`, import.meta.url).pathname;
-const contactImage = fromUploads('_optimized/IMG_0469-scaled-2560w.webp');
-const contactImageSrcSetWebp = `${fromUploads('_optimized/IMG_0469-scaled-2560w.webp')} 2560w`;
-const contactImageSrcSetAvif = `${fromUploads('_optimized/IMG_0469-scaled-2560w.avif')} 2560w`;
+const contactImage = fromUploads('IMG_0488-scaled.jpg');
 
 export default function GiftCard() {
   const { t } = useTranslation();
@@ -82,8 +80,6 @@ export default function GiftCard() {
     <main className="relative min-h-[calc(100vh-5rem)] flex flex-col items-center justify-center px-6 py-16 text-white overflow-hidden">
         {/* Background */}
         <picture className="pointer-events-none absolute inset-0 z-0">
-          <source type="image/avif" srcSet={contactImageSrcSetAvif} sizes="100vw" />
-          <source type="image/webp" srcSet={contactImageSrcSetWebp} sizes="100vw" />
           <img
             src={contactImage}
             alt=""

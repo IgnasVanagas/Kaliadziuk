@@ -7,6 +7,22 @@ import { useAuth } from '../auth/AuthProvider.jsx';
 // Use `.pathname` (not `.href`) so prerendered HTML doesn't bake in localhost origins.
 const fromUploads = (file) => `/uploads/${String(file || '').replace(/^\/+/, '')}`;
 const logoUrl = fromUploads('Branding/Pozityvi-full-TP-RGB.png');
+const logoSrcSetWebp = [
+  `${fromUploads('_optimized/Branding/Pozityvi-full-TP-RGB-320w.webp')} 320w`,
+  `${fromUploads('_optimized/Branding/Pozityvi-full-TP-RGB-480w.webp')} 480w`,
+  `${fromUploads('_optimized/Branding/Pozityvi-full-TP-RGB-640w.webp')} 640w`,
+  `${fromUploads('_optimized/Branding/Pozityvi-full-TP-RGB-768w.webp')} 768w`,
+  `${fromUploads('_optimized/Branding/Pozityvi-full-TP-RGB-960w.webp')} 960w`,
+  `${fromUploads('_optimized/Branding/Pozityvi-full-TP-RGB-1024w.webp')} 1024w`,
+].join(', ');
+const logoSrcSetAvif = [
+  `${fromUploads('_optimized/Branding/Pozityvi-full-TP-RGB-320w.avif')} 320w`,
+  `${fromUploads('_optimized/Branding/Pozityvi-full-TP-RGB-480w.avif')} 480w`,
+  `${fromUploads('_optimized/Branding/Pozityvi-full-TP-RGB-640w.avif')} 640w`,
+  `${fromUploads('_optimized/Branding/Pozityvi-full-TP-RGB-768w.avif')} 768w`,
+  `${fromUploads('_optimized/Branding/Pozityvi-full-TP-RGB-960w.avif')} 960w`,
+  `${fromUploads('_optimized/Branding/Pozityvi-full-TP-RGB-1024w.avif')} 1024w`,
+].join(', ');
 
 function getLocale(pathname) {
   return pathname.startsWith('/en') ? 'en' : 'lt';
@@ -153,14 +169,18 @@ export default function SiteHeader() {
       <div className={headerSurfaceClass}>
         <div className={`flex items-center justify-between w-full ${!scrolled ? 'max-w-7xl mx-auto' : ''}`}>
           <a href={`${homeBase}#hero`} className="transition-opacity duration-300 hover:opacity-80">
-            <img 
-              src={logoUrl} 
-              alt="Kaliadziuk" 
-              className={`w-auto object-contain transition-all duration-700 ${scrolled ? 'h-10' : 'h-14'}`} 
-              decoding="async"
-              width={3223}
-              height={677}
-            />
+            <picture>
+              <source type="image/avif" srcSet={logoSrcSetAvif} sizes="(min-width: 768px) 240px, 180px" />
+              <source type="image/webp" srcSet={logoSrcSetWebp} sizes="(min-width: 768px) 240px, 180px" />
+              <img
+                src={logoUrl}
+                alt="Kaliadziuk"
+                className={`w-auto object-contain transition-all duration-700 ${scrolled ? 'h-10' : 'h-14'}`}
+                decoding="async"
+                width={3223}
+                height={677}
+              />
+            </picture>
           </a>
 
           <nav className="hidden items-center gap-8 text-sm font-medium md:flex">

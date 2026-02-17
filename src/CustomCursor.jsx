@@ -15,14 +15,27 @@ export default function CustomCursor() {
   const [isDesktop, setIsDesktop] = useState(false);
   useEffect(() => {
     const checkDevice = () => {
-      // Check for fine pointer OR large screen width as fallback
       const hasFinePointer = window.matchMedia('(pointer: fine)').matches;
-      const isLargeScreen = window.innerWidth >= 1024;
-      setIsDesktop(hasFinePointer || isLargeScreen);
+      const canHover = window.matchMedia('(hover: hover)').matches;
+      const hasTouch = navigator.maxTouchPoints > 0;
+      setIsDesktop(hasFinePointer && canHover && !hasTouch);
     };
+
     checkDevice();
+
+    const finePointerMedia = window.matchMedia('(pointer: fine)');
+    const hoverMedia = window.matchMedia('(hover: hover)');
+
+    const onMediaChange = () => checkDevice();
     window.addEventListener('resize', checkDevice);
-    return () => window.removeEventListener('resize', checkDevice);
+    finePointerMedia.addEventListener?.('change', onMediaChange);
+    hoverMedia.addEventListener?.('change', onMediaChange);
+
+    return () => {
+      window.removeEventListener('resize', checkDevice);
+      finePointerMedia.removeEventListener?.('change', onMediaChange);
+      hoverMedia.removeEventListener?.('change', onMediaChange);
+    };
   }, []);
 
   useEffect(() => {

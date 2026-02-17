@@ -1,5 +1,5 @@
 import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import SiteHeader from './components/SiteHeader.jsx';
 import CustomCursor from './CustomCursor.jsx';
@@ -7,18 +7,18 @@ import CustomScrollbar from './CustomScrollbar.jsx';
 import { getLocaleFromPathname, pickInitialLocale, persistLocale } from './lib/locale';
 
 import HomeLtLegacy from './pages/HomeLtLegacy';
-import Plans from './pages/Plans';
-import GiftCard from './pages/GiftCard';
-import Cart from './pages/Cart';
-import Legal from './pages/Legal';
-import Success from './pages/Success';
-import Cancel from './pages/Cancel';
-import Payment from './pages/Payment';
-import Admin from './pages/Admin';
-import NotFound from './pages/NotFound';
-import Auth from './pages/Auth';
-import Account from './pages/Account';
-import Questionnaire from './pages/Questionnaire';
+const Plans = lazy(() => import('./pages/Plans'));
+const GiftCard = lazy(() => import('./pages/GiftCard'));
+const Cart = lazy(() => import('./pages/Cart'));
+const Legal = lazy(() => import('./pages/Legal'));
+const Success = lazy(() => import('./pages/Success'));
+const Cancel = lazy(() => import('./pages/Cancel'));
+const Payment = lazy(() => import('./pages/Payment'));
+const Admin = lazy(() => import('./pages/Admin'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+const Auth = lazy(() => import('./pages/Auth'));
+const Account = lazy(() => import('./pages/Account'));
+const Questionnaire = lazy(() => import('./pages/Questionnaire'));
 import RequireAuth from './auth/RequireAuth.jsx';
 
 function RootRedirect() {
@@ -72,59 +72,61 @@ function RequireAuthWrapper({ locale }) {
 
 export default function AppRouter() {
   return (
-    <Routes>
-      <Route path="/" element={<RootRedirect />} />
+    <Suspense fallback={null}>
+      <Routes>
+        <Route path="/" element={<RootRedirect />} />
 
-      <Route element={<LocaleShell />}>
-        <Route path="/lt" element={<HomeLtLegacy />} />
-        <Route path="/en" element={<HomeLtLegacy />} />
+        <Route element={<LocaleShell />}>
+          <Route path="/lt" element={<HomeLtLegacy />} />
+          <Route path="/en" element={<HomeLtLegacy />} />
 
-        <Route path="/lt/prisijungti" element={<Auth />} />
-        <Route path="/en/login" element={<Auth />} />
+          <Route path="/lt/prisijungti" element={<Auth />} />
+          <Route path="/en/login" element={<Auth />} />
 
-        <Route path="/lt/paskyra" element={<RequireAuthWrapper locale="lt" />} />
-        <Route path="/en/account" element={<RequireAuthWrapper locale="en" />} />
+          <Route path="/lt/paskyra" element={<RequireAuthWrapper locale="lt" />} />
+          <Route path="/en/account" element={<RequireAuthWrapper locale="en" />} />
 
-        <Route path="/lt/planai" element={<Plans />} />
-        <Route path="/en/plans" element={<Plans />} />
+          <Route path="/lt/planai" element={<Plans />} />
+          <Route path="/en/plans" element={<Plans />} />
 
-        <Route path="/lt/anketa" element={<Navigate to="/lt/anketa/1" replace />} />
-        <Route path="/lt/anketa/:step" element={<Questionnaire />} />
-        <Route path="/en/questionnaire" element={<Navigate to="/en/questionnaire/1" replace />} />
-        <Route path="/en/questionnaire/:step" element={<Questionnaire />} />
+          <Route path="/lt/anketa" element={<Navigate to="/lt/anketa/1" replace />} />
+          <Route path="/lt/anketa/:step" element={<Questionnaire />} />
+          <Route path="/en/questionnaire" element={<Navigate to="/en/questionnaire/1" replace />} />
+          <Route path="/en/questionnaire/:step" element={<Questionnaire />} />
 
-        <Route path="/lt/dovanu-kuponas" element={<GiftCard />} />
-        <Route path="/en/gift-card" element={<GiftCard />} />
+          <Route path="/lt/dovanu-kuponas" element={<GiftCard />} />
+          <Route path="/en/gift-card" element={<GiftCard />} />
 
-        <Route path="/lt/krepselis" element={<Cart />} />
-        <Route path="/en/cart" element={<Cart />} />
+          <Route path="/lt/krepselis" element={<Cart />} />
+          <Route path="/en/cart" element={<Cart />} />
 
-        <Route path="/lt/mokejimas" element={<Payment />} />
-        <Route path="/en/payment" element={<Payment />} />
+          <Route path="/lt/mokejimas" element={<Payment />} />
+          <Route path="/en/payment" element={<Payment />} />
 
-        <Route path="/lt/privatumas" element={<Legal kind="privacy" />} />
-        <Route path="/en/privacy" element={<Legal kind="privacy" />} />
+          <Route path="/lt/privatumas" element={<Legal kind="privacy" />} />
+          <Route path="/en/privacy" element={<Legal kind="privacy" />} />
 
-        <Route path="/lt/taisykles" element={<Legal kind="terms" />} />
-        <Route path="/en/terms" element={<Legal kind="terms" />} />
+          <Route path="/lt/taisykles" element={<Legal kind="terms" />} />
+          <Route path="/en/terms" element={<Legal kind="terms" />} />
 
-        <Route path="/lt/grazinimas" element={<Legal kind="refunds" />} />
-        <Route path="/en/refunds" element={<Legal kind="refunds" />} />
+          <Route path="/lt/grazinimas" element={<Legal kind="refunds" />} />
+          <Route path="/en/refunds" element={<Legal kind="refunds" />} />
 
-        <Route path="/lt/sekme" element={<Success />} />
-        <Route path="/en/success" element={<Success />} />
+          <Route path="/lt/sekme" element={<Success />} />
+          <Route path="/en/success" element={<Success />} />
 
-        <Route path="/lt/atsaukta" element={<Cancel />} />
-        <Route path="/en/cancel" element={<Cancel />} />
+          <Route path="/lt/atsaukta" element={<Cancel />} />
+          <Route path="/en/cancel" element={<Cancel />} />
 
-        <Route path="/lt/admin" element={<Admin />} />
-        <Route path="/en/admin" element={<Navigate to="/lt/admin" replace />} />
+          <Route path="/lt/admin" element={<Admin />} />
+          <Route path="/en/admin" element={<Navigate to="/lt/admin" replace />} />
 
-        <Route path="/lt/*" element={<NotFound />} />
-        <Route path="/en/*" element={<NotFound />} />
-      </Route>
+          <Route path="/lt/*" element={<NotFound />} />
+          <Route path="/en/*" element={<NotFound />} />
+        </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
   );
 }
