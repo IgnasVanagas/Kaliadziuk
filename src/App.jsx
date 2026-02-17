@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react';
+﻿import { useRef, useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
@@ -7,6 +7,7 @@ import { useKeenSlider } from 'keen-slider/react';
 import { addItem, loadCart, saveCart } from './state/cart';
 import { getProductImageUrl } from './lib/productImages';
 import { sendEvent } from './lib/tracking';
+import { ProgramModal } from './components/ProgramModal';
 
 const fromUploads = (file) => new URL(`../uploads/${file}`, import.meta.url).pathname;
 
@@ -60,10 +61,8 @@ const heroImageSrcSetMobileAvif = [
 ].join(', ');
 const successImage = fromUploads('grupine5.jpg');
 
-const contactImage = fromUploads('_optimized/IMG_0469-scaled-2560w.webp');
-const contactImageAvif = fromUploads('_optimized/IMG_0469-scaled-2560w.avif');
-const contactImageSrcSetWebp = `${fromUploads('_optimized/IMG_0469-scaled-2560w.webp')} 2560w`;
-const contactImageSrcSetAvif = `${fromUploads('_optimized/IMG_0469-scaled-2560w.avif')} 2560w`;
+const contactImage = fromUploads('IMG_0488-scaled.jpg');
+const quizImage = fromUploads('testavimas1.jpg');
 
 const heroStatsByLocale = {
   lt: [
@@ -197,8 +196,8 @@ const programsLt = [
     price: '499€', // Anchor Price
     duration: '12 savaičių',
     hasDietician: true,
-    image: fromUploads('grupine1.jpg'), // Start with a placeholder or reuse one
-    result: 'Maksimalūs rezultatai per trumpiausią laiką, pilna transformacija ir nuolatinis trenerio palaikymas.',
+    image: fromUploads('IMG_0469-scaled.jpg'),
+    result: 'Maksimali transformacija per trumpiausią laiką.',
     highlights: [
       {
         title: 'Kasdienė komunikacija',
@@ -218,12 +217,13 @@ const programsLt = [
       },
     ],
     extras: [
-      'Viskas, kas įeina į standartines programas',
-      'Kasdienė atskaitomybė ir palaikymas',
-      'Neribotos konsultacijos',
-      'Technikos vaizdo analizė',
-      'Pirmenybė gaunant atsakymus',
+      'Kasdienė komunikacija – nuolatinis ryšys kiekviename žingsnyje',
+      'Neribotos konsultacijos – greiti atsakymai viso proceso metu',
+      'Technikos video analizė – korekcijos realiu laiku',
+      'Individuali mitybos strategija – planas su aiškia struktūra',
+      'Prioritetinis atsakymas – didžiausias dėmesys jūsų progresui',
     ],
+    isVipAnchor: true,
     isPremium: true, // Marker for styling if needed
   },
   {
@@ -239,7 +239,7 @@ const programsLt = [
     duration: '8–12 savaičių',
     hasDietician: true,
     image: fromUploads('brokolis.jpg'),
-    result: 'Rezultatai išliks ir po programos.',
+    result: 'Svoris krenta tvariai ir užtikrintai.',
     highlights: [
       {
         title: 'Individualus planas',
@@ -259,12 +259,13 @@ const programsLt = [
       },
     ],
     extras: [
-      'Nemokama konsultacija (tikslų, gyvenimo būdo ir galimybių įvertinimas)',
-      'Individualus sporto planas, sudarytas pagal Jūsų poreikius',
-      'Aiškios mitybos gairės – supraskite bendrą kalorijų ir makroelementų balansą',
-      '1 asmeninė treniruotė (technikos, pajėgumo ir silpnų vietų įvertinimui)',
-      'Lojalumo bonusas: atnaujinimas po 8–12 sav. tik 50 €',
+      'Individualus sporto planas – pagal jūsų poreikius ir pajėgumą',
+      'Aiškios mitybos gairės – be griežtų dietų',
+      'Technikos korekcijos – saugesni ir efektyvesni pratimai',
+      'Savaitinė progreso peržiūra – korekcijos pagal realų rezultatą',
+      'Startinė konsultacija – tikslų ir galimybių įvertinimas',
     ],
+    isMostPopular: true,
   },
   {
     productId: PROGRAM_IDS.muscleGain,
@@ -278,7 +279,7 @@ const programsLt = [
     duration: '8–12 savaičių',
     hasDietician: true,
     image: fromUploads('paaugliu4.jpg'),
-    result: 'Matomas raumenų augimas, didesnė jėga ir aiškus supratimas, kaip treniruotis ateityje be spėliojimo.',
+    result: 'Augini raumenis ir jėgą be spėliojimo.',
     highlights: [
       {
         title: 'Liesa raumenų masė',
@@ -298,12 +299,11 @@ const programsLt = [
       },
     ],
     extras: [
-      'Nemokama konsultacija (tikslų, patirties ir pasirengimo įvertinimas)',
-      'Individualus sporto planas pagal Jūsų poreikius',
-      'Mitybos gairės raumenų augimui',
-      '1 asmeninė treniruotė (technikos, apkrovų ir silpnų vietų įvertinimui)',
-      'Skaitmeninis progreso dienoraštis',
-      'Lojalumo bonusas: atnaujinimas tik 50 €',
+      'Individualus sporto planas – progresijai ir hipertrofijai',
+      'Mitybos gairės masei – kalorijų ir makro balansui',
+      'Technikos korekcijos – tikslesniam raumenų aktyvavimui',
+      'Progreso stebėjimas – aiškūs jėgos ir apimčių pokyčiai',
+      'Startinė konsultacija – pasirengimo ir tikslų suderinimui',
     ],
   },
   {
@@ -316,8 +316,8 @@ const programsLt = [
       'Tiems, kas nori sportuoti namuose, bet su griežta trenerio priežiūra, technikos taisymu ir nuolatiniu palaikymu.',
     price: '299€', // Anchor Price
     duration: '8 savaitės',
-    image: fromUploads('grupine3.jpg'), // Reuse or placeholder
-    result: 'Profesionali trenerio priežiūra namų sąlygomis – lyg sportuotumėte salėje su treneriu.',
+    image: fromUploads('grupine8.jpg'),
+    result: 'Namų treniruotės su profesionalia kasdiene priežiūra.',
     highlights: [
       {
         title: 'Vaizdo analizė',
@@ -333,10 +333,11 @@ const programsLt = [
       },
     ],
     extras: [
-      'Viskas, kas įeina į standartinę namų programą',
-      'Video technikos analizė',
-      'Nuolatinis bendravimas',
-      'Programos adaptacija eigoje',
+      'Individualus namų planas – pritaikytas jūsų sąlygoms',
+      'Kasdienis trenerio ryšys – nuolatinė motyvacija ir kontrolė',
+      'Video technikos analizė – aiškios korekcijos kiekvienam pratimui',
+      'Eigos adaptacijos – planas keičiamas pagal progresą',
+      'Greiti atsakymai – kai reikia sprendimo čia ir dabar',
     ],
     isPremium: true,
   },
@@ -350,8 +351,8 @@ const programsLt = [
       'Programa skirta tiems, kurie nori treniruoti visą kūną namuose, sutaupyti laiką ir pasiekti tvirtą, atletišką kūną – be sporto salės.',
     price: '147€',
     duration: '6–8 savaitės',
-    image: fromUploads('grupine8.jpg'),
-    result: 'Stiprus, funkcionalus kūnas, geresnė savijauta ir aiškus planas, kaip treniruotis namuose be chaoso.',
+    image: fromUploads('grupine6.jpg'),
+    result: 'Stiprus kūnas ir aiški namų treniruočių sistema.',
     highlights: [
       {
         title: 'Jokio klubo',
@@ -371,12 +372,11 @@ const programsLt = [
       },
     ],
     extras: [
-      'Nemokama konsultacija',
-      'Individualus namų treniruočių planas',
-      '1 asmeninė treniruotė technikos mokymui',
-      'Vaizdo įrašai su visais pratimais',
-      'Aiški treniruočių struktūra progresavimui',
-      'Dovana: sporto inventorius namų treniruotėms',
+      'Individualus namų planas – aiški sistema nuo A iki Z',
+      'Pratimų video biblioteka – paprastas sekimas namuose',
+      'Technikos įvedimas – saugus ir taisyklingas startas',
+      'Progreso struktūra – ką ir kada didinti kiekvieną savaitę',
+      'Startinė konsultacija – poreikių ir tikslo aptarimui',
     ],
   },
   {
@@ -390,7 +390,7 @@ const programsLt = [
     price: '97€',
     duration: '6–8 savaitės',
     image: fromUploads('testavimas8.jpg'),
-    result: 'Mažiau įtampos, daugiau judėjimo laisvės, geresnė laikysena ir stipresnis ryšys su kūnu.',
+    result: 'Daugiau laisvės judėti be įtampos.',
     highlights: [
       {
         title: 'Ryto rutina',
@@ -406,11 +406,11 @@ const programsLt = [
       },
     ],
     extras: [
-      'Konsultacija tikslų įvertinimui',
-      'Individualus planas (10–30 min/d.)',
-      'Vaizdo įrašai ir seka',
-      'Struktūra „kas po ko“',
-      'Gilinsimės į: mobilumą, stabilumą, savimasažą',
+      'Mobilumo planas kasdienai – 10–30 min. pagal jūsų ritmą',
+      'Judesio video seka – aišku, ką daryti ir kokia tvarka',
+      'Laikysenos gerinimas – mažiau įtampos kasdienėje veikloje',
+      'Stabilumo įgūdžiai – stipresnis kūno valdymas ir kontrolė',
+      'Startinė konsultacija – tikslams ir būklei įvertinti',
     ],
   },
 ];
@@ -545,6 +545,57 @@ const programsEn = [
 const programsByLocale = {
   lt: programsLt,
   en: programsEn,
+};
+
+const comparisonRowsByLocale = {
+  lt: [
+    {
+      label: 'Individualus planas',
+      includedProductIds: ['55555555-5555-5555-5555-555555555555', PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain, '66666666-6666-6666-6666-666666666666', PROGRAM_IDS.homeTraining, PROGRAM_IDS.mobility],
+    },
+    {
+      label: 'Mitybos gairės',
+      includedProductIds: ['55555555-5555-5555-5555-555555555555', PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain, '66666666-6666-6666-6666-666666666666'],
+    },
+    {
+      label: 'Technikos analizė',
+      includedProductIds: ['55555555-5555-5555-5555-555555555555', PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain, '66666666-6666-6666-6666-666666666666', PROGRAM_IDS.homeTraining],
+    },
+    {
+      label: 'Savaitinė peržiūra',
+      includedProductIds: ['55555555-5555-5555-5555-555555555555', PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain, '66666666-6666-6666-6666-666666666666'],
+    },
+    {
+      label: 'Kasdienis palaikymas',
+      includedProductIds: ['55555555-5555-5555-5555-555555555555', '66666666-6666-6666-6666-666666666666'],
+    },
+    {
+      label: 'Konsultacija',
+      includedProductIds: ['55555555-5555-5555-5555-555555555555', PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain, '66666666-6666-6666-6666-666666666666', PROGRAM_IDS.homeTraining, PROGRAM_IDS.mobility],
+    },
+  ],
+  en: [
+    {
+      label: 'Personal plan',
+      includedProductIds: [PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain, PROGRAM_IDS.homeTraining, PROGRAM_IDS.mobility],
+    },
+    {
+      label: 'Nutrition guidance',
+      includedProductIds: [PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain],
+    },
+    {
+      label: 'Technique checks',
+      includedProductIds: [PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain, PROGRAM_IDS.homeTraining],
+    },
+    {
+      label: 'Weekly review',
+      includedProductIds: [PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain, PROGRAM_IDS.homeTraining],
+    },
+    {
+      label: 'Consultation',
+      includedProductIds: [PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain, PROGRAM_IDS.homeTraining, PROGRAM_IDS.mobility],
+    },
+  ],
 };
 
 const storiesLt = [
@@ -1287,10 +1338,17 @@ function App({ locale = 'lt' }) {
   const [isDesktop, setIsDesktop] = useState(false);
   const [contactNotice, setContactNotice] = useState(null);
   const [contactError, setContactError] = useState(null);
+  const [selectedProgram, setSelectedProgram] = useState(null);
   const [contactBusy, setContactBusy] = useState(false);
   const [expandedProgramIdsMobile, setExpandedProgramIdsMobile] = useState(() => ({}));
 
   const cartPath = activeLocale === 'lt' ? '/lt/krepselis' : '/en/cart';
+  const displayedPrograms = [...programsByLocale[activeLocale]].sort((a, b) => {
+    if (a.isVipAnchor) return -1;
+    if (b.isVipAnchor) return 1;
+    return 0;
+  });
+  const comparisonRows = comparisonRowsByLocale[activeLocale] || [];
 
   const toggleProgramExpandedMobile = programId => {
     if (!programId) return;
@@ -1575,6 +1633,14 @@ function App({ locale = 'lt' }) {
         duration: 1000,
         easing: t => 1 - Math.pow(1 - t, 4),
       },
+      breakpoints: {
+        '(min-width: 768px)': {
+          slides: {
+            perView: 1,
+            spacing: 24,
+          },
+        },
+      },
     },
     [
       slider => {
@@ -1817,44 +1883,46 @@ function App({ locale = 'lt' }) {
               </p>
             </div>
             <div className="mt-16 grid gap-8 pb-6 lg:grid-cols-2 xl:grid-cols-3">
-              {programsByLocale[activeLocale].map((plan, index) => (
+              {displayedPrograms.map((plan, index) => (
                 <article
                   key={plan.title}
-                  className={`flex flex-col overflow-hidden rounded-[40px] border bg-white shadow-[0_30px_90px_rgba(15,23,42,0.1)] transition duration-500 hover:-translate-y-2 ${
-                    plan.isPremium ? 'border-yellow-400 ring-4 ring-yellow-400/20' : 'border-slate-200'
+                  onClick={() => setSelectedProgram(plan)}
+                  className={`cursor-pointer flex flex-col overflow-hidden rounded-[40px] border bg-white shadow-[0_10px_30px_rgba(0,0,0,0.05)] transition duration-500 hover:-translate-y-2 ${
+                    plan.isMostPopular
+                      ? 'border-[#DCF41E] ring-4 ring-[#DCF41E]/20 lg:scale-105 z-10'
+                      : 'border-slate-200'
                   }`}
                   data-aos="fade-up"
                   data-aos-delay={index * 80}
                 >
+                  <div className="relative flex h-[150px] shrink-0 flex-col justify-center border-b border-black/10 bg-white px-6 py-5 sm:h-[170px] sm:px-10 sm:py-6">
+                    {plan.isMostPopular && (
+                      <span className="absolute right-6 top-4 z-20 inline-flex rounded-full bg-[#DCF41E] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-black shadow-sm ring-1 ring-black/5">
+                        {activeLocale === 'lt' ? 'Populiariausia' : 'Most Popular'}
+                      </span>
+                    )}
+                    <h3 className="font-heading text-2xl font-black leading-tight text-black sm:text-4xl">{plan.title}</h3>
+                  </div>
                   <div className="relative h-[380px] sm:h-[360px] shrink-0">
                     <img src={plan.image} alt={plan.title} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
                     <div
-                      className={`absolute inset-0 bg-gradient-to-b ${
+                      className={`absolute inset-0 bg-gradient-to-t ${
                         plan.isPremium
-                          ? 'from-yellow-900/20 via-black/40 to-black/90'
-                          : 'from-transparent via-black/20 to-black/70'
+                          ? 'from-yellow-900/90 via-black/40 to-transparent'
+                          : 'from-black/90 via-black/40 to-transparent'
                       }`}
                     />
                     <div className="relative z-10 flex h-full flex-col justify-between p-6 sm:p-10 text-white">
-                      <button
-                        type="button"
-                        onClick={() => toggleProgramExpandedMobile(plan.productId)}
-                        aria-expanded={Boolean(expandedProgramIdsMobile?.[plan.productId])}
-                        aria-controls={`program-details-${plan.productId || index}`}
-                        className="md:hidden !absolute bottom-6 right-6 z-20 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full glass-green-surface text-2xl font-semibold leading-none text-black shadow-[0_18px_45px_rgba(15,23,42,0.25)] transition hover:brightness-95"
-                      >
-                        {expandedProgramIdsMobile?.[plan.productId] ? '-' : '+'}
-                      </button>
+                      
                       <div className="space-y-3 sm:space-y-4">
                         {plan.isPremium && (
                           <span className="inline-block rounded-full bg-yellow-400 px-3 py-1 text-xs font-bold uppercase tracking-widest text-black mb-2">
                              VIP / Premium
                           </span>
                         )}
-                        <p className={`text-sm font-semibold uppercase tracking-widest ${plan.isPremium ? 'text-yellow-400' : 'text-white/70'}`}>
+                        <p className={`text-sm font-semibold uppercase tracking-widest ${plan.isPremium ? 'text-yellow-400' : 'text-white/90 drop-shadow-md'}`}>
                           {plan.subtitle}
                         </p>
-                        <h3 className="font-heading text-2xl font-black leading-tight sm:text-4xl">{plan.title}</h3>
                       </div>
                       <div className="flex flex-wrap gap-3 sm:gap-4 text-sm font-semibold pr-14 md:pr-0">
                         <span className="glass-card rounded-full px-4 py-2 text-white/90">{plan.duration}</span>
@@ -1868,72 +1936,65 @@ function App({ locale = 'lt' }) {
                             {activeLocale === 'lt' ? 'Parengta su dietologu' : 'Approved by dietician'}
                           </span>
                         )}
-                        <span className={`glass-card rounded-full px-4 py-2 text-white ${plan.isPremium ? 'bg-yellow-500/20 border-yellow-400/50 text-yellow-400' : ''}`}>
-                          {plan.price}
-                        </span>
                       </div>
                     </div>
                   </div>
                   <div
                     id={`program-details-${plan.productId || index}`}
-                    className={`flex flex-col flex-1 gap-6 bg-white p-6 sm:p-8 text-slate-900 ${expandedProgramIdsMobile?.[plan.productId] ? 'flex' : 'hidden'} md:flex`}
+                    className="flex flex-col flex-1 gap-6 bg-white p-6 sm:p-8 text-slate-900"
                   >
-                    <p className="text-base leading-relaxed text-slate-600">{plan.description}</p>
-
-                    <div className="py-2">
-                      {plan.highlights.map((highlight, index) => (
-                        <div
-                          key={highlight.title}
-                          className={`py-6 flex flex-col gap-1 ${
-                            index !== plan.highlights.length - 1 ? 'border-b border-slate-100' : ''
-                          }`}
-                        >
-                          <p className="text-xs font-bold uppercase tracking-widest text-slate-500">{highlight.title}</p>
-                          <p className="text-sm font-medium text-slate-900 leading-relaxed">{highlight.detail}</p>
-                        </div>
-                      ))}
-                    </div>
                     <div className="space-y-4">
                       <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
-                        {activeLocale === 'lt' ? 'Į paketą įeina' : "What's included"}
+                        {activeLocale === 'lt' ? 'Programos akcentai' : 'Key highlights'}
                       </p>
-                      <ul className="space-y-4">
-                        {plan.extras.map(extra => (
-                          <li key={extra} className="flex items-start gap-4 text-sm text-slate-600">
-                            <span className="mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full glass-green-surface text-sm font-bold text-slate-900">
-                              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5">
+                      <ul className="space-y-3.5">
+                        {plan.extras.slice(0, 3).map(extra => (
+                          <li key={extra} className="flex items-start gap-4 text-base text-slate-900">
+                            <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#DCF41E] text-[#2D4A22] ring-1 ring-black/10">
+                              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                               </svg>
                             </span>
-                            <span>{extra}</span>
+                            <span>
+                              {(() => {
+                                const [label, ...rest] = String(extra).split(' – ');
+                                if (!rest.length) return <span className="font-semibold">{extra}</span>;
+                                return (
+                                  <>
+                                    <span className="font-semibold block sm:inline">{label}</span>
+                                    <span className="font-medium text-slate-500 block sm:inline sm:ml-1">{rest.length > 0 ? `– ${rest.join(' – ')}` : ''}</span>
+                                  </>
+                                );
+                              })()}
+                            </span>
                           </li>
                         ))}
                       </ul>
                     </div>
 
-                    <div className="mt-auto space-y-8">
+                    <div className="mt-auto space-y-6">
                       {plan.result && (
                         <div className="pt-6 border-t border-slate-100">
                           <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">
                             {activeLocale === 'lt' ? 'Rezultatas' : 'The Result'}
                           </p>
-                          <p className="text-base font-medium text-slate-900 leading-relaxed">{plan.result}</p>
+                          <p className="text-lg font-semibold leading-snug text-slate-950">{plan.result}</p>
                         </div>
                       )}
-                      <div className="flex flex-wrap items-center gap-4">
+                      <div className="flex flex-col gap-4">
+                         <div className="text-3xl font-black text-slate-900">
+                            {plan.price}
+                         </div>
                         <button
                           type="button"
-                          onClick={() => onBuyProgram(plan)}
-                          className="inline-flex items-center gap-2 rounded-full glass-green-surface px-8 py-4 text-base font-semibold text-black transition hover:bg-slate-900 hover:text-white"
+                          onClick={(e) => {
+                             e.stopPropagation();
+                             onBuyProgram(plan);
+                          }}
+                          className="inline-flex w-full items-center justify-center gap-2 rounded-full glass-green-surface px-8 py-4 text-base font-extrabold text-black transition hover:brightness-95 hover:shadow-lg active:scale-[0.98]"
                         >
                           {activeLocale === 'lt' ? 'Pirkti' : 'Buy'}
                         </button>
-                        <a
-                          href="#kontaktai"
-                          className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-8 py-4 text-base font-semibold text-slate-900 transition hover:border-accent hover:text-accent"
-                        >
-                          {activeLocale === 'lt' ? 'Nemokama konsultacija' : 'Free consultation'}
-                        </a>
                       </div>
                     </div>
                   </div>
@@ -1941,12 +2002,216 @@ function App({ locale = 'lt' }) {
               ))}
             </div>
             {activeLocale === 'lt' && (
-              <div className="mt-12 mx-auto max-w-4xl text-center">
-                <p className="text-lg leading-relaxed text-black font-semibold">
-                  Po apmokėjimo su Jumis susisieksiu ir suderinsiu nemokamą pirmąją nuotolinę konsultaciją. Jos metu įvertinsiu Jūsų kūno poreikius, galimybes ir tikslus. Po konsultacijos sudarysiu treniruočių planą – gyvą arba nuotolinę treniruotę – ir atsakysiu į visus Jums rūpimus klausimus.
-                </p>
+              <div className="mt-16 mx-auto flex flex-col items-center space-y-12">
+                {/* Program Modal */}
+                <ProgramModal
+                  program={selectedProgram}
+                  onClose={() => setSelectedProgram(null)}
+                  onBuy={(p) => {
+                    setSelectedProgram(null);
+                    onBuyProgram(p);
+                  }}
+                />
+
+
+                <div className="w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+                  <div className="flex flex-col gap-3 text-center mb-12" data-aos="fade-up">
+
+                    <h2 className="font-heading text-4xl font-black uppercase text-slate-900">
+                      {activeLocale === 'lt' ? 'Klientų atsiliepimai' : 'Client testimonials'}
+                    </h2>
+                    <p className="text-base text-slate-600 max-w-2xl mx-auto">
+                      {activeLocale === 'lt'
+                        ? 'Tikros istorijos iš žmonių, kurie jaučiasi stipresni, sveikesni ir labiau pasitikintys savimi.'
+                        : 'Real stories from people who feel stronger, healthier, and more confident.'}
+                    </p>
+                  </div>
+                  
+                  <div className="relative">
+                    <div ref={testimonialsRef} className="keen-slider overflow-visible">
+                      {storiesByLocale[activeLocale].map((story) => (
+                        <div key={story.name} className="keen-slider__slide py-4 px-4">
+                          <article className="flex flex-col h-full rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm h-full">
+                            <div className="flex items-center gap-4 mb-6">
+                              {story.avatar ? (
+                                <img
+                                  src={story.avatar}
+                                  alt={activeLocale === 'lt' ? `Kliento nuotrauka — ${story.name}` : `Client photo — ${story.name}`}
+                                  className="h-14 w-14 rounded-full object-cover border-2 border-[#DCF41E]"
+                                  loading="lazy"
+                                />
+                              ) : (
+                                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#DCF41E] text-xl font-bold text-black uppercase">
+                                  {story.name.charAt(0)}
+                                </div>
+                              )}
+                              <div className="text-left">
+                                <h3 className="font-heading text-lg font-bold text-slate-900">{story.name}</h3>
+                                <div className="flex text-[#DCF41E]">
+                                  {Array.from({ length: 5 }).map((_, i) => (
+                                    <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="relative">
+                                <p className="text-sm leading-relaxed text-slate-600 italic">
+                                "{story.quote.replace(/^“|”$/g, '')}"
+                                </p>
+                            </div>
+                          </article>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Navigation Arrows */}
+                    <button
+                        type="button"
+                        onClick={() => testimonials?.current?.prev()}
+                        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 lg:-translate-x-12 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-lg border border-slate-100 text-slate-900 hover:bg-[#DCF41E] transition-colors"
+                        aria-label="Previous slide"
+                    >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => testimonials?.current?.next()}
+                        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 lg:translate-x-12 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-lg border border-slate-100 text-slate-900 hover:bg-[#DCF41E] transition-colors"
+                        aria-label="Next slide"
+                    >
+                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="relative w-full overflow-hidden rounded-[3rem] px-6 py-20 text-center sm:px-12 sm:py-24 mx-auto max-w-5xl">
+                    {/* Background Image */}
+                    <div className="absolute inset-0 z-0">
+                      <img
+                        src={quizImage}
+                        alt=""
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-black/60" />
+                    </div>
+
+                  {/* Decorative huge text in background */}
+                  <div className="pointer-events-none absolute -top-12 left-0 right-0 z-10 select-none text-center opacity-10 mix-blend-overlay">
+                    <span className="font-heading text-[12rem] font-black uppercase leading-none text-white">
+                      ANKETA
+                    </span>
+                  </div>
+                  
+                  <div className="relative z-20 space-y-6">
+                    <h3 className="font-heading text-4xl font-black uppercase text-white sm:text-5xl md:text-6xl">
+                      Nežinai, ką rinktis?
+                    </h3>
+                    <p className="mx-auto max-w-xl text-lg font-medium text-white/90 sm:text-xl">
+                      Užpildyk trumpą anketą ir aš asmeniškai peržiūrėsiu tavo situaciją bei patarsiu, kuris planas tau tinkamiausias.
+                    </p>
+                    <div className="pt-4">
+                       <Link
+                        to="/lt/anketa/1"
+                        className="inline-flex transform items-center justify-center rounded-full bg-[#DCF41E] px-12 py-5 text-xl font-bold text-black shadow-xl transition duration-300 hover:bg-white hover:-translate-y-1"
+                      >
+                        Pildyti anketą
+                      </Link>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
+
+            <div className="mt-10">
+              <h3 className="text-center text-3xl font-heading font-black text-black sm:text-4xl">
+
+                {activeLocale === 'lt' ? 'Raskite sau tinkamiausią planą' : 'Find the best plan for you'}
+              </h3>
+              <div className="mt-8 overflow-x-auto pb-4">
+                <table className="min-w-[800px] lg:min-w-0 lg:w-full border-collapse text-xs sm:text-sm text-black lg:table-fixed">
+                  <thead>
+                    <tr className="border-b border-black/10 bg-white">
+                      <th className="sticky left-0 z-20 w-[140px] sm:w-1/4 bg-white px-4 py-4 text-left font-bold shadow-[4px_0_8px_-4px_rgba(0,0,0,0.05)] lg:shadow-none">
+                        {activeLocale === 'lt' ? 'Savybė' : 'Feature'}
+                      </th>
+                      {displayedPrograms.map((plan) => {
+                        const isVipColumn = Boolean(plan.isVipAnchor);
+                        return (
+                          <th
+                            key={`head-${plan.productId}`}
+                            className={`px-2 py-4 sm:px-4 text-center text-xs sm:text-base font-bold text-black border-l border-black/5 ${
+                              isVipColumn ? 'bg-[#F8F8F8] border-none' : 'bg-white'
+                            }`}
+                          >
+                            {plan.title}
+                          </th>
+                        );
+                      })}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {comparisonRows.map((row) => (
+                      <tr key={row.label} className="border-b border-black/5">
+                        <td className="sticky left-0 z-20 w-[140px] sm:w-1/4 break-words bg-white px-4 py-3 sm:px-4 font-medium text-black shadow-[4px_0_8px_-4px_rgba(0,0,0,0.05)] lg:shadow-none">
+                          {row.label}
+                        </td>
+                        {displayedPrograms.map((plan) => {
+                          const isIncluded = row.includedProductIds.includes(plan.productId);
+                          const isVipColumn = Boolean(plan.isVipAnchor);
+                          return (
+                            <td
+                              key={`${row.label}-${plan.productId}`}
+                              className={`px-2 py-3 sm:px-4 text-center border-l border-black/5 ${
+                                isVipColumn ? 'bg-[#F8F8F8] border-none' : 'bg-white'
+                              }`}
+                            >
+                              {isIncluded ? (
+                                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#DCF41E] text-[#2D4A22] ring-1 ring-black/10">
+                                  <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                  </svg>
+                                </span>
+                              ) : (
+                                <span className="text-slate-200 font-light text-2xl leading-none">—</span>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                    <tr className="border-t border-black/10">
+                      <td className="sticky left-0 z-20 w-[140px] sm:w-1/4 bg-white px-4 py-4 sm:px-4 font-bold text-black text-base sm:text-lg shadow-[4px_0_8px_-4px_rgba(0,0,0,0.05)] lg:shadow-none">
+                        {activeLocale === 'lt' ? 'Kaina' : 'Price'}
+                      </td>
+                      {displayedPrograms.map((plan) => {
+                        const isVipColumn = Boolean(plan.isVipAnchor);
+                        return (
+                          <td
+                            key={`buy-${plan.productId}`}
+                            className={`px-2 py-4 sm:px-4 text-center border-l border-black/5 ${
+                              isVipColumn ? 'bg-[#F8F8F8] border-none' : 'bg-white'
+                            }`}
+                          >
+                            <div className="mb-2 font-bold text-black sm:text-lg">{plan.price}</div>
+                            <button
+                              type="button"
+                              onClick={() => onBuyProgram(plan)}
+                              className="inline-flex w-full items-center justify-center rounded-full bg-black px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm font-bold text-[#DCF41E] transition hover:bg-[#DCF41E] hover:text-black"
+                            >
+                              {activeLocale === 'lt' ? 'Pirkti' : 'Buy'}
+                            </button>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
           </div>
         </section>
 
@@ -2147,7 +2412,7 @@ function App({ locale = 'lt' }) {
         <section id="paslaugos" className="bg-white text-slate-900">
           <div className="mx-auto max-w-6xl px-6 py-24">
             <div className="text-center" data-aos="fade-up">
-              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">{activeLocale === 'lt' ? 'Paslaugos' : 'Services'}</p>
+
               <h2 className="font-heading text-4xl font-black uppercase text-slate-900">
                 {activeLocale === 'lt' ? 'Treniruotės ir sveikatingumo paslaugos' : 'Training & wellness services'}
               </h2>
@@ -2219,42 +2484,16 @@ function App({ locale = 'lt' }) {
           className="relative overflow-hidden py-24 sm:py-32 lg:py-56"
           style={{ minHeight: 'clamp(420px, 96vw, 820px)' }}
         >
-          <picture className="pointer-events-none absolute inset-0 z-0">
-            <source type="image/avif" srcSet={contactImageSrcSetAvif} sizes="100vw" />
-            <source type="image/webp" srcSet={contactImageSrcSetWebp} sizes="100vw" />
+          <div className="pointer-events-none absolute inset-0 z-0">
             <img
               src={contactImage}
               alt={activeLocale === 'lt' ? 'Kontaktų skilties fonas' : 'Contact section background'}
-              srcSet={contactImageSrcSetWebp}
-              sizes="100vw"
               className="h-full w-full object-cover object-[center_50%] md:object-[center_65%]"
               loading="lazy"
             />
-          </picture>
-
-          {/* Layered overlays for consistent text contrast - Mobile (Lighter) */}
-          <div
-            className="pointer-events-none absolute inset-0 z-10 md:hidden"
-            aria-hidden="true"
-            style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.35) 40%, rgba(0,0,0,0.2) 65%, rgba(0,0,0,0.12) 100%)' }}
-          />
-          <div
-            className="pointer-events-none absolute inset-0 z-15 md:hidden"
-            aria-hidden="true"
-            style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 60%)' }}
-          />
-
-          {/* Layered overlays for consistent text contrast - Desktop (Original) */}
-          <div
-            className="pointer-events-none absolute inset-0 z-10 hidden md:block"
-            aria-hidden="true"
-            style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.25) 65%, rgba(0,0,0,0.15) 100%)' }}
-          />
-          <div
-            className="pointer-events-none absolute inset-0 z-15 hidden md:block"
-            aria-hidden="true"
-            style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 60%)' }}
-          />
+            <div className="absolute inset-0 bg-black/40" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 sm:hidden" />
+          </div>
           <div className="relative z-20">
             <div className="mx-auto max-w-6xl px-6 text-white" data-aos="fade-up">
               <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.6fr)] lg:items-center">
@@ -2303,89 +2542,90 @@ function App({ locale = 'lt' }) {
           </div>
         </section>
 
-        <section id="istorijos" className="bg-white text-slate-900">
-          <div className="mx-auto max-w-6xl px-6 py-24">
-            <div className="flex flex-col gap-3 text-center" data-aos="fade-up">
-              <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">
-                {activeLocale === 'lt' ? 'Gyvos patirtys' : 'Real experiences'}
-              </p>
-              <h2 className="font-heading text-4xl font-black uppercase text-slate-900">
-                {activeLocale === 'lt' ? 'Klientų atsiliepimai' : 'Client testimonials'}
-              </h2>
-              <p className="text-base text-slate-600">
-                {activeLocale === 'lt'
-                  ? 'Tikros istorijos iš žmonių, kurie jaučiasi stipresni, sveikesni ir labiau pasitikintys savimi.'
-                  : 'Real stories from people who feel stronger, healthier, and more confident.'}
-              </p>
-            </div>
-            <div className="relative mt-16">
-              <div ref={testimonialsRef} className="keen-slider overflow-visible">
-                {storiesByLocale[activeLocale].map((story, index) => (
-                  <div key={story.name} className="keen-slider__slide py-12 px-4">
-                    <article
-                      className="flex flex-col h-full rounded-[32px] border border-slate-200 bg-white/90 p-8"
-                    >
-                      <div>
-                        <div className="flex items-center gap-4">
-                          {story.avatar ? (
-                            <img
-                              src={story.avatar}
-                              alt={activeLocale === 'lt' ? `Kliento nuotrauka — ${story.name}` : `Client photo — ${story.name}`}
-                              className="h-14 w-14 rounded-full object-cover"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-200 text-xl font-bold text-slate-500 uppercase">
-                              {story.name.charAt(0)}
+
+        {activeLocale !== 'lt' && (
+          <section id="istorijos" className="bg-white text-slate-900">
+            <div className="mx-auto max-w-6xl px-6 py-24">
+              <div className="flex flex-col gap-3 text-center" data-aos="fade-up">
+
+                <h2 className="font-heading text-4xl font-black uppercase text-slate-900">
+                  {activeLocale === 'lt' ? 'Klientų atsiliepimai' : 'Client testimonials'}
+                </h2>
+                <p className="text-base text-slate-600">
+                  {activeLocale === 'lt'
+                    ? 'Tikros istorijos iš žmonių, kurie jaučiasi stipresni, sveikesni ir labiau pasitikintys savimi.'
+                    : 'Real stories from people who feel stronger, healthier, and more confident.'}
+                </p>
+              </div>
+              <div className="relative mt-16">
+                <div ref={testimonialsRef} className="keen-slider overflow-visible">
+                  {storiesByLocale[activeLocale].map((story, index) => (
+                    <div key={story.name} className="keen-slider__slide py-12 px-4">
+                      <article
+                        className="flex flex-col h-full rounded-[32px] border border-slate-200 bg-white/90 p-8"
+                      >
+                        <div>
+                          <div className="flex items-center gap-4">
+                            {story.avatar ? (
+                              <img
+                                src={story.avatar}
+                                alt={activeLocale === 'lt' ? `Kliento nuotrauka — ${story.name}` : `Client photo — ${story.name}`}
+                                className="h-14 w-14 rounded-full object-cover"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-200 text-xl font-bold text-slate-500 uppercase">
+                                {story.name.charAt(0)}
+                              </div>
+                            )}
+                            <div>
+                              <h3 className="font-heading text-lg font-semibold text-slate-900">{story.name}</h3>
                             </div>
-                          )}
-                          <div>
-                            <h3 className="font-heading text-lg font-semibold text-slate-900">{story.name}</h3>
+                          </div>
+                          <div className="mt-4 flex items-center gap-1 text-accent" aria-hidden="true">
+                            {Array.from({ length: 5 }).map((_, starIndex) => (
+                              <svg
+                                key={starIndex}
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                                stroke="currentColor"
+                                strokeWidth="1.2"
+                                vectorEffect="non-scaling-stroke"
+                                paintOrder="stroke fill"
+                                className="h-4 w-4 stroke-black"
+                              >
+                                <path d="M9.049 2.927a1 1 0 0 1 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462a1 1 0 0 1 .588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292a1 1 0 0 1-1.538 1.118L10 13.347l-2.987 2.133a1 1 0 0 1-1.538-1.118l1.07-3.292a1 1 0 0 0-.364-1.118l-2.8-2.034a1 1 0 0 1 .588-1.81h3.462a1 1 0 0 0 .95-.69z" />
+                              </svg>
+                            ))}
+                            <span className="sr-only">{activeLocale === 'lt' ? '5 iš 5 žvaigždučių' : '5 out of 5 stars'}</span>
                           </div>
                         </div>
-                        <div className="mt-4 flex items-center gap-1 text-accent" aria-hidden="true">
-                          {Array.from({ length: 5 }).map((_, starIndex) => (
-                            <svg
-                              key={starIndex}
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                              stroke="currentColor"
-                              strokeWidth="1.2"
-                              vectorEffect="non-scaling-stroke"
-                              paintOrder="stroke fill"
-                              className="h-4 w-4 stroke-black"
-                            >
-                              <path d="M9.049 2.927a1 1 0 0 1 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462a1 1 0 0 1 .588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292a1 1 0 0 1-1.538 1.118L10 13.347l-2.987 2.133a1 1 0 0 1-1.538-1.118l1.07-3.292a1 1 0 0 0-.364-1.118l-2.8-2.034a1 1 0 0 1 .588-1.81h3.462a1 1 0 0 0 .95-.69z" />
-                            </svg>
-                          ))}
-                          <span className="sr-only">{activeLocale === 'lt' ? '5 iš 5 žvaigždučių' : '5 out of 5 stars'}</span>
-                        </div>
-                      </div>
-                      <p className="mt-6 text-sm leading-relaxed text-slate-600">{story.quote}</p>
-                    </article>
-                  </div>
-                ))}
+                        <p className="mt-6 text-sm leading-relaxed text-slate-600">{story.quote}</p>
+                      </article>
+                    </div>
+                  ))}
+                </div>
+                
+                <button
+                  type="button"
+                  onClick={() => testimonials?.current?.prev()}
+                  className="absolute left-0 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-lg transition hover:border-accent hover:text-accent"
+                  aria-label="Previous slide"
+                >
+                  &lt;
+                </button>
+                <button
+                  type="button"
+                  onClick={() => testimonials?.current?.next()}
+                  className="absolute right-0 top-1/2 z-10 translate-x-1/2 -translate-y-1/2 inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-lg transition hover:border-accent hover:text-accent"
+                  aria-label="Next slide"
+                >
+                  &gt;
+                </button>
               </div>
-              
-              <button
-                type="button"
-                onClick={() => testimonials?.current?.prev()}
-                className="absolute left-0 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-lg transition hover:border-accent hover:text-accent"
-                aria-label="Previous slide"
-              >
-                &lt;
-              </button>
-              <button
-                type="button"
-                onClick={() => testimonials?.current?.next()}
-                className="absolute right-0 top-1/2 z-10 translate-x-1/2 -translate-y-1/2 inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-lg transition hover:border-accent hover:text-accent"
-                aria-label="Next slide"
-              >
-                &gt;
-              </button>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         <section className="mx-auto max-w-6xl px-6 py-24">
           <div className="grid gap-16 lg:grid-cols-2" data-aos="fade-up">
@@ -2417,6 +2657,15 @@ function App({ locale = 'lt' }) {
                 ))}
               </ul>
             </div>
+          </div>
+          
+          <div className="mt-12 flex justify-center" data-aos="fade-up" data-aos-delay="200">
+            <Link
+              to="/lt/anketa"
+              className="inline-flex items-center justify-center rounded-full bg-black px-8 py-4 text-base sm:text-lg font-bold text-[#DCF41E] transition hover:bg-[#DCF41E] hover:text-black shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            >
+              {activeLocale === 'lt' ? 'Gauti asmeninį pasiūlymą' : 'Get a personal offer'}
+            </Link>
           </div>
         </section>
 

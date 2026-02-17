@@ -454,6 +454,12 @@ export default function Cart() {
           </span>
         </label>
 
+        {locale === 'lt' && (
+          <div className="rounded-xl bg-[#F4F4F4] px-4 py-3 text-sm text-black/80 font-medium leading-relaxed">
+            Po apmokėjimo su Jumis susisieksiu ir suderinsiu nemokamą pirmąją nuotolinę konsultaciją. Jos metu įvertinsiu Jūsų kūno poreikius, galimybes ir tikslus.
+          </div>
+        )}
+
         <button
           type="button"
           disabled={busy || cart.items.length === 0}
