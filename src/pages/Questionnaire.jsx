@@ -333,6 +333,42 @@ export default function Questionnaire() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [errorPopup, setErrorPopup] = useState(null); // { title: string, message: string }
 
+  const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
+  const hasSelection = (value) => hasText(value);
+
+  const getMissingFields = (stageScope = 'all') => {
+    const missing = [];
+
+    const checkStage1 = stageScope === 'all' || stageScope === 0;
+    const checkStage2 = stageScope === 'all' || stageScope === 1;
+    const checkStage3 = stageScope === 'all' || stageScope === 2;
+    const checkStage4 = stageScope === 'all' || stageScope === 3;
+
+    if (checkStage1) {
+      if (!hasSelection(goal)) missing.push(locale === 'lt' ? 'Tikslas' : 'Goal');
+      if (!hasSelection(motivation)) missing.push(locale === 'lt' ? 'Motyvacija' : 'Motivation');
+    }
+
+    if (checkStage2) {
+      if (!hasSelection(workday)) missing.push(locale === 'lt' ? 'Darbo pobūdis' : 'Workday');
+      if (content.stages[1].trackerOptions && !hasSelection(tracker)) missing.push(locale === 'lt' ? 'Pulsometras' : 'Tracker');
+    }
+
+    if (checkStage3) {
+      if (!Array.isArray(discomforts) || discomforts.length === 0) missing.push(locale === 'lt' ? 'Diskomfortas' : 'Discomforts');
+    }
+
+    if (checkStage4) {
+      if (!hasSelection(gender)) missing.push(locale === 'lt' ? 'Lytis' : 'Gender');
+      if (!hasSelection(age)) missing.push(locale === 'lt' ? 'Amžius' : 'Age');
+      if (!hasSelection(weight)) missing.push(locale === 'lt' ? 'Svoris' : 'Weight');
+      if (!hasSelection(height)) missing.push(locale === 'lt' ? 'Ūgis' : 'Height');
+      if (!hasSelection(family)) missing.push(locale === 'lt' ? 'Širdies ligos' : 'Family history');
+    }
+
+    return missing;
+  };
+
   // Load progress
   useEffect(() => {
     try {
@@ -372,17 +408,7 @@ export default function Questionnaire() {
 
   const handleSubmit = async () => {
     // Validate required fields
-    const missing = [];
-    if (!goal) missing.push(locale === 'lt' ? 'Tikslas' : 'Goal');
-    if (!motivation) missing.push(locale === 'lt' ? 'Motyvacija' : 'Motivation');
-    if (!workday) missing.push(locale === 'lt' ? 'Darbo pobūdis' : 'Workday');
-    if (content.stages[1].trackerOptions && !tracker) missing.push(locale === 'lt' ? 'Pulsometras' : 'Tracker');
-    if (discomforts.length === 0) missing.push(locale === 'lt' ? 'Diskomfortas' : 'Discomforts');
-    if (!gender) missing.push(locale === 'lt' ? 'Lytis' : 'Gender');
-    if (!age) missing.push(locale === 'lt' ? 'Amžius' : 'Age');
-    if (!weight) missing.push(locale === 'lt' ? 'Svoris' : 'Weight');
-    if (!height) missing.push(locale === 'lt' ? 'Ūgis' : 'Height');
-    if (!family) missing.push(locale === 'lt' ? 'Širdies ligos' : 'Family history');
+    const missing = getMissingFields('all');
 
     if (missing.length > 0) {
       setErrorPopup({
@@ -502,28 +528,9 @@ export default function Questionnaire() {
   };
 
   const nextStep = () => {
-    // Only validate on the last step (Stage 4 -> Summary)
-    if (activeStage === 3) {
-      const missing = [];
-      
-      // Stage 1
-      if (!goal) missing.push(locale === 'lt' ? 'Tikslas' : 'Goal');
-      if (!motivation) missing.push(locale === 'lt' ? 'Motyvacija' : 'Motivation');
-      
-      // Stage 2
-      if (!workday) missing.push(locale === 'lt' ? 'Darbo pobūdis' : 'Workday');
-      if (content.stages[1].trackerOptions && !tracker) missing.push(locale === 'lt' ? 'Pulsometras' : 'Tracker');
-      
-      // Stage 3
-      if (discomforts.length === 0) missing.push(locale === 'lt' ? 'Diskomfortas' : 'Discomforts');
-      
-      // Stage 4
-      if (!gender) missing.push(locale === 'lt' ? 'Lytis' : 'Gender');
-      if (!age) missing.push(locale === 'lt' ? 'Amžius' : 'Age');
-      if (!weight) missing.push(locale === 'lt' ? 'Svoris' : 'Weight');
-      if (!height) missing.push(locale === 'lt' ? 'Ūgis' : 'Height');
-      if (!family) missing.push(locale === 'lt' ? 'Širdies ligos' : 'Family history');
-
+    // Validate current stage before moving forward.
+    if (activeStage >= 0 && activeStage <= 3) {
+      const missing = getMissingFields(activeStage);
       if (missing.length > 0) {
         setErrorPopup({
           title: locale === 'lt' ? 'Klaida' : 'Error',

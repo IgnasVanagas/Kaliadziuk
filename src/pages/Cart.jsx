@@ -428,13 +428,51 @@ export default function Cart() {
           <input className="mt-1 w-full rounded-xl border border-black/20 px-3 py-2" value={fullName} onChange={e => setFullName(e.target.value)} />
         </label>
 
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={marketing} onChange={e => setMarketing(e.target.checked)} />
+        <label className="flex items-center gap-3 text-sm text-black cursor-pointer group">
+          <div className="relative flex h-5 w-5 items-center justify-center">
+            <input
+              type="checkbox"
+              className="peer sr-only"
+              checked={marketing}
+              onChange={e => setMarketing(e.target.checked)}
+            />
+            <div className="h-5 w-5 rounded-full border-2 border-slate-300 bg-white transition-all peer-checked:border-[#DCF41E] peer-checked:bg-[#DCF41E] peer-focus:ring-2 peer-focus:ring-[#DCF41E] peer-focus:ring-offset-2"></div>
+            <svg
+              className="pointer-events-none absolute left-1/2 top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 text-black opacity-0 transition-opacity peer-checked:opacity-100"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
           <span>{t('cart.contact.marketing')}</span>
         </label>
 
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={acceptTerms} onChange={e => setAcceptTerms(e.target.checked)} />
+        <label className="flex items-center gap-3 text-sm text-black cursor-pointer group">
+          <div className="relative flex h-5 w-5 items-center justify-center">
+            <input
+              type="checkbox"
+              className="peer sr-only"
+              checked={acceptTerms}
+              onChange={e => setAcceptTerms(e.target.checked)}
+            />
+            <div className="h-5 w-5 rounded-full border-2 border-slate-300 bg-white transition-all peer-checked:border-[#DCF41E] peer-checked:bg-[#DCF41E] peer-focus:ring-2 peer-focus:ring-[#DCF41E] peer-focus:ring-offset-2"></div>
+            <svg
+              className="pointer-events-none absolute left-1/2 top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 text-black opacity-0 transition-opacity peer-checked:opacity-100"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
           <span>
             {locale === 'lt' ? 'Sutinku su ' : 'I accept the '}
             <Link to={termsPath} onClick={(e) => e.stopPropagation()} className="underline underline-offset-2 hover:text-accent">
@@ -443,8 +481,27 @@ export default function Cart() {
             <span className="text-red-600"> *</span>
           </span>
         </label>
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={acceptPrivacy} onChange={e => setAcceptPrivacy(e.target.checked)} />
+        <label className="flex items-center gap-3 text-sm text-black cursor-pointer group">
+          <div className="relative flex h-5 w-5 items-center justify-center">
+            <input
+              type="checkbox"
+              className="peer sr-only"
+              checked={acceptPrivacy}
+              onChange={e => setAcceptPrivacy(e.target.checked)}
+            />
+            <div className="h-5 w-5 rounded-full border-2 border-slate-300 bg-white transition-all peer-checked:border-[#DCF41E] peer-checked:bg-[#DCF41E] peer-focus:ring-2 peer-focus:ring-[#DCF41E] peer-focus:ring-offset-2"></div>
+            <svg
+              className="pointer-events-none absolute left-1/2 top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 text-black opacity-0 transition-opacity peer-checked:opacity-100"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
           <span>
             {locale === 'lt' ? 'Sutinku su ' : 'I accept the '}
             <Link to={privacyPath} onClick={(e) => e.stopPropagation()} className="underline underline-offset-2 hover:text-accent">

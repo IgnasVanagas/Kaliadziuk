@@ -6,6 +6,8 @@ const PRODUCT_IMAGE_BY_ID = {
   '22222222-2222-2222-2222-222222222222': fromUploads('paaugliu4.jpg'),
   '33333333-3333-3333-3333-333333333333': fromUploads('grupine8.jpg'),
   '44444444-4444-4444-4444-444444444444': fromUploads('testavimas8.jpg'),
+  '55555555-5555-5555-5555-555555555555': fromUploads('IMG_0469-scaled.jpg'),
+  '66666666-6666-6666-6666-666666666666': fromUploads('grupine8.jpg'),
 };
 
 export function getProductImageUrl(productId) {

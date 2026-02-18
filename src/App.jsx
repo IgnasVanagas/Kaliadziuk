@@ -417,127 +417,234 @@ const programsLt = [
 
 const programsEn = [
   {
-    productId: PROGRAM_IDS.weightLoss,
-    cartName: 'Weight loss plan',
-    unitPriceCents: 20000,
-    title: 'Weight loss',
-    subtitle: 'A lighter body and more energy',
+    productId: '55555555-5555-5555-5555-555555555555',
+    cartName: 'VIP individual coaching',
+    unitPriceCents: 49900,
+    title: 'VIP individual coaching',
+    subtitle: 'Maximum focus (12 weeks)',
     description:
-      'An 8‑week plan combining nutrition structure, fat‑loss training blocks, and weekly support. We adjust steps, recovery, and intensity to keep progress steady and sustainable.',
-    price: '200€',
-    duration: '8 weeks',
+      'Premium-level coaching with fully individualized support, daily communication, and deep technical feedback for the fastest and most reliable progress.',
+    price: '499€',
+    duration: '12 weeks',
     hasDietician: true,
-    image: fromUploads('brokolis.jpg'),
-    result: 'Sustainable results even after the program ends.',
+    image: fromUploads('IMG_0469-scaled.jpg'),
+    result: 'Maximum transformation in the shortest time.',
     highlights: [
       {
-        title: 'Personalized nutrition',
-        detail: 'Macros and meal structure adapted to your schedule and preferences, with practical recipes.',
+        title: 'Daily communication',
+        detail: 'Constant connection and support at every step.',
       },
       {
-        title: 'Training phases',
-        detail: 'Blocks rotate to keep stimulus high and reduce burnout.',
+        title: 'Technique video analysis',
+        detail: 'Real-time movement corrections based on your videos.',
       },
       {
-        title: 'Recovery & mindset',
-        detail: 'Simple routines that help you stay consistent on stressful days.',
-      },
-    ],
-    extras: ['Weekly progress check + adjustments', 'Recipe library + weekly shopping lists', 'Weekday support 9–18'],
-  },
-  {
-    productId: PROGRAM_IDS.muscleGain,
-    cartName: 'Muscle gain plan',
-    unitPriceCents: 20000,
-    title: 'Muscle gain',
-    subtitle: 'More strength and visible shape',
-    description:
-      'A structured plan for functional strength and muscle growth. We progress loads in cycles and keep nutrition aligned with recovery and performance.',
-    price: '200€',
-    duration: '10 weeks',
-    hasDietician: true,
-    image: fromUploads('paaugliu4.jpg'),
-    result: 'Visible muscle growth, increased strength, and a clear understanding of how to train in the future without guesswork.',
-    highlights: [
-      {
-        title: 'Strength + hypertrophy blocks',
-        detail: 'Periodized structure with clear progression and technique focus.',
+        title: 'Personalized nutrition strategy',
+        detail: 'Clear structure adapted to your goals and lifestyle.',
       },
       {
-        title: 'Nutrition for growth',
-        detail: 'Gradual increases so you gain quality mass while feeling good.',
-      },
-      {
-        title: 'Progress tracking',
-        detail: 'Simple tracking so you see changes in strength and body composition.',
-      },
-    ],
-    extras: ['Weekly load/progression adjustments', 'Supplement guidance (optional)', 'Mobility primer before sessions'],
-  },
-  {
-    productId: PROGRAM_IDS.homeTraining,
-    cartName: 'Home training plan',
-    unitPriceCents: 15000,
-    title: 'Home training',
-    subtitle: 'Gym quality at home',
-    description:
-      'A complete program adapted to the equipment you have. Technique guidance and check‑ins make it feel like coaching is right next to you.',
-    price: '150€',
-    duration: '6 weeks',
-    image: fromUploads('grupine8.jpg'),
-    result: 'A strong, functional body, better well-being, and a clear plan for home training without chaos.',
-    highlights: [
-      {
-        title: 'Adapted to your equipment',
-        detail: 'Bands, dumbbells, kettlebell, or bodyweight — built around your real setup.',
-      },
-      {
-        title: 'Form-check calls',
-        detail: 'Quick video calls to correct technique and answer questions.',
-      },
-      {
-        title: 'Recovery routines',
-        detail: 'Daily mobility + weekend reset for your back and joints.',
-      },
-    ],
-    extras: ['Reminders so you don’t miss sessions', 'Playlists by intensity', 'Community chat access'],
-  },
-  {
-    productId: PROGRAM_IDS.mobility,
-    cartName: 'Mobility training program',
-    unitPriceCents: 10000,
-    title: 'Mobility training',
-    subtitle: 'Daily routine (6–8 weeks)',
-    description:
-      'A program for those who want to move more freely, feel better in their body and build discipline through daily, conscious movement.',
-    price: '100€',
-    duration: '6–8 weeks',
-    image: fromUploads('testavimas8.jpg'),
-    result: 'Less tension, more freedom of movement, better posture, and a stronger connection with your body.',
-    highlights: [
-      {
-        title: 'Morning routine',
-        detail: 'Start the day right and prepare your body.',
-      },
-      {
-        title: 'Body awareness',
-        detail: 'Understand your body structure and movement quality.',
-      },
-      {
-        title: 'Without tension',
-        detail: 'Reduce stiffness, tension, or movement limitations.',
-      },
-      {
-        title: 'Biomechanics',
-        detail: 'Dive into biomechanical nuances for effective movement.',
+        title: 'Priority support',
+        detail: 'Fast replies whenever decisions are needed.',
       },
     ],
     extras: [
-      'Consultation for goals and needs assessment',
-      'Individual mobility plan (10–30 min per day)',
-      'Videos with all exercises',
-      'Structure "what follows what" – no need to improvise',
-      'Self-massage and relaxation',
+      'Daily communication – constant contact at every step',
+      'Unlimited consultations – quick responses throughout the process',
+      'Technique video analysis – real-time corrections',
+      'Individual nutrition strategy – clear structure for your goal',
+      'Priority response – maximum attention to your progress',
+    ],
+    isVipAnchor: true,
+    isPremium: true,
+  },
+  {
+    productId: PROGRAM_IDS.weightLoss,
+    cartName: 'Weight loss program',
+    unitPriceCents: 19900,
+    title: 'Weight loss program',
+    subtitle: '8–12 weeks',
+    description:
+      'A structured program for those who want to lose weight safely, sustainably, and without chaos while building better long-term habits.',
+    price: '199€',
+    duration: '8–12 weeks',
+    hasDietician: true,
+    image: fromUploads('brokolis.jpg'),
+    result: 'Weight drops sustainably and confidently.',
+    highlights: [
+      {
+        title: 'Individual training plan',
+        detail: 'Plan built around your needs and capacity.',
+      },
+      {
+        title: 'Clear nutrition guidance',
+        detail: 'Calorie and macro structure without strict dieting.',
+      },
+      {
+        title: 'Sustainable approach',
+        detail: 'Focus on long-term progress, not short-term extremes.',
+      },
+      {
+        title: 'Initial consultation',
+        detail: 'Goals, lifestyle, and readiness evaluation.',
+      },
+    ],
+    extras: [
+      'Individual training plan – tailored to your needs and capacity',
+      'Clear nutrition guidance – no strict diets',
+      'Technique corrections – safer and more effective exercises',
+      'Weekly progress review – updates based on real outcomes',
+      'Initial consultation – goals and readiness alignment',
+    ],
+    isMostPopular: true,
+  },
+  {
+    productId: PROGRAM_IDS.muscleGain,
+    cartName: 'Muscle building program',
+    unitPriceCents: 19900,
+    title: 'Muscle building program',
+    subtitle: '8–12 weeks',
+    description:
+      'A complete system for building muscle and strength through structured progression and evidence-based training principles.',
+    price: '199€',
+    duration: '8–12 weeks',
+    hasDietician: true,
+    image: fromUploads('paaugliu4.jpg'),
+    result: 'Build muscle and strength without guesswork.',
+    highlights: [
+      {
+        title: 'Progressive training structure',
+        detail: 'Plan designed for progression and hypertrophy.',
+      },
+      {
+        title: 'Nutrition for mass gain',
+        detail: 'Calorie and macro guidance matched to your goal.',
+      },
+      {
+        title: 'Technique corrections',
+        detail: 'Higher quality movement and better muscle activation.',
+      },
+      {
+        title: 'Progress tracking',
+        detail: 'Clear strength and volume progression over time.',
+      },
+    ],
+    extras: [
+      'Individual training plan – for progression and hypertrophy',
+      'Nutrition guidance for mass – calories and macro balance',
+      'Technique corrections – more precise muscle activation',
+      'Progress tracking – clear strength and size changes',
+      'Initial consultation – readiness and goal alignment',
+    ],
+  },
+  {
+    productId: '66666666-6666-6666-6666-666666666666',
+    cartName: 'Home workouts + personal supervision',
+    unitPriceCents: 29900,
+    title: 'Home workouts + personal supervision',
+    subtitle: 'With constant supervision (8 weeks)',
+    description:
+      'For people who want to train at home but with strict coach oversight, technique correction, and ongoing support.',
+    price: '299€',
+    duration: '8 weeks',
+    image: fromUploads('grupine8.jpg'),
+    result: 'Home workouts with professional daily supervision.',
+    highlights: [
+      {
+        title: 'Individual home plan',
+        detail: 'Built around your exact conditions and schedule.',
+      },
+      {
+        title: 'Daily coach connection',
+        detail: 'Constant motivation, accountability, and support.',
+      },
+      {
+        title: 'Video technique analysis',
+        detail: 'Clear corrections for every key movement.',
+      },
+    ],
+    extras: [
+      'Individual home plan – tailored to your setup',
+      'Daily trainer connection – constant motivation and control',
+      'Video technique analysis – clear corrections for every exercise',
+      'Adaptive updates – plan adjusted according to progress',
+      'Fast responses – when you need quick decisions',
+    ],
+    isPremium: true,
+  },
+  {
+    productId: PROGRAM_IDS.homeTraining,
+    cartName: 'Home workout program',
+    unitPriceCents: 14700,
+    title: 'Home workout program',
+    subtitle: '6–8 weeks',
+    description:
+      'A practical home system for building a strong body with clear structure and no guesswork.',
+    price: '147€',
+    duration: '6–8 weeks',
+    image: fromUploads('grupine6.jpg'),
+    result: 'A strong body and a clear home training system.',
+    highlights: [
+      {
+        title: 'Individual home plan',
+        detail: 'Clear A-to-Z structure for at-home training.',
+      },
+      {
+        title: 'Exercise video library',
+        detail: 'Simple step-by-step execution at home.',
+      },
+      {
+        title: 'Technique onboarding',
+        detail: 'Safe and correct start from day one.',
+      },
+      {
+        title: 'Progress structure',
+        detail: 'Clear weekly progression of load and volume.',
+      },
+    ],
+    extras: [
+      'Individual home plan – clear system from A to Z',
+      'Exercise video library – simple follow-through at home',
+      'Technique onboarding – safe and correct start',
+      'Progress structure – what to increase and when',
+      'Initial consultation – goals and needs alignment',
+    ],
+  },
+  {
+    productId: PROGRAM_IDS.mobility,
+    cartName: 'Mobility development program',
+    unitPriceCents: 9700,
+    title: 'Mobility development program',
+    subtitle: 'Daily mobility (6–8 weeks)',
+    description:
+      'A mobility-focused system for moving with less tension and better control in daily life.',
+    price: '97€',
+    duration: '6–8 weeks',
+    image: fromUploads('testavimas8.jpg'),
+    result: 'More freedom to move without tension.',
+    highlights: [
+      {
+        title: 'Daily mobility plan',
+        detail: '10–30 minutes matched to your daily rhythm.',
+      },
+      {
+        title: 'Video movement sequence',
+        detail: 'Clear order of what to do and how to do it.',
+      },
+      {
+        title: 'Posture improvement',
+        detail: 'Less tension in everyday activities.',
+      },
+      {
+        title: 'Movement quality',
+        detail: 'Better control and confidence in body mechanics.',
+      },
+    ],
+    extras: [
+      'Daily mobility plan – 10–30 min based on your rhythm',
+      'Video movement sequence – clear order and execution',
+      'Posture improvements – less daily tension',
+      'Stability skills – better body control and coordination',
+      'Initial consultation – goals and current-state review',
     ],
   },
 ];
@@ -555,7 +662,11 @@ const comparisonRowsByLocale = {
     },
     {
       label: 'Mitybos gairės',
-      includedProductIds: ['55555555-5555-5555-5555-555555555555', PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain, '66666666-6666-6666-6666-666666666666'],
+      includedProductIds: ['55555555-5555-5555-5555-555555555555', PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain],
+    },
+    {
+      label: 'Parengta su dietologu',
+      includedProductIds: ['55555555-5555-5555-5555-555555555555', PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain],
     },
     {
       label: 'Technikos analizė',
@@ -563,11 +674,23 @@ const comparisonRowsByLocale = {
     },
     {
       label: 'Savaitinė peržiūra',
-      includedProductIds: ['55555555-5555-5555-5555-555555555555', PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain, '66666666-6666-6666-6666-666666666666'],
+      includedProductIds: ['55555555-5555-5555-5555-555555555555', PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain],
     },
     {
       label: 'Kasdienis palaikymas',
       includedProductIds: ['55555555-5555-5555-5555-555555555555', '66666666-6666-6666-6666-666666666666'],
+    },
+    {
+      label: 'Neribotos konsultacijos (VIP)',
+      includedProductIds: ['55555555-5555-5555-5555-555555555555', '66666666-6666-6666-6666-666666666666'],
+    },
+    {
+      label: 'Prioritetinis atsakymas (VIP)',
+      includedProductIds: ['55555555-5555-5555-5555-555555555555', '66666666-6666-6666-6666-666666666666'],
+    },
+    {
+      label: 'Pilnai namų formatas',
+      includedProductIds: ['66666666-6666-6666-6666-666666666666', PROGRAM_IDS.homeTraining, PROGRAM_IDS.mobility],
     },
     {
       label: 'Konsultacija',
@@ -577,23 +700,43 @@ const comparisonRowsByLocale = {
   en: [
     {
       label: 'Personal plan',
-      includedProductIds: [PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain, PROGRAM_IDS.homeTraining, PROGRAM_IDS.mobility],
+      includedProductIds: ['55555555-5555-5555-5555-555555555555', PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain, '66666666-6666-6666-6666-666666666666', PROGRAM_IDS.homeTraining, PROGRAM_IDS.mobility],
     },
     {
       label: 'Nutrition guidance',
-      includedProductIds: [PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain],
+      includedProductIds: ['55555555-5555-5555-5555-555555555555', PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain],
+    },
+    {
+      label: 'Prepared with dietician',
+      includedProductIds: ['55555555-5555-5555-5555-555555555555', PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain],
     },
     {
       label: 'Technique checks',
-      includedProductIds: [PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain, PROGRAM_IDS.homeTraining],
+      includedProductIds: ['55555555-5555-5555-5555-555555555555', PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain, '66666666-6666-6666-6666-666666666666', PROGRAM_IDS.homeTraining],
     },
     {
       label: 'Weekly review',
-      includedProductIds: [PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain, PROGRAM_IDS.homeTraining],
+      includedProductIds: ['55555555-5555-5555-5555-555555555555', PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain],
+    },
+    {
+      label: 'Daily support',
+      includedProductIds: ['55555555-5555-5555-5555-555555555555', '66666666-6666-6666-6666-666666666666'],
+    },
+    {
+      label: 'Unlimited consultations (VIP)',
+      includedProductIds: ['55555555-5555-5555-5555-555555555555', '66666666-6666-6666-6666-666666666666'],
+    },
+    {
+      label: 'Priority response (VIP)',
+      includedProductIds: ['55555555-5555-5555-5555-555555555555', '66666666-6666-6666-6666-666666666666'],
+    },
+    {
+      label: 'Fully home-based format',
+      includedProductIds: ['66666666-6666-6666-6666-666666666666', PROGRAM_IDS.homeTraining, PROGRAM_IDS.mobility],
     },
     {
       label: 'Consultation',
-      includedProductIds: [PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain, PROGRAM_IDS.homeTraining, PROGRAM_IDS.mobility],
+      includedProductIds: ['55555555-5555-5555-5555-555555555555', PROGRAM_IDS.weightLoss, PROGRAM_IDS.muscleGain, '66666666-6666-6666-6666-666666666666', PROGRAM_IDS.homeTraining, PROGRAM_IDS.mobility],
     },
   ],
 };
@@ -1893,7 +2036,6 @@ function App({ locale = 'lt' }) {
                       : 'border-slate-200'
                   }`}
                   data-aos="fade-up"
-                  data-aos-delay={index * 80}
                 >
                   <div className="relative flex h-[150px] shrink-0 flex-col justify-center border-b border-black/10 bg-white px-6 py-5 sm:h-[170px] sm:px-10 sm:py-6">
                     {plan.isMostPopular && (
