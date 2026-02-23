@@ -105,21 +105,6 @@ const Hero = ({ stats, backgroundDesktop, backgroundMobile, title, subtitle, cta
         style={{ objectPosition: 'center 30%' }}
         loading="eager"
       />
-    </picture>
-
-    {/* Layered overlays for consistent text contrast - Mobile (Lighter) */}
-    <div
-      className="pointer-events-none absolute inset-0 z-10 md:hidden"
-      aria-hidden="true"
-      style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.35) 40%, rgba(0,0,0,0.2) 65%, rgba(0,0,0,0.12) 100%)' }}
-    />
-    <div
-      className="pointer-events-none absolute inset-0 z-15 md:hidden"
-      aria-hidden="true"
-      style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 60%)' }}
-    />
-
-    {/* Layered overlays for consistent text contrast - Desktop (Original) */}
     <div
       className="pointer-events-none absolute inset-0 z-10 hidden md:block"
       aria-hidden="true"
@@ -130,6 +115,7 @@ const Hero = ({ stats, backgroundDesktop, backgroundMobile, title, subtitle, cta
       aria-hidden="true"
       style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 60%)' }}
     />
+    </picture>
   <div className="relative z-20 mx-auto flex min-h-full w-full max-w-7xl flex-col items-start px-6 pt-60 pb-20 sm:pt-72 sm:pb-24 lg:pt-80 lg:pb-28">
   <div className="max-w-4xl mx-auto text-center space-y-8" data-aos="fade-up">
         <h1 className="font-heading text-3xl font-extrabold leading-tight sm:text-4xl md:text-5xl lg:text-6xl drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)]">
@@ -1230,7 +1216,7 @@ const servicesLt = [
     image: fromUploads('_optimized/senjoru5-960w.webp'),
     description:
       'Švelnios, bet veiksmingos treniruotės geresnei savijautai, lankstumui ir gyvenimo džiaugsmui. Judėjimas tinka visiems!',
-    features: ['Mažo poveikio pratimai salėje ir baseine', 'Gerina lankstumą ir balansą', 'Pritaikoma individualioms galimybėms'],
+    features: ['Sąnarius stiprinančios treniruotės', 'Gerina lankstumą ir balansą', 'Pritaikoma individualioms galimybėms'],
   },
 ];
 
@@ -1292,7 +1278,7 @@ const servicesEn = [
     title: 'Senior training — gym and pool',
     image: fromUploads('_optimized/senjoru5-960w.webp'),
     description: 'Gentle but effective training for flexibility, balance, and better daily well-being.',
-    features: ['Low-impact training', 'Improves flexibility and balance', 'Adapted to your capabilities'],
+    features: ['Joint-strengthening training', 'Improves flexibility and balance', 'Adapted to your capabilities'],
   },
 ];
 
@@ -2032,67 +2018,45 @@ function App({ locale = 'lt' }) {
                   onClick={() => setSelectedProgram(plan)}
                   className={`cursor-pointer flex flex-col overflow-hidden rounded-[40px] border bg-white shadow-[0_10px_30px_rgba(0,0,0,0.05)] transition duration-500 hover:-translate-y-2 ${
                     plan.isMostPopular
-                      ? 'border-[#DCF41E] ring-4 ring-[#DCF41E]/20 lg:scale-105 z-10'
-                      : 'border-slate-200'
+                      ? 'border-[#DCF41E] ring-[6px] ring-[#DCF41E]/35 z-20 shadow-[0_24px_60px_rgba(166,191,0,0.22)]'
+                      : 'border-slate-200 lg:mt-11'
                   }`}
                   data-aos="fade-up"
                 >
-                  <div className="relative flex h-[150px] shrink-0 flex-col justify-center border-b border-black/10 bg-white px-6 py-5 sm:h-[170px] sm:px-10 sm:py-6">
+                  <div
+                    className={`relative flex shrink-0 flex-col justify-center border-b border-black/10 bg-white px-6 py-4 sm:px-8 sm:py-5 ${
+                      plan.isMostPopular ? 'h-[124px] pt-11 sm:h-[144px] sm:pt-11' : 'h-[80px] sm:h-[100px]'
+                    }`}
+                  >
                     {plan.isMostPopular && (
-                      <span className="absolute right-6 top-4 z-20 inline-flex rounded-full bg-[#DCF41E] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-black shadow-sm ring-1 ring-black/5">
+                      <span className="absolute inset-x-0 top-0 z-20 flex h-11 items-center justify-center rounded-t-[40px] bg-[#DCF41E] px-4 text-center text-xs font-bold uppercase tracking-[0.14em] text-black shadow-sm ring-1 ring-black/5">
                         {activeLocale === 'lt' ? 'Populiariausia' : 'Most Popular'}
                       </span>
                     )}
-                    <h3 className="font-heading text-2xl font-black leading-tight text-black sm:text-4xl">{plan.title}</h3>
+                    <h3 className="w-full text-center font-heading text-xl font-black leading-tight text-black sm:text-2xl">{plan.title}</h3>
                   </div>
                   <div className="relative h-[380px] sm:h-[360px] shrink-0">
-                    <img src={plan.image} alt={plan.title} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
-                    <div
-                      className={`absolute inset-0 bg-gradient-to-t ${
-                        plan.isPremium
-                          ? 'from-yellow-900/90 via-black/40 to-transparent'
-                          : 'from-black/90 via-black/40 to-transparent'
-                      }`}
-                    />
-                    <div className="relative z-10 flex h-full flex-col justify-between p-6 sm:p-10 text-white">
-                      
-                      <div className="space-y-3 sm:space-y-4">
-                        {plan.isPremium && (
-                          <span className="inline-block rounded-full bg-yellow-400 px-3 py-1 text-xs font-bold uppercase tracking-widest text-black mb-2">
-                             VIP / Premium
-                          </span>
-                        )}
-                        <p className={`text-sm font-semibold uppercase tracking-widest ${plan.isPremium ? 'text-yellow-400' : 'text-white/90 drop-shadow-md'}`}>
-                          {plan.subtitle}
-                        </p>
+                    <img src={plan.image} alt={plan.title} className="absolute inset-0 h-full w-full object-cover brightness-110 saturate-110" loading="lazy" />
+                    {plan.isPremium && (
+                      <div className="absolute top-6 left-6 sm:top-8 sm:left-8 z-10">
+                        <span className="inline-block rounded-full bg-yellow-400 px-3 py-1 text-xs font-bold uppercase tracking-widest text-black shadow-md">
+                          VIP / Premium
+                        </span>
                       </div>
-                      <div className="flex flex-wrap gap-3 sm:gap-4 text-sm font-semibold pr-14 md:pr-0">
-                        <span className="glass-card rounded-full px-4 py-2 text-white/90">{plan.duration}</span>
-                        {plan.hasDietician && (
-                          <span className="glass-card flex items-center gap-2 rounded-full px-4 py-2 text-white/90">
-                            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white text-black">
-                              <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                              </svg>
-                            </span>
-                            {activeLocale === 'lt' ? 'Parengta su dietologu' : 'Approved by dietician'}
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                    )}
                   </div>
                   <div
                     id={`program-details-${plan.productId || index}`}
-                    className="flex flex-col flex-1 gap-6 bg-white p-6 sm:p-8 text-slate-900"
+                    className="flex flex-col flex-1 gap-6 bg-white p-6 sm:p-8 text-slate-900 text-center items-center"
                   >
-                    <div className="space-y-4">
-                      <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+                    <div className="space-y-4 w-full flex flex-col items-center">
+                      <p className="text-xs uppercase tracking-widest text-black mb-2">
                         {activeLocale === 'lt' ? 'Programos akcentai' : 'Key highlights'}
                       </p>
-                      <ul className="space-y-3.5">
+                      <ul className="space-y-3 w-full max-w-[280px]">
                         {plan.extras.slice(0, 3).map(extra => (
-                          <li key={extra} className="flex items-start gap-4 text-base text-slate-900">
-                            <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#DCF41E] text-[#2D4A22] ring-1 ring-black/10">
+                          <li key={extra} className="flex items-start gap-3.5 text-sm font-normal text-black text-left">
+                            <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent text-black ring-1 ring-black/10">
                               <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                               </svg>
@@ -2100,11 +2064,11 @@ function App({ locale = 'lt' }) {
                             <span>
                               {(() => {
                                 const [label, ...rest] = String(extra).split(' – ');
-                                if (!rest.length) return <span className="font-semibold">{extra}</span>;
+                                if (!rest.length) return <span className="font-bold block">{extra}</span>;
                                 return (
                                   <>
-                                    <span className="font-semibold block sm:inline">{label}</span>
-                                    <span className="font-medium text-slate-500 block sm:inline sm:ml-1">{rest.length > 0 ? `– ${rest.join(' – ')}` : ''}</span>
+                                    <span className="font-bold block">{label}</span>
+                                    <span className="text-black block">{rest.join(' – ')}</span>
                                   </>
                                 );
                               })()}
@@ -2116,15 +2080,15 @@ function App({ locale = 'lt' }) {
 
                     <div className="mt-auto space-y-6">
                       {plan.result && (
-                        <div className="pt-6 border-t border-slate-100">
+                        <div className="pt-6 border-t border-slate-100 w-full text-center">
                           <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">
                             {activeLocale === 'lt' ? 'Rezultatas' : 'The Result'}
                           </p>
-                          <p className="text-lg font-semibold leading-snug text-slate-950">{plan.result}</p>
+                          <p className="text-xl font-semibold leading-snug text-slate-950">{plan.result}</p>
                         </div>
                       )}
-                      <div className="flex flex-col gap-4">
-                         <div className="text-3xl font-black text-slate-900">
+                      <div className="flex flex-col gap-4 w-full items-center">
+                         <div className="text-3xl font-black text-slate-900 text-center">
                             {plan.price}
                          </div>
                         <button
@@ -2135,7 +2099,7 @@ function App({ locale = 'lt' }) {
                           }}
                           className="inline-flex w-full items-center justify-center gap-2 rounded-full glass-green-surface px-8 py-4 text-base font-extrabold text-black transition hover:brightness-95 hover:shadow-lg active:scale-[0.98]"
                         >
-                          {activeLocale === 'lt' ? 'Pirkti' : 'Buy'}
+                          {activeLocale === 'lt' ? 'Pradėti dabar' : 'Start now'}
                         </button>
                       </div>
                     </div>
@@ -2143,7 +2107,6 @@ function App({ locale = 'lt' }) {
                 </article>
               ))}
             </div>
-            {activeLocale === 'lt' && (
               <div className="mt-16 mx-auto flex flex-col items-center space-y-12">
                 {/* Program Modal */}
                 <ProgramModal
@@ -2173,7 +2136,7 @@ function App({ locale = 'lt' }) {
                     <div ref={testimonialsRef} className="keen-slider overflow-visible">
                       {storiesByLocale[activeLocale].map((story) => (
                         <div key={story.name} className="keen-slider__slide py-4 px-4">
-                          <article className="flex flex-col h-full rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm h-full">
+                          <article className="flex flex-col h-full rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
                             <div className="flex items-center gap-4 mb-6">
                               {story.avatar ? (
                                 <img
@@ -2265,7 +2228,6 @@ function App({ locale = 'lt' }) {
                   </div>
                 </div>
               </div>
-            )}
 
             <div className="mt-10">
               <h3 className="text-center text-3xl font-heading font-black text-black sm:text-4xl">
@@ -2280,12 +2242,12 @@ function App({ locale = 'lt' }) {
                         {activeLocale === 'lt' ? 'Savybė' : 'Feature'}
                       </th>
                       {displayedPrograms.map((plan) => {
-                        const isVipColumn = Boolean(plan.isVipAnchor);
+                        const isHighlightedColumn = Boolean(plan.isMostPopular);
                         return (
                           <th
                             key={`head-${plan.productId}`}
                             className={`px-2 py-4 sm:px-4 text-center text-xs sm:text-base font-bold text-black border-l border-black/5 ${
-                              isVipColumn ? 'bg-[#F8F8F8] border-none' : 'bg-white'
+                              isHighlightedColumn ? 'bg-[#DCF41E]/10 border-none' : 'bg-white'
                             }`}
                           >
                             {plan.title}
@@ -2302,12 +2264,12 @@ function App({ locale = 'lt' }) {
                         </td>
                         {displayedPrograms.map((plan) => {
                           const isIncluded = row.includedProductIds.includes(plan.productId);
-                          const isVipColumn = Boolean(plan.isVipAnchor);
+                          const isHighlightedColumn = Boolean(plan.isMostPopular);
                           return (
                             <td
                               key={`${row.label}-${plan.productId}`}
                               className={`px-2 py-3 sm:px-4 text-center border-l border-black/5 ${
-                                isVipColumn ? 'bg-[#F8F8F8] border-none' : 'bg-white'
+                                isHighlightedColumn ? 'bg-[#DCF41E]/10 border-none' : 'bg-white'
                               }`}
                             >
                               {isIncluded ? (
@@ -2329,21 +2291,25 @@ function App({ locale = 'lt' }) {
                         {activeLocale === 'lt' ? 'Kaina' : 'Price'}
                       </td>
                       {displayedPrograms.map((plan) => {
-                        const isVipColumn = Boolean(plan.isVipAnchor);
+                        const isHighlightedColumn = Boolean(plan.isMostPopular);
                         return (
                           <td
                             key={`buy-${plan.productId}`}
                             className={`px-2 py-4 sm:px-4 text-center border-l border-black/5 ${
-                              isVipColumn ? 'bg-[#F8F8F8] border-none' : 'bg-white'
+                              isHighlightedColumn ? 'bg-[#DCF41E]/10 border-none' : 'bg-white'
                             }`}
                           >
                             <div className="mb-2 font-bold text-black sm:text-lg">{plan.price}</div>
                             <button
                               type="button"
                               onClick={() => onBuyProgram(plan)}
-                              className="inline-flex w-full items-center justify-center rounded-full bg-black px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm font-bold text-[#DCF41E] transition hover:bg-[#DCF41E] hover:text-black"
+                              className={`inline-flex w-full items-center justify-center rounded-full px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm font-bold transition ${
+                                plan.isMostPopular
+                                  ? 'bg-[#DCF41E] text-black hover:brightness-95'
+                                  : 'bg-white border border-slate-300 text-slate-900 hover:bg-slate-900 hover:text-white'
+                              }`}
                             >
-                              {activeLocale === 'lt' ? 'Pirkti' : 'Buy'}
+                              {activeLocale === 'lt' ? 'Pradėti dabar' : 'Start now'}
                             </button>
                           </td>
                         );
@@ -2357,31 +2323,22 @@ function App({ locale = 'lt' }) {
           </div>
         </section>
 
-        <section id="sekmes" className="relative overflow-hidden py-28 text-white">
-          <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-            <img
-              src={successImage}
-              alt={activeLocale === 'lt' ? 'Klientų transformacijų fonas' : 'Client transformations background'}
-              className="h-full w-full object-cover"
-              loading="lazy"
-            />
-            <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/70 to-black/80" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.15),_transparent_60%)]" />
-          </div>
+        <section id="sekmes" className="relative overflow-hidden py-28 bg-black text-white">
           <div className="relative mx-auto max-w-7xl px-6">
-            <div className="mx-auto max-w-3xl text-center mb-8" data-aos="fade-up">
-              <h2 className="font-heading text-4xl font-black uppercase text-white">
+            <div className="mx-auto max-w-3xl text-center mb-16" data-aos="fade-up">
+              <h2 className="font-heading text-4xl font-black uppercase tracking-tight text-white">
                 {activeLocale === 'lt' ? 'Klientų istorijos' : 'Client stories'}
               </h2>
+              <p className="mt-4 text-lg text-white/70">
+                {activeLocale === 'lt'
+                  ? 'Tikros istorijos žmonių, kurie jaučiasi stipresni ir labiau pasitikintys savimi'
+                  : 'Real stories of people who feel stronger and more confident'}
+              </p>
             </div>
-            <div className="relative" data-aos="fade-up">
-              <div
-                ref={transformationsRef}
-                className="keen-slider overflow-hidden will-change-transform"
-              >
-                {/* simplified loop: no overlay */}
-                {transformationsByLocale[activeLocale].map((item, index) => {
-                  const storyNumber = index + 1;
+          </div>
+          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" data-aos="fade-up">
+            <div ref={transformationsRef} className="keen-slider !overflow-visible">
+              {transformationsByLocale[activeLocale].map((item, index) => {
                   const photos = [
                     { key: 'before', ...item.before },
                     { key: 'after', ...item.after },
@@ -2399,7 +2356,6 @@ function App({ locale = 'lt' }) {
                     const s = String(value || '').trim();
                     if (!s) return s;
 
-                    // Specific common phrases from our results.
                     if (/^metus$/i.test(s)) return 'metai';
                     if (/^pusę\s+metų$/i.test(s)) return 'pusė metų';
 
@@ -2428,7 +2384,6 @@ function App({ locale = 'lt' }) {
                     const s = String(resultText || '').trim();
                     if (!s) return null;
 
-                    // Prefer a trailing "per ..." (LT) or "in ..." (EN) clause.
                     const m = s.match(/\s+(per|in)\s+([^.;,]+)\s*$/i);
                     if (!m) return null;
 
@@ -2447,42 +2402,45 @@ function App({ locale = 'lt' }) {
                   const periodText = periodTextRaw
                     ? (activeLocale === 'lt' ? capitalizeFirst(normalizeLtPeriod(periodTextRaw)) : periodTextRaw)
                     : null;
-                  const resultTextPc = stripPeriodFromResult(item.result);
+                  const resultText = stripPeriodFromResult(item.result);
 
                   return (
                     <article
-                      key={item.name}
-                      className="keen-slider__slide glass-card group rounded-[36px] p-8 text-white transition-colors duration-500 ease-out hover:border-accent/60"
+                      key={`${item.name}-${index}`}
+                      className="keen-slider__slide bg-[#1a1a1a] rounded-[24px] p-6 sm:p-8 text-white shadow-2xl border border-white/5 transition-transform duration-500 ease-out hover:-translate-y-1"
                     >
                       <div className="flex flex-col gap-8 lg:flex-row lg:items-stretch">
-                        <div className="flex-1 space-y-6">
-                          {/* removed: Kliento istorija and Asmeninis planas as requested */}
-                          <h3 className="font-heading text-3xl font-black tracking-tight text-white">{item.name}</h3>
-                          <dl className="space-y-3 text-sm text-white">
-                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 lg:p-5">
-                              <dt className="text-xs font-semibold uppercase tracking-[0.25em] text-white/60">
+                        <div className="flex-1 space-y-6 flex flex-col">
+                          <div className="flex items-start justify-between gap-4">
+                            <h3 className="font-heading text-2xl sm:text-3xl font-black tracking-tight uppercase text-white">{item.name}</h3>
+                            <span className="inline-flex shrink-0 items-center justify-center rounded-full bg-[#DCF41E] px-3 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-black">
+                              {activeLocale === 'lt' ? 'Rezultatas' : 'Result'}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                              <dt className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 mb-1.5">
                                 {activeLocale === 'lt' ? 'Tikslas' : 'Goal'}
                               </dt>
-                              <dd className="mt-2 text-base font-medium text-white lg:text-lg">{item.goal}</dd>
+                              <dd className="text-sm font-medium text-white/90">{item.goal}</dd>
                             </div>
                             {periodText ? (
-                              <div className="hidden lg:block rounded-2xl border border-white/10 bg-white/5 p-4 lg:p-5">
-                                <dt className="text-xs font-semibold uppercase tracking-[0.25em] text-white/60">
+                              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                <dt className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 mb-1.5">
                                   {activeLocale === 'lt' ? 'Laikotarpis' : 'Period'}
                                 </dt>
-                                <dd className="mt-2 text-base font-medium text-white lg:text-lg">{periodText}</dd>
+                                <dd className="text-sm font-medium text-white/90">{periodText}</dd>
                               </div>
                             ) : null}
-                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 lg:p-5">
-                              <dt className="text-xs font-semibold uppercase tracking-[0.25em] text-white/60">
-                                {activeLocale === 'lt' ? 'Rezultatai' : 'Results'}
-                              </dt>
-                              <dd className="mt-2 text-base font-medium text-white lg:hidden">{item.result}</dd>
-                              <dd className="mt-2 hidden text-base font-medium text-white lg:block lg:text-lg">{resultTextPc}</dd>
-                            </div>
-                          </dl>
+                          </div>
+
+                          <div className="mt-auto pt-4">
+                            <p className="text-lg sm:text-xl font-bold text-[#DCF41E]">{resultText}</p>
+                          </div>
                         </div>
-                          <div className="flex flex-1 flex-row gap-4">
+
+                        <div className="flex flex-1 flex-row gap-3 sm:gap-4">
                           {photos.map(photo => (
                             (() => {
                               const photoLabel =
@@ -2505,20 +2463,20 @@ function App({ locale = 'lt' }) {
                               return (
                                 <figure
                                   key={photo.key}
-                                  className="relative flex-1 overflow-hidden rounded-3xl border border-white/15"
+                                  className="relative isolate flex-1 flex flex-col overflow-hidden rounded-2xl border border-white/10 shadow-sm group bg-black [clip-path:inset(0_round_1rem)]"
                                 >
                                   <img
                                     src={photo.image}
                                     alt={`${item.name} ${altSuffix}`}
-                                    className="h-64 w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02] md:h-72 lg:h-[420px]"
+                                    className="h-48 sm:h-64 lg:h-[320px] w-full rounded-2xl object-cover transition-transform duration-700 ease-out transform-gpu will-change-transform group-hover:scale-[1.03]"
                                     style={{ objectPosition: photo.objectPosition || 'center top' }}
                                     loading="lazy"
                                   />
-                                  <figcaption className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/70 px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-white sm:tracking-[0.3em]">
+                                  <figcaption className="absolute bottom-2 left-2 right-2 flex items-center justify-between bg-black/60 backdrop-blur-md rounded-xl px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-white border border-white/10">
                                     <span>{photoLabel}</span>
-                                    <span className="flex flex-col items-end leading-none text-sm tracking-normal">
-                                      <span>{weightValue}</span>
-                                      {weightUnit ? <span className="text-[10px] uppercase tracking-[0.2em]">{weightUnit}</span> : null}
+                                    <span className="flex items-baseline gap-1 leading-none tracking-normal font-black">
+                                      <span className="text-sm">{weightValue}</span>
+                                      {weightUnit ? <span className="text-[8px] uppercase tracking-[0.2em] font-bold text-white/70">{weightUnit}</span> : null}
                                     </span>
                                   </figcaption>
                                 </figure>
@@ -2531,22 +2489,28 @@ function App({ locale = 'lt' }) {
                   );
                 })}
               </div>
-              <div className="mt-8 flex items-center justify-between gap-4 text-sm">
-                <button
-                  type="button"
-                  onClick={() => transformationsSlider.current?.prev()}
-                  className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/40 text-white transition hover:border-accent hover:text-accent"
-                >
-                  &lt;
-                </button>
-                <button
-                  type="button"
-                  onClick={() => transformationsSlider.current?.next()}
-                  className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/40 text-white transition hover:border-accent hover:text-accent"
-                >
-                  &gt;
-                </button>
-              </div>
+
+            <div className="mt-10 flex items-center justify-center gap-4 sm:gap-6">
+              <button
+                type="button"
+                onClick={() => transformationsSlider.current?.prev()}
+                className="inline-flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white hover:text-black"
+                aria-label={activeLocale === 'lt' ? 'Ankstesnė istorija' : 'Previous story'}
+              >
+                <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => transformationsSlider.current?.next()}
+                className="inline-flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white hover:text-black"
+                aria-label={activeLocale === 'lt' ? 'Kita istorija' : 'Next story'}
+              >
+                <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
             </div>
           </div>
         </section>

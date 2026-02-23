@@ -15,10 +15,12 @@ export default function CustomCursor() {
   const [isDesktop, setIsDesktop] = useState(false);
   useEffect(() => {
     const checkDevice = () => {
+      // Basic check: if the primary input mechanism is a mouse (fine pointer)
+      // or if the device supports hover, it's likely a desktop/laptop context.
+      // We avoid checking navigator.maxTouchPoints to support touch-enabled laptops.
       const hasFinePointer = window.matchMedia('(pointer: fine)').matches;
       const canHover = window.matchMedia('(hover: hover)').matches;
-      const hasTouch = navigator.maxTouchPoints > 0;
-      setIsDesktop(hasFinePointer && canHover && !hasTouch);
+      setIsDesktop(hasFinePointer || canHover);
     };
 
     checkDevice();
@@ -119,7 +121,7 @@ export default function CustomCursor() {
   return (
     <div 
       ref={cursorRef} 
-      className="pointer-events-none fixed left-0 top-0 z-[10000] mix-blend-difference"
+      className="pointer-events-none fixed left-0 top-0 z-[2147483647] mix-blend-difference"
       style={{ willChange: 'transform' }}
     >
       <div 

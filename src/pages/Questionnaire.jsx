@@ -31,13 +31,13 @@ const copyByLocale = {
           'Padidinti raumenų masę ir pagerinti laikyseną',
           'Pasiekti maksimalų fizinį efektyvumą (profesionalus lygis)'
         ],
-        motivationQuestion: 'Ar anksčiau esi bandęs (-usi) sportuoti savarankiškai? Kas labiausiai trukdė pasiekti rezultatą?',
+        motivationQuestion: 'Ar teko anksčiau sportuoti savarankiškai? Kas labiausiai trukdė pasiekti rezultatą?',
         motivationOptions: [
           'Trūko aiškaus plano ar sistemos',
           'Trūko motyvacijos ir palaikymo',
           'Sustabdė traumos ar skausmai',
           'Neteko bandyti',
-          'Kita (įrašyti savo variantą)...'
+          'Kita (įrašyti savo variantą)'
         ],
         motivationPlaceholder: 'Trumpai ir konkrečiai...'
       },
@@ -253,16 +253,16 @@ const ToggleButton = ({ active, label, onClick }) => (
     type="button"
     onClick={onClick}
     aria-pressed={active}
-    className={`w-full text-pretty rounded-2xl border px-5 py-4 text-left text-base font-medium transition-all duration-200 ${
+    className={`w-full text-pretty rounded-2xl border px-5 py-4 text-left text-base font-medium transition-all duration-200 no-underline ${
       active
         ? 'border-black bg-black text-white shadow-xl scale-[1.02]'
         : 'border-black/10 bg-white hover:border-black/40 hover:bg-zinc-50'
     }`}
   >
-    <div className="flex w-full items-center justify-between gap-3">
-      <span>{label}</span>
+    <div className="relative flex w-full items-center justify-start">
+      <span className="pr-8">{label}</span>
       {active && (
-        <svg className="h-5 w-5 shrink-0 text-[#DCF41E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+        <svg className="absolute right-0 top-1/2 -translate-y-1/2 h-5 w-5 shrink-0 text-[#DCF41E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
           <polyline points="20 6 9 17 4 12" />
         </svg>
       )}
