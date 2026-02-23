@@ -62,6 +62,8 @@ const heroImageSrcSetMobileAvif = [
 const successImage = fromUploads('grupine5.jpg');
 
 const contactImage = fromUploads('IMG_0488-scaled.jpg');
+const contactImageMobile = fromUploads('IMG_0451-scaled.jpg');
+const transformationsBackgroundImage = fromUploads('grupine1.jpg');
 const quizImage = fromUploads('testavimas1.jpg');
 
 const heroStatsByLocale = {
@@ -1171,7 +1173,7 @@ const servicesLt = [
   },
   {
     title: 'Asmeninės treniruotės – Vilniuje ir Varėnoje',
-    image: fromUploads('_optimized/IMG_0481-scaled-960w.webp'),
+    image: fromUploads('paaugliu.jpg'),
     description:
       'Individualus dėmesys, aiškus planas ir realūs rezultatai. Gauk profesionalų palaikymą kiekviename žingsnyje.',
     features: ['100 % dėmesio vienam klientui', 'Aiškios treniruočių struktūros', 'Motyvacija ir atsakomybė'],
@@ -1240,7 +1242,7 @@ const servicesEn = [
   },
   {
     title: 'Personal training — Vilnius and Varėna',
-    image: fromUploads('_optimized/IMG_0481-scaled-960w.webp'),
+    image: fromUploads('paaugliu.jpg'),
     description: 'Individual attention, a clear plan, and real results with accountability.',
     features: ['100% focus on you', 'Clear training structure', 'Motivation and responsibility'],
   },
@@ -2324,6 +2326,23 @@ function App({ locale = 'lt' }) {
         </section>
 
         <section id="sekmes" className="relative overflow-hidden py-28 bg-black text-white">
+          <div className="pointer-events-none absolute inset-0 z-0">
+            <img
+              src={transformationsBackgroundImage}
+              alt={activeLocale === 'lt' ? 'Klientų istorijų skilties fonas' : 'Client stories section background'}
+              className="h-full w-full object-cover object-center"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-black/60 md:hidden" />
+            <div
+              className="absolute inset-0 hidden md:block"
+              style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.62) 40%, rgba(0,0,0,0.42) 65%, rgba(0,0,0,0.28) 100%)' }}
+            />
+            <div
+              className="absolute inset-0 hidden md:block"
+              style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.74) 60%)' }}
+            />
+          </div>
           <div className="relative mx-auto max-w-7xl px-6">
             <div className="mx-auto max-w-3xl text-center mb-16" data-aos="fade-up">
               <h2 className="font-heading text-4xl font-black uppercase tracking-tight text-white">
@@ -2336,8 +2355,8 @@ function App({ locale = 'lt' }) {
               </p>
             </div>
           </div>
-          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" data-aos="fade-up">
-            <div ref={transformationsRef} className="keen-slider !overflow-visible">
+          <div className="relative mx-auto max-w-7xl px-12 sm:px-16 lg:px-20" data-aos="fade-up">
+            <div ref={transformationsRef} className="keen-slider">
               {transformationsByLocale[activeLocale].map((item, index) => {
                   const photos = [
                     { key: 'before', ...item.before },
@@ -2404,10 +2423,24 @@ function App({ locale = 'lt' }) {
                     : null;
                   const resultText = stripPeriodFromResult(item.result);
 
+                  const beforeWeightNum = parseFloat(item.before?.weight);
+                  const afterWeightNum = parseFloat(item.after?.weight);
+                  let weightDiffAbs = null;
+                  let isWeightLoss = true;
+
+                  if (!isNaN(beforeWeightNum) && !isNaN(afterWeightNum)) {
+                    const diff = beforeWeightNum - afterWeightNum;
+                    if (Math.abs(diff) > 0) {
+                      weightDiffAbs = Math.abs(diff).toFixed(1);
+                      if (weightDiffAbs.endsWith('.0')) weightDiffAbs = weightDiffAbs.slice(0, -2);
+                      isWeightLoss = diff > 0;
+                    }
+                  }
+
                   return (
                     <article
                       key={`${item.name}-${index}`}
-                      className="keen-slider__slide bg-[#1a1a1a] rounded-[24px] p-6 sm:p-8 text-white shadow-2xl border border-white/5 transition-transform duration-500 ease-out hover:-translate-y-1"
+                      className="keen-slider__slide bg-white/5 backdrop-blur-xl rounded-[32px] p-6 sm:p-8 text-white shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] border border-white/10"
                     >
                       <div className="flex flex-col gap-8 lg:flex-row lg:items-stretch">
                         <div className="flex-1 space-y-6 flex flex-col">
@@ -2435,8 +2468,24 @@ function App({ locale = 'lt' }) {
                             ) : null}
                           </div>
 
-                          <div className="mt-auto pt-4">
-                            <p className="text-lg sm:text-xl font-bold text-[#DCF41E]">{resultText}</p>
+                          <div className="mt-auto rounded-2xl border border-white/10 bg-white/[0.07] p-4 sm:p-5">
+                            <div className="flex items-start justify-between gap-4">
+                              <div>
+                                <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">
+                                  {activeLocale === 'lt' ? 'Pokytis' : 'Outcome'}
+                                </div>
+                                <p className="mt-2 text-xl sm:text-2xl font-black text-[#DCF41E] leading-tight">{resultText}</p>
+                              </div>
+                              {weightDiffAbs ? (
+                                <div className="inline-flex h-14 w-14 sm:h-16 sm:w-16 shrink-0 items-center justify-center rounded-2xl bg-[#DCF41E]/15 text-[#DCF41E]">
+                                  {isWeightLoss ? (
+                                    <svg className="h-8 w-8 sm:h-9 sm:w-9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" /></svg>
+                                  ) : (
+                                    <svg className="h-8 w-8 sm:h-9 sm:w-9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                                  )}
+                                </div>
+                              ) : null}
+                            </div>
                           </div>
                         </div>
 
@@ -2472,11 +2521,11 @@ function App({ locale = 'lt' }) {
                                     style={{ objectPosition: photo.objectPosition || 'center top' }}
                                     loading="lazy"
                                   />
-                                  <figcaption className="absolute bottom-2 left-2 right-2 flex items-center justify-between bg-black/60 backdrop-blur-md rounded-xl px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-white border border-white/10">
+                                  <figcaption className="absolute bottom-1.5 left-1.5 right-1.5 sm:bottom-2 sm:left-2 sm:right-2 flex items-center justify-between bg-black/60 backdrop-blur-md rounded-lg sm:rounded-xl px-1.5 py-1 sm:px-3 sm:py-2 text-[8px] sm:text-[10px] font-bold uppercase tracking-widest text-white border border-white/10">
                                     <span>{photoLabel}</span>
-                                    <span className="flex items-baseline gap-1 leading-none tracking-normal font-black">
-                                      <span className="text-sm">{weightValue}</span>
-                                      {weightUnit ? <span className="text-[8px] uppercase tracking-[0.2em] font-bold text-white/70">{weightUnit}</span> : null}
+                                    <span className="flex items-baseline gap-0.5 sm:gap-1 leading-none tracking-normal font-black">
+                                      <span className="text-[10px] sm:text-sm">{weightValue}</span>
+                                      {weightUnit ? <span className="text-[6px] sm:text-[8px] uppercase tracking-[0.2em] font-bold text-white/70">{weightUnit}</span> : null}
                                     </span>
                                   </figcaption>
                                 </figure>
@@ -2490,28 +2539,34 @@ function App({ locale = 'lt' }) {
                 })}
               </div>
 
-            <div className="mt-10 flex items-center justify-center gap-4 sm:gap-6">
-              <button
-                type="button"
-                onClick={() => transformationsSlider.current?.prev()}
-                className="inline-flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white hover:text-black"
-                aria-label={activeLocale === 'lt' ? 'Ankstesnė istorija' : 'Previous story'}
-              >
-                <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={() => transformationsSlider.current?.next()}
-                className="inline-flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white hover:text-black"
-                aria-label={activeLocale === 'lt' ? 'Kita istorija' : 'Next story'}
-              >
-                <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => transformationsSlider.current?.prev()}
+              className="absolute left-0 sm:left-2 lg:left-4 top-1/2 -translate-y-1/2 z-10 inline-flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition-all hover:bg-white hover:text-black hover:scale-110 backdrop-blur-md shadow-lg"
+              aria-label={activeLocale === 'lt' ? 'Ankstesnė istorija' : 'Previous story'}
+            >
+              <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={() => transformationsSlider.current?.next()}
+              className="absolute right-0 sm:right-2 lg:right-4 top-1/2 -translate-y-1/2 z-10 inline-flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition-all hover:bg-white hover:text-black hover:scale-110 backdrop-blur-md shadow-lg"
+              aria-label={activeLocale === 'lt' ? 'Kita istorija' : 'Next story'}
+            >
+              <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+          <div className="relative mx-auto max-w-7xl px-6 mt-12 sm:mt-16 flex justify-center" data-aos="fade-up">
+            <a
+              href="#programos"
+              className="inline-flex h-14 items-center justify-center rounded-full bg-[#DCF41E] px-8 text-sm font-bold uppercase tracking-widest text-black transition-all hover:scale-105 hover:bg-white shadow-[0_0_20px_rgba(220,244,30,0.3)]"
+            >
+              {activeLocale === 'lt' ? 'Pradėti savo istoriją' : 'Start your story'}
+            </a>
           </div>
         </section>
 
@@ -2591,12 +2646,15 @@ function App({ locale = 'lt' }) {
           style={{ minHeight: 'clamp(420px, 96vw, 820px)' }}
         >
           <div className="pointer-events-none absolute inset-0 z-0">
-            <img
-              src={contactImage}
-              alt={activeLocale === 'lt' ? 'Kontaktų skilties fonas' : 'Contact section background'}
-              className="h-full w-full object-cover object-[center_50%] md:object-[center_65%]"
-              loading="lazy"
-            />
+            <picture>
+              <source media="(max-width: 767px)" srcSet={contactImageMobile} />
+              <img
+                src={contactImage}
+                alt={activeLocale === 'lt' ? 'Kontaktų skilties fonas' : 'Contact section background'}
+                className="h-full w-full object-cover object-[center_50%] md:object-[center_65%]"
+                loading="lazy"
+              />
+            </picture>
             <div className="absolute inset-0 bg-black/40" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 sm:hidden" />
           </div>
