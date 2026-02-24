@@ -108,12 +108,12 @@ const Hero = ({ stats, backgroundDesktop, backgroundMobile, title, subtitle, cta
         loading="eager"
       />
     <div
-      className="pointer-events-none absolute inset-0 z-10 hidden md:block"
+      className="pointer-events-none absolute inset-0 z-10"
       aria-hidden="true"
       style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.25) 65%, rgba(0,0,0,0.15) 100%)' }}
     />
     <div
-      className="pointer-events-none absolute inset-0 z-15 hidden md:block"
+      className="pointer-events-none absolute inset-0 z-15"
       aria-hidden="true"
       style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 60%)' }}
     />
@@ -227,7 +227,7 @@ const programsLt = [
     duration: '8–12 savaičių',
     hasDietician: true,
     image: fromUploads('brokolis.jpg'),
-    result: 'Svoris krenta tvariai ir užtikrintai.',
+    result: 'Svorio mažinimas vyksta tvariai ir nuosekliai.',
     highlights: [
       {
         title: 'Individualus planas',
@@ -267,7 +267,7 @@ const programsLt = [
     duration: '8–12 savaičių',
     hasDietician: true,
     image: fromUploads('paaugliu4.jpg'),
-    result: 'Augini raumenis ir jėgą be spėliojimo.',
+    result: 'Raumenų masė ir jėga didinamos pagal aiškią metodiką.',
     highlights: [
       {
         title: 'Liesa raumenų masė',
@@ -305,7 +305,7 @@ const programsLt = [
     price: '299€', // Anchor Price
     duration: '8 savaitės',
     image: fromUploads('grupine8.jpg'),
-    result: 'Namų treniruotės su profesionalia kasdiene priežiūra.',
+    result: 'Namų treniruotės vykdomos pagal struktūruotą planą su nuolatine profesionalo priežiūra.',
     highlights: [
       {
         title: 'Vaizdo analizė',
@@ -377,7 +377,7 @@ const programsLt = [
       'Programa skirta tiems, kurie nori judėti laisviau, geriau jaustis kūne ir formuoti discipliną per kasdienį, sąmoningą judėjimą.',
     price: '97€',
     duration: '6–8 savaitės',
-    image: fromUploads('testavimas8.jpg'),
+    image: fromUploads('_optimized/testavimas4-960w.webp'),
     result: 'Daugiau laisvės judėti be įtampos.',
     highlights: [
       {
@@ -607,7 +607,7 @@ const programsEn = [
       'A mobility-focused system for moving with less tension and better control in daily life.',
     price: '97€',
     duration: '6–8 weeks',
-    image: fromUploads('testavimas8.jpg'),
+    image: fromUploads('_optimized/testavimas4-960w.webp'),
     result: 'More freedom to move without tension.',
     highlights: [
       {
@@ -750,7 +750,7 @@ const storiesLt = [
   },
   {
     name: 'Julia Gatsko',
-    avatar: fromUploads('_optimized/atsiliepimai/Picture1 (1)-320w.webp'),
+    avatar: '/uploads/atsiliepimai/_thumbs/Picture1 (1).jpg',
     quote:
       '“Pasha išsiskiria profesionalumu ir moksliniu požiūriu – jis atsižvelgia į tavo sveikatą ir kūno būklę, padeda ne tik atrodyti sportiškai, bet ir jaustis geriau. Su juo treniruojuosi beveik metus ir matau didelius pokyčius tiek fizinėje formoje, tiek savijautoje. Labai rekomenduoju!”',
   },
@@ -804,7 +804,7 @@ const storiesLt = [
   },
   {
     name: 'Gabrielė Juozapavičiūtė',
-    avatar: '/uploads/atsiliepimai/_thumbs/IMG_8426.jpeg',
+    avatar: '/uploads/atsiliepimai/_thumbs/IMG_8426.jpeg?v=20260224',
     quote:
       '“Niekada nemaniau, kad sporto klubas man gali patikti – kol nepradėjau treniruotis su Pavelu. Su juo treniruotės niekada nėra nuobodžios! Visi pratimai parenkami individualiai, atsižvelgiant į mano tikslus ir iššūkius, todėl kiekviena treniruotė yra prasminga ir tikslinga. Po užsiėmimų visada jaučiuosi stipresnė, tvirtesnė ir labiau pasitikinti savimi. Pavelas – vienas geriausių trenerių Lietuvoje, ir esu labai dėkinga už galimybę sportuoti prižiūrint tokiam aukšto lygio profesionalui.”',
   },
@@ -831,7 +831,7 @@ const storiesEn = [
   },
   {
     name: 'Julia Gatsko',
-    avatar: fromUploads('_optimized/atsiliepimai/Picture1 (1)-320w.webp'),
+    avatar: '/uploads/atsiliepimai/_thumbs/Picture1 (1).jpg',
     quote:
       '“Pasha stands out with his professionalism and scientific approach—he considers your health and body condition, helping you not only look fit but also feel better. I’ve been training with him for almost a year and see great improvements in both fitness and overall well-being. Highly recommended!”',
   },
@@ -885,7 +885,7 @@ const storiesEn = [
   },
   {
     name: 'Gabrielė Juozapavičiūtė',
-    avatar: '/uploads/atsiliepimai/_thumbs/IMG_8426.jpeg',
+    avatar: '/uploads/atsiliepimai/_thumbs/IMG_8426.jpeg?v=20260224',
     quote:
       '“I never thought I could enjoy the gym – until I started training with Pavel. Training with him is never boring! All exercises are selected individually, taking into account my goals and challenges, so every workout is meaningful and purposeful. After sessions I always feel stronger, firmer and more confident. Pavel is one of the best trainers in Lithuania, and I am very grateful for the opportunity to train under the supervision of such a high-level professional.”',
   },
@@ -901,7 +901,8 @@ const transformationsLt = [
     name: 'TADAS NORUŠAITIS',
     program: 'Jėgos ir raumenų auginimo',
     goal: 'Geras fizinis pasiruošimas ir mažesnis riebalinis audinys',
-    result: 'Priaugo 15 kg raumenų per 9 mėnesius',
+    result: 'Numetė 15 kg',
+    period: '9 mėnesius',
     before: {
       image: fromUploads('_optimized/atsiliepimai/before-2-960w.webp'),
       label: 'Foto prieš',
@@ -951,7 +952,8 @@ const transformationsLt = [
     name: 'MIROSLAV MICHOLČ',
     program: 'Svorio metimo',
     goal: 'Atsikratyti riebalinės masės',
-    result: 'Numetė 13 kg riebalinės masės per 2 mėnesius',
+    result: 'Numetė 14 kg',
+    period: '2 mėnesius',
     before: {
       image: fromUploads('_optimized/atsiliepimai/image00001-960w.webp'),
       label: 'Foto prieš',
@@ -1003,6 +1005,7 @@ const transformationsEn = [
     program: 'Strength & muscle gain',
     goal: 'Better overall fitness and lower body fat',
     result: 'Gained 15 kg of muscle in 9 months',
+    period: '9 months',
     before: {
       image: fromUploads('_optimized/atsiliepimai/before-2-960w.webp'),
       label: 'Before photo',
@@ -1052,7 +1055,8 @@ const transformationsEn = [
     name: 'MIROSLAV MICHOLČ',
     program: 'Weight loss',
     goal: 'Lose body fat',
-    result: 'Lost 13 kg of body fat in 2 months',
+    result: 'Lost 14 kg of body fat in 2 months',
+    period: '2 months',
     before: {
       image: fromUploads('_optimized/atsiliepimai/image00001-960w.webp'),
       label: 'Before photo',
@@ -1150,7 +1154,7 @@ const notHelpListByLocale = {
 const servicesLt = [
   {
     title: 'Testavimo treniruotė su kūno analize ir programos sudarymu',
-    image: fromUploads('_optimized/testavimas4-960w.webp'),
+    image: fromUploads('testavimas8.jpg'),
     description:
       'Pirmas žingsnis į aiškius rezultatus! Atliekame išsamią kūno analizę ir paruošiame programą pagal tavo tikslus.',
     features: [
@@ -1225,7 +1229,7 @@ const servicesLt = [
 const servicesEn = [
   {
     title: 'Assessment training + body analysis + plan setup',
-    image: fromUploads('_optimized/testavimas4-960w.webp'),
+    image: fromUploads('testavimas8.jpg'),
     description: 'A clear starting point: assess, understand your body, and build the right plan for your goal.',
     features: [
       'Muscle balance, posture and body composition overview',
@@ -2417,7 +2421,7 @@ function App({ locale = 'lt' }) {
                     return s.replace(/\s+(per|in)\s+([^.;,]+)\s*$/i, '').trim();
                   };
 
-                  const periodTextRaw = extractPeriodFromResult(item.result);
+                  const periodTextRaw = String(item.period || '').trim() || extractPeriodFromResult(item.result);
                   const periodText = periodTextRaw
                     ? (activeLocale === 'lt' ? capitalizeFirst(normalizeLtPeriod(periodTextRaw)) : periodTextRaw)
                     : null;
@@ -2444,11 +2448,8 @@ function App({ locale = 'lt' }) {
                     >
                       <div className="flex flex-col gap-8 lg:flex-row lg:items-stretch">
                         <div className="flex-1 space-y-6 flex flex-col">
-                          <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-4">
                             <h3 className="font-heading text-2xl sm:text-3xl font-black tracking-tight uppercase text-white">{item.name}</h3>
-                            <span className="inline-flex shrink-0 items-center justify-center rounded-full bg-[#DCF41E] px-3 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-black">
-                              {activeLocale === 'lt' ? 'Rezultatas' : 'Result'}
-                            </span>
                           </div>
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

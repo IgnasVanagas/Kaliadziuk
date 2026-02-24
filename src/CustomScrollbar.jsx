@@ -6,7 +6,7 @@ export default function CustomScrollbar() {
   const [isDesktop, setIsDesktop] = useState(false);
   
   useEffect(() => {
-    const check = () => setIsDesktop(window.matchMedia('(pointer: fine)').matches);
+    const check = () => setIsDesktop(window.matchMedia('(min-width: 1024px) and (hover: hover) and (pointer: fine)').matches);
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
