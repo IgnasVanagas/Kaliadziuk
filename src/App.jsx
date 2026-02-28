@@ -65,6 +65,20 @@ const contactImage = fromUploads('IMG_0488-scaled.jpg');
 const contactImageMobile = fromUploads('IMG_0451-scaled.jpg');
 const transformationsBackgroundImage = fromUploads('grupine1.jpg');
 const quizImage = fromUploads('testavimas1.jpg');
+const gabrieleAvatar = '/uploads/atsiliepimai/_thumbs/IMG_8426.jpeg?v=20260227-2';
+const gabrieleAvatarFallback = '/uploads/atsiliepimai/_thumbs/IMG_8426.jpeg?v=20260227-2';
+
+const handleAvatarImageError = (event) => {
+  const fallbackSrc = event.currentTarget.dataset.fallbackSrc;
+  if (!fallbackSrc) {
+    return;
+  }
+
+  const resolvedFallback = new URL(fallbackSrc, window.location.origin).href;
+  if (event.currentTarget.src !== resolvedFallback) {
+    event.currentTarget.src = fallbackSrc;
+  }
+};
 
 const heroStatsByLocale = {
   lt: [
@@ -103,7 +117,7 @@ const Hero = ({ stats, backgroundDesktop, backgroundMobile, title, subtitle, cta
       <img
         src={backgroundDesktop}
         alt={imageAlt}
-        className="h-full w-full object-cover"
+        className="h-full w-full object-cover brightness-110 md:brightness-100"
         style={{ objectPosition: 'center 30%' }}
         loading="eager"
       />
@@ -804,7 +818,8 @@ const storiesLt = [
   },
   {
     name: 'Gabrielė Juozapavičiūtė',
-    avatar: '/uploads/atsiliepimai/_thumbs/IMG_8426.jpeg?v=20260224',
+    avatar: gabrieleAvatar,
+    avatarFallback: gabrieleAvatarFallback,
     quote:
       '“Niekada nemaniau, kad sporto klubas man gali patikti – kol nepradėjau treniruotis su Pavelu. Su juo treniruotės niekada nėra nuobodžios! Visi pratimai parenkami individualiai, atsižvelgiant į mano tikslus ir iššūkius, todėl kiekviena treniruotė yra prasminga ir tikslinga. Po užsiėmimų visada jaučiuosi stipresnė, tvirtesnė ir labiau pasitikinti savimi. Pavelas – vienas geriausių trenerių Lietuvoje, ir esu labai dėkinga už galimybę sportuoti prižiūrint tokiam aukšto lygio profesionalui.”',
   },
@@ -885,7 +900,8 @@ const storiesEn = [
   },
   {
     name: 'Gabrielė Juozapavičiūtė',
-    avatar: '/uploads/atsiliepimai/_thumbs/IMG_8426.jpeg?v=20260224',
+    avatar: gabrieleAvatar,
+    avatarFallback: gabrieleAvatarFallback,
     quote:
       '“I never thought I could enjoy the gym – until I started training with Pavel. Training with him is never boring! All exercises are selected individually, taking into account my goals and challenges, so every workout is meaningful and purposeful. After sessions I always feel stronger, firmer and more confident. Pavel is one of the best trainers in Lithuania, and I am very grateful for the opportunity to train under the supervision of such a high-level professional.”',
   },
@@ -2030,8 +2046,8 @@ function App({ locale = 'lt' }) {
                   data-aos="fade-up"
                 >
                   <div
-                    className={`relative flex shrink-0 flex-col justify-center border-b border-black/10 bg-white px-6 py-4 sm:px-8 sm:py-5 ${
-                      plan.isMostPopular ? 'h-[124px] pt-11 sm:h-[144px] sm:pt-11' : 'h-[80px] sm:h-[100px]'
+                    className={`relative shrink-0 border-b border-black/10 bg-white px-6 sm:px-8 ${
+                      plan.isMostPopular ? 'h-[124px] sm:h-[144px]' : 'h-[80px] sm:h-[100px]'
                     }`}
                   >
                     {plan.isMostPopular && (
@@ -2039,7 +2055,9 @@ function App({ locale = 'lt' }) {
                         {activeLocale === 'lt' ? 'Populiariausia' : 'Most Popular'}
                       </span>
                     )}
-                    <h3 className="w-full text-center font-heading text-xl font-black leading-tight text-black sm:text-2xl">{plan.title}</h3>
+                    <div className={`flex h-full items-center justify-center ${plan.isMostPopular ? 'pt-11' : ''}`}>
+                      <h3 className="w-full text-center font-heading text-xl font-black leading-tight text-black sm:text-2xl">{plan.title}</h3>
+                    </div>
                   </div>
                   <div className="relative h-[380px] sm:h-[360px] shrink-0">
                     <img src={plan.image} alt={plan.title} className="absolute inset-0 h-full w-full object-cover brightness-110 saturate-110" loading="lazy" />
@@ -2147,6 +2165,8 @@ function App({ locale = 'lt' }) {
                               {story.avatar ? (
                                 <img
                                   src={story.avatar}
+                                  data-fallback-src={story.avatarFallback || ''}
+                                  onError={handleAvatarImageError}
                                   alt={activeLocale === 'lt' ? `Kliento nuotrauka — ${story.name}` : `Client photo — ${story.name}`}
                                   className="h-14 w-14 rounded-full object-cover border-2 border-[#DCF41E]"
                                   loading="lazy"
@@ -2734,6 +2754,8 @@ function App({ locale = 'lt' }) {
                             {story.avatar ? (
                               <img
                                 src={story.avatar}
+                                data-fallback-src={story.avatarFallback || ''}
+                                onError={handleAvatarImageError}
                                 alt={activeLocale === 'lt' ? `Kliento nuotrauka — ${story.name}` : `Client photo — ${story.name}`}
                                 className="h-14 w-14 rounded-full object-cover"
                                 loading="lazy"
