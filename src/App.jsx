@@ -1931,45 +1931,37 @@ function App({ locale = 'lt' }) {
               </div>
               <div>
                 <h3 className="font-heading text-4xl font-black uppercase">{activeLocale === 'lt' ? 'Apie mane' : 'About me'}</h3>
-                <div className="space-y-4 text-base text-black/75">
+                <div className="mt-6 space-y-4 text-base text-black/75">
                   {activeLocale === 'lt' ? (
                     <>
                       <p>
                         Labas, aš Pavel Kaliadziuk — asmeninis treneris Vilniuje, sveikatingumo treneris ir biomechanikos specialistas,
                         jau daugiau nei aštuonerius metus padedantis žmonėms raumenų auginimo, svorio metimo ir judėjimo be skausmo kelyje.
-                        Asmeninis treneris Vilniuje: raumenų auginimas ir svorio metimas.
                       </p>
                       <p>
-                        Mano kelionė sporte prasidėjo dar būnant septynerių. Nuo pat vaikystės jutau tą vidinę ugnį — norą atrasti save,
-                        tapti stipriu ne tik kūnu, bet ir charakteriu. Sportas man tapo būdu augti ir įrodyti, kad galiu daugiau, net tada, kai
-                        aplinkybėse trūko atramos.
+                        <strong className="font-semibold text-black">Skausmas neturi būti tavo sporto norma.</strong> Dauguma žmonių stringa ne
+                        dėl motyvacijos stokos, o dėl to, kad treniruojasi per skausmą ir kartoja tas pačias technikos klaidas.
                       </p>
                       <p>
-                        Pradėjau nuo imtynių, vėliau pasinėriau į lengvąją atletiką, futbolą ir galiausiai į treniruotes savo kūno svoriu.
-                        Maksimalizmas ir noras viską daryti „iki galo“ atvedė prie traumų — pečių, stuburo, kelių skausmai privertė sustoti ir
-                        klausytis savo kūno.
+                        <strong className="font-semibold text-black">Mano stiprybė — biomechanika ir judėjimas be skausmo.</strong> Esu asmeninis
+                        treneris Vilniuje ir jau daugiau nei 8 metus padedu žmonėms saugiai siekti rezultatų: raumenų auginimo, svorio metimo ir
+                        tvirto, funkcionalaus kūno.
                       </p>
                       <p>
-                        Kai kūnas nebeleidžia eiti pirmyn, turi suprasti, ką jis tau sako. Pradėjau gilintis į anatomiją, stuburo struktūrą,
-                        biomechaniką, analizavau kiekvieną judesį kaip eksperimentą. Supratau, kad judėjimas turi būti protingas, o kiekvieno
-                        žmogaus kūnas — unikalus.
+                        <strong className="font-semibold text-black">Ką tai reiškia tau praktiškai?</strong> Kartu išmokstame judėti tiksliai,
+                        mažiname pečių, nugaros ir kelių perkrovas, o progresą kuriame be bereikalingų traumų ir pasikartojančių skausmų.
                       </p>
                       <p>
-                        Buvo laikas, kai skaudėjo ne tik kūną, bet ir vidų. Depresijos bangos, finansiniai sunkumai, jausmas, kad esi vienas su
-                        savo skausmu. Tai nepalaužė — priešingai, paskatino ieškoti gilesnės prasmės ir dalintis patirtimi su kitais.
+                        <strong className="font-semibold text-black">8+ metų patirtis ir sporto universiteto išsilavinimas.</strong> Mano metodika
+                        paremta ne spėjimais, o anatomija, biomechanika, praktika su klientais ir nuosekliu planu, pritaikytu tavo kūnui.
                       </p>
                       <p>
-                        Todėl įstojau į sporto universitetą ir pradėjau gilinti žinias moksliškai. Studijos, seminarai, darbas su specialistais ir
-                        praktika su klientais vedė prie vieno tikslo — padėti žmonėms atrasti sveiką, harmoningą ir sąmoningą judėjimą.
+                        Esu praėjęs kelią nuo traumų iki protingo judėjimo, todėl padedu tau išvengti klaidų, kurios kainuoja laiką, sveikatą ir
+                        motyvaciją. Mes dirbame taip, kad kūnas stiprėtų, o ne „gesintų gaisrus“ po kiekvienos treniruotės.
                       </p>
                       <p>
-                        Dirbau sporto klubuose, universitete, vedžiau treniruotes, organizavau seminarus, kūriau įrangą ir drabužius — sportas tapo
-                        mano gyvenimo būdu, ne tik darbu.
-                      </p>
-                      <p>
-                        Šiandien padedu žmonėms ne tik sustiprinti kūną, bet ir jį suprasti. Mokau judėti be skausmo, be baimės ir su pasitikėjimu.
-                        Tikiu, kad judėjimas — kelias į vidinę ramybę. Jei gali kiti, kodėl negali tu? Aš tikiu tavimi, ir jei eisi kartu, pasieksime
-                        daugiau, nei kada nors įsivaizdavai.
+                        Jei nori ne tik atrodyti geriau, bet ir jaustis stabiliai kasdienybėje, pradėkime nuo pagrindo — nuo judėjimo be skausmo.
+                        Tada raumenų auginimas ir svorio metimas vyksta greičiau, saugiau ir tvariau.
                       </p>
                     </>
                   ) : (
