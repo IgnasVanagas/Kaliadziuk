@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getConsent } from './ConsentBanner';
 
-export default function GoogleAnalytics() {
+export default function SiteMetrics() {
   const location = useLocation();
 
   useEffect(() => {
@@ -10,7 +10,6 @@ export default function GoogleAnalytics() {
     if (!gaId) return;
 
     const loadGa = () => {
-      // Load the script if it's not already there
       if (!window.gtag) {
         const script = document.createElement('script');
         script.async = true;
@@ -18,21 +17,21 @@ export default function GoogleAnalytics() {
         document.head.appendChild(script);
 
         window.dataLayer = window.dataLayer || [];
-        function gtag() { window.dataLayer.push(arguments); }
+        function gtag() {
+          window.dataLayer.push(arguments);
+        }
         window.gtag = gtag;
         gtag('js', new Date());
         gtag('config', gaId);
       }
     };
 
-    // Check initial consent
     if (getConsent() === 'granted') {
       loadGa();
     }
 
-    // Listen for consent updates
-    const onConsentUpdate = (e) => {
-      if (e.detail === 'granted') {
+    const onConsentUpdate = (event) => {
+      if (event.detail === 'granted') {
         loadGa();
       }
     };
@@ -42,10 +41,7 @@ export default function GoogleAnalytics() {
   }, []);
 
   useEffect(() => {
-    // Send pageview on route change (for Single Page Apps)
-    // GA4 Enhanced Measurement handles many history changes, but explicit calls ensure accuracy.
     const gaId = import.meta.env.VITE_GOOGLE_ANALYTICS_ID;
-    // Only send if initialized
     if (gaId && window.gtag) {
       window.gtag('config', gaId, {
         page_path: location.pathname + location.search,

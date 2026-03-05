@@ -5,11 +5,229 @@ import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../auth/AuthProvider';
+import { addItem, loadCart, saveCart } from '../state/cart';
 
 const fromUploads = (file) => `/uploads/${String(file || '').replace(/^\/+/, '')}`;
 
 const heroImage = fromUploads('_optimized/IMG_0443-scaled-1920w.webp');
 const accentImage = fromUploads('_optimized/IMG_0469-scaled-2560w.webp');
+
+const RECOMMENDATION_PROGRAM_IDS = {
+  weightLoss: '11111111-1111-1111-1111-111111111111',
+  muscleGain: '22222222-2222-2222-2222-222222222222',
+  homeTraining: '33333333-3333-3333-3333-333333333333',
+  mobility: '44444444-4444-4444-4444-444444444444',
+  vip: '55555555-5555-5555-5555-555555555555',
+  homeTrainingPlus: '66666666-6666-6666-6666-666666666666',
+};
+
+const RECOMMENDATION_PRICE_CENTS_BY_ID = {
+  [RECOMMENDATION_PROGRAM_IDS.weightLoss]: 19900,
+  [RECOMMENDATION_PROGRAM_IDS.muscleGain]: 19900,
+  [RECOMMENDATION_PROGRAM_IDS.homeTraining]: 14700,
+  [RECOMMENDATION_PROGRAM_IDS.mobility]: 9700,
+  [RECOMMENDATION_PROGRAM_IDS.vip]: 49900,
+  [RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus]: 29900,
+};
+
+const recommendationProgramsByLocale = {
+  lt: {
+    [RECOMMENDATION_PROGRAM_IDS.vip]: {
+      productId: RECOMMENDATION_PROGRAM_IDS.vip,
+      title: 'VIP individualus koučingas',
+      subtitle: 'Maksimalus dėmesys (12 savaičių)',
+      description: 'Aukščiausios kokybės programa su visiškai individualia priežiūra, kasdieniu bendravimu ir gilia analize.',
+      duration: '12 savaičių',
+      price: '499€',
+      image: fromUploads('IMG_0469-scaled.jpg'),
+      result: 'Maksimali transformacija per trumpiausią laiką.',
+      extras: [
+        'Kasdienė komunikacija ir priežiūra',
+        'Neribotos konsultacijos proceso metu',
+        'Technikos video analizė realiu laiku',
+        'Individuali mitybos strategija',
+      ],
+    },
+    [RECOMMENDATION_PROGRAM_IDS.weightLoss]: {
+      productId: RECOMMENDATION_PROGRAM_IDS.weightLoss,
+      title: 'Svorio metimo programa',
+      subtitle: '8–12 savaičių',
+      description: 'Tvari ir aiški sistema svorio mažinimui be chaoso, su individualiu planu ir mitybos gairėmis.',
+      duration: '8–12 savaičių',
+      price: '199€',
+      image: fromUploads('brokolis.jpg'),
+      result: 'Svorio mažinimas vyksta nuosekliai ir saugiai.',
+      extras: [
+        'Individualus sporto planas',
+        'Aiškios mitybos gairės',
+        'Savaitinė progreso peržiūra',
+        'Startinė konsultacija',
+      ],
+    },
+    [RECOMMENDATION_PROGRAM_IDS.muscleGain]: {
+      productId: RECOMMENDATION_PROGRAM_IDS.muscleGain,
+      title: 'Raumenų auginimo programa',
+      subtitle: '8–12 savaičių',
+      description: 'Progresyvi programa liesos raumenų masės auginimui su aiškia apkrovų ir mitybos struktūra.',
+      duration: '8–12 savaičių',
+      price: '199€',
+      image: fromUploads('paaugliu4.jpg'),
+      result: 'Raumenų masė ir jėga auga pagal aiškią metodiką.',
+      extras: [
+        'Progresijai skirtas planas',
+        'Mitybos gairės masei',
+        'Technikos korekcijos',
+        'Progreso sekimas kas savaitę',
+      ],
+    },
+    [RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus]: {
+      productId: RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus,
+      title: 'Namų treniruotės + Asmeninė priežiūra',
+      subtitle: '8 savaitės',
+      description: 'Namų treniruotės su nuolatine trenerio priežiūra, technikos analize ir nuosekliu palaikymu.',
+      duration: '8 savaitės',
+      price: '299€',
+      image: fromUploads('grupine8.jpg'),
+      result: 'Aiškus progresas namų aplinkoje su profesionalo kontrole.',
+      extras: [
+        'Individualus namų planas',
+        'Kasdienis trenerio ryšys',
+        'Video technikos analizė',
+        'Plano adaptacijos pagal progresą',
+      ],
+    },
+    [RECOMMENDATION_PROGRAM_IDS.homeTraining]: {
+      productId: RECOMMENDATION_PROGRAM_IDS.homeTraining,
+      title: 'Namų treniruočių programa',
+      subtitle: '6–8 savaitės',
+      description: 'Sistema treniruotėms namuose su aiškia struktūra, kad rezultatus pasiektumėte be sporto salės.',
+      duration: '6–8 savaitės',
+      price: '147€',
+      image: fromUploads('grupine6.jpg'),
+      result: 'Stiprus kūnas ir aiški namų treniruočių sistema.',
+      extras: [
+        'Aiški A–Z namų treniruočių sistema',
+        'Pratimų video biblioteka',
+        'Technikos įvedimas nuo pradžių',
+        'Progreso struktūra savaitėms',
+      ],
+    },
+    [RECOMMENDATION_PROGRAM_IDS.mobility]: {
+      productId: RECOMMENDATION_PROGRAM_IDS.mobility,
+      title: 'Mobilumo lavinimo programa',
+      subtitle: '6–8 savaitės',
+      description: 'Kasdienis mobilumo planas, skirtas mažinti įtampą ir gerinti judesio kokybę bei savijautą.',
+      duration: '6–8 savaitės',
+      price: '97€',
+      image: fromUploads('_optimized/testavimas4-960w.webp'),
+      result: 'Daugiau laisvės judėti be įtampos ir skausmo.',
+      extras: [
+        '10–30 min. mobilumo rutina kasdienai',
+        'Aiški judesio video seka',
+        'Laikysenos ir judesių kontrolės gerinimas',
+        'Startinė konsultacija pagal būklę',
+      ],
+    },
+  },
+  en: {
+    [RECOMMENDATION_PROGRAM_IDS.vip]: {
+      productId: RECOMMENDATION_PROGRAM_IDS.vip,
+      title: 'VIP individual coaching',
+      subtitle: 'Maximum focus (12 weeks)',
+      description: 'Premium-level coaching with fully individualized support, daily communication, and deep analysis.',
+      duration: '12 weeks',
+      price: '499€',
+      image: fromUploads('IMG_0469-scaled.jpg'),
+      result: 'Maximum transformation in the shortest time.',
+      extras: [
+        'Daily communication and supervision',
+        'Unlimited consultations during the process',
+        'Real-time technique video analysis',
+        'Individual nutrition strategy',
+      ],
+    },
+    [RECOMMENDATION_PROGRAM_IDS.weightLoss]: {
+      productId: RECOMMENDATION_PROGRAM_IDS.weightLoss,
+      title: 'Weight loss program',
+      subtitle: '8–12 weeks',
+      description: 'A sustainable weight-loss system with clear structure, personalized training, and nutrition guidance.',
+      duration: '8–12 weeks',
+      price: '199€',
+      image: fromUploads('brokolis.jpg'),
+      result: 'Weight decreases sustainably and safely.',
+      extras: [
+        'Personalized training plan',
+        'Clear nutrition guidance',
+        'Weekly progress review',
+        'Initial consultation',
+      ],
+    },
+    [RECOMMENDATION_PROGRAM_IDS.muscleGain]: {
+      productId: RECOMMENDATION_PROGRAM_IDS.muscleGain,
+      title: 'Muscle building program',
+      subtitle: '8–12 weeks',
+      description: 'A progressive program for lean muscle growth with clear training and nutrition structure.',
+      duration: '8–12 weeks',
+      price: '199€',
+      image: fromUploads('paaugliu4.jpg'),
+      result: 'Muscle mass and strength increase with a clear method.',
+      extras: [
+        'Progressive hypertrophy plan',
+        'Nutrition guidance for muscle gain',
+        'Technique corrections',
+        'Weekly progress tracking',
+      ],
+    },
+    [RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus]: {
+      productId: RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus,
+      title: 'Home workouts + personal supervision',
+      subtitle: '8 weeks',
+      description: 'Home training with close coach supervision, technique checks, and ongoing support.',
+      duration: '8 weeks',
+      price: '299€',
+      image: fromUploads('grupine8.jpg'),
+      result: 'Structured home progress with professional oversight.',
+      extras: [
+        'Individual home plan',
+        'Daily coach communication',
+        'Video technique analysis',
+        'Program adjustments by progress',
+      ],
+    },
+    [RECOMMENDATION_PROGRAM_IDS.homeTraining]: {
+      productId: RECOMMENDATION_PROGRAM_IDS.homeTraining,
+      title: 'Home workout program',
+      subtitle: '6–8 weeks',
+      description: 'A practical at-home system for results without a gym, with clear week-by-week structure.',
+      duration: '6–8 weeks',
+      price: '147€',
+      image: fromUploads('grupine6.jpg'),
+      result: 'A strong body and a clear home training system.',
+      extras: [
+        'Clear A–Z home training structure',
+        'Exercise video library',
+        'Technique onboarding from day one',
+        'Weekly progression system',
+      ],
+    },
+    [RECOMMENDATION_PROGRAM_IDS.mobility]: {
+      productId: RECOMMENDATION_PROGRAM_IDS.mobility,
+      title: 'Mobility development program',
+      subtitle: '6–8 weeks',
+      description: 'A daily mobility plan to reduce tension and improve movement quality and body awareness.',
+      duration: '6–8 weeks',
+      price: '97€',
+      image: fromUploads('_optimized/testavimas4-960w.webp'),
+      result: 'More freedom to move without tension.',
+      extras: [
+        '10–30 min daily mobility routine',
+        'Clear movement video sequence',
+        'Posture and control improvements',
+        'Initial consultation based on your status',
+      ],
+    },
+  },
+};
 
 const copyByLocale = {
   lt: {
@@ -58,6 +276,12 @@ const copyByLocale = {
           'Taip, nuolat',
           'Turiu, bet naudoju retai',
           'Ne, nenaudoju'
+        ],
+        environmentQuestion: 'Kokioje aplinkoje labiau norite sportuoti?',
+        environmentOptions: [
+          'Namuose',
+          'Sporto salėje',
+          'Mišriai (namai + salė)'
         ]
       },
       {
@@ -105,13 +329,22 @@ const copyByLocale = {
           'Streso lygis žemas',
           'Vidutinis streso lygis',
           'Aukštas streso lygis'
+        ],
+        budgetQuestion: 'Kiek lėšų planuojate skirti rezultatui pasiekti?',
+        budgetOptions: [
+          'Iki 120 €',
+          '120–180 €',
+          '180–240 €',
+          '320+ €'
         ]
       }
     ],
     summary: {
       title: 'Kaip norite, kad su jumis susisiekčiau?',
       body: 'Galite palikti el. paštą, telefono numerį arba abu. Tai reikalinga individualaus plano aptarimui.',
-      button: 'Išsaugoti ir tęsti'
+      button: 'Išsaugoti ir tęsti',
+      recommendationTitle: 'Pagal jūsų atsakymus labiausiai tinka:',
+      recommendationBody: 'Ši programa parinkta pagal tikslą, biudžetą, treniruočių aplinką ir sveikatos kontekstą.'
     },
     navigation: {
       next: 'Toliau',
@@ -175,6 +408,12 @@ const copyByLocale = {
           'Yes, regularly',
           'I have one, but rarely use it',
           'No, I do not use one'
+        ],
+        environmentQuestion: 'Which training environment do you prefer?',
+        environmentOptions: [
+          'At home',
+          'Gym',
+          'Mixed (home + gym)'
         ]
       },
       {
@@ -222,13 +461,22 @@ const copyByLocale = {
           'Low stress level',
           'Medium stress level',
           'High stress level'
+        ],
+        budgetQuestion: 'How much are you ready to invest to reach your result?',
+        budgetOptions: [
+          'Up to €120',
+          '€120–€180',
+          '€180–€240',
+          '€320+'
         ]
       }
     ],
     summary: {
       title: 'How should I contact you?',
       body: 'You can leave your email, phone number, or both. This is needed to discuss your individual plan.',
-      button: 'Save and continue'
+      button: 'Save and continue',
+      recommendationTitle: 'Based on your answers, the best fit is:',
+      recommendationBody: 'This recommendation is weighted by your goal, budget, preferred environment, and health context.'
     },
     navigation: {
       next: 'Next',
@@ -297,8 +545,8 @@ const RangeSlider = ({ value, min, max, step, onChange, background }) => {
           max={max}
           step={step}
           value={value}
-          onChange={onChange}
-          className="h-4 w-full cursor-pointer appearance-none rounded-full accent-black"
+         onChange={onChange}
+         className="questionnaire-range h-4 w-full cursor-pointer appearance-none rounded-full"
           style={{ background }}
        />
     </div>
@@ -315,9 +563,12 @@ export default function Questionnaire() {
 
   const [goal, setGoal] = useState('');
   const [motivation, setMotivation] = useState('');
+  const [budget, setBudget] = useState('');
+  const [budgetSliderValue, setBudgetSliderValue] = useState(0);
   const [workday, setWorkday] = useState('');
   const [sleep, setSleep] = useState(7);
   const [tracker, setTracker] = useState('');
+  const [trainingEnvironment, setTrainingEnvironment] = useState('');
   const [discomforts, setDiscomforts] = useState([]);
   const [injury, setInjury] = useState('');
   const [age, setAge] = useState('');
@@ -331,7 +582,27 @@ export default function Questionnaire() {
   const [phone, setPhone] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isProgressHydrated, setIsProgressHydrated] = useState(false);
   const [errorPopup, setErrorPopup] = useState(null); // { title: string, message: string }
+
+  const budgetOptions = content.stages[3]?.budgetOptions || [];
+  const maxBudgetIndex = Math.max(budgetOptions.length - 1, 0);
+  const clampedBudgetSliderValue = Math.min(Math.max(budgetSliderValue, 0), maxBudgetIndex);
+  const normalizedBudgetIndex = Math.min(Math.max(Math.round(clampedBudgetSliderValue), 0), maxBudgetIndex);
+  const budgetProgress = maxBudgetIndex > 0
+    ? (clampedBudgetSliderValue / maxBudgetIndex) * 100
+    : 0;
+
+  const handleBudgetChange = (event) => {
+    const nextRawValue = Number(event.target.value);
+    if (Number.isNaN(nextRawValue)) return;
+
+    setBudgetSliderValue(nextRawValue);
+
+    const nextIndex = Math.min(Math.max(Math.round(nextRawValue), 0), maxBudgetIndex);
+    const nextBudget = budgetOptions[nextIndex];
+    if (nextBudget && nextBudget !== budget) setBudget(nextBudget);
+  };
 
   const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
   const hasSelection = (value) => hasText(value);
@@ -352,6 +623,7 @@ export default function Questionnaire() {
     if (checkStage2) {
       if (!hasSelection(workday)) missing.push(locale === 'lt' ? 'Darbo pobūdis' : 'Workday');
       if (content.stages[1].trackerOptions && !hasSelection(tracker)) missing.push(locale === 'lt' ? 'Pulsometras' : 'Tracker');
+      if (!hasSelection(trainingEnvironment)) missing.push(locale === 'lt' ? 'Treniruočių aplinka' : 'Training environment');
     }
 
     if (checkStage3) {
@@ -364,6 +636,7 @@ export default function Questionnaire() {
       if (!hasSelection(weight)) missing.push(locale === 'lt' ? 'Svoris' : 'Weight');
       if (!hasSelection(height)) missing.push(locale === 'lt' ? 'Ūgis' : 'Height');
       if (!hasSelection(family)) missing.push(locale === 'lt' ? 'Širdies ligos' : 'Family history');
+      if (!hasSelection(budget)) missing.push(locale === 'lt' ? 'Biudžetas' : 'Budget');
     }
 
     return missing;
@@ -377,9 +650,15 @@ export default function Questionnaire() {
         const p = JSON.parse(saved);
         if (p.goal) setGoal(p.goal);
         if (p.motivation) setMotivation(p.motivation);
+        if (p.budget) {
+          setBudget(p.budget);
+          const savedBudgetIndex = budgetOptions.indexOf(p.budget);
+          if (savedBudgetIndex >= 0) setBudgetSliderValue(savedBudgetIndex);
+        }
         if (p.workday) setWorkday(p.workday);
         if (p.sleep) setSleep(p.sleep);
         if (p.tracker) setTracker(p.tracker);
+        if (p.trainingEnvironment) setTrainingEnvironment(p.trainingEnvironment);
         if (p.discomforts) setDiscomforts(p.discomforts);
         if (p.injury) setInjury(p.injury);
         if (p.age) setAge(p.age);
@@ -393,18 +672,37 @@ export default function Questionnaire() {
       }
     } catch (e) {
       // ignore
+    } finally {
+      setIsProgressHydrated(true);
     }
   }, []);
 
   // Save progress with debounce to prevent slider lag
   useEffect(() => {
+    if (!isProgressHydrated) return;
+
     const timer = setTimeout(() => {
-      const payload = { goal, motivation, workday, sleep, tracker, discomforts, injury, age, weight, height, family, stress, gender, email, phone };
+      const payload = { goal, motivation, budget, workday, sleep, tracker, trainingEnvironment, discomforts, injury, age, weight, height, family, stress, gender, email, phone };
       localStorage.setItem('questionnaire_progress', JSON.stringify(payload));
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [goal, motivation, workday, sleep, tracker, discomforts, injury, age, weight, height, family, stress, gender, email, phone]);
+  }, [goal, motivation, budget, workday, sleep, tracker, trainingEnvironment, discomforts, injury, age, weight, height, family, stress, gender, email, phone, isProgressHydrated]);
+
+  useEffect(() => {
+    if (!isProgressHydrated) return;
+    if (!budgetOptions.length) return;
+    if (!budget) {
+      setBudget(budgetOptions[0]);
+      setBudgetSliderValue(0);
+      return;
+    }
+    if (!budgetOptions.includes(budget)) {
+      const fallbackBudgetIndex = budgetOptions.length - 1;
+      setBudget(budgetOptions[fallbackBudgetIndex]);
+      setBudgetSliderValue(fallbackBudgetIndex);
+    }
+  }, [budget, budgetOptions, isProgressHydrated]);
 
   const handleSubmit = async () => {
     // Validate required fields
@@ -462,7 +760,26 @@ export default function Questionnaire() {
     
     setIsSubmitting(true);
     try {
-      const payload = { goal, motivation, workday, sleep, tracker, discomforts, injury, age, weight, height, family, stress, gender, phone };
+      const payload = {
+        goal,
+        motivation,
+        budget,
+        workday,
+        sleep,
+        tracker,
+        training_environment: trainingEnvironment,
+        discomforts,
+        injury,
+        age,
+        weight,
+        height,
+        family,
+        stress,
+        gender,
+        recommended_program_id: recommendedProgram?.productId,
+        recommended_program_title: recommendedProgram?.title,
+        phone,
+      };
       const { error } = await supabase.functions.invoke('submit-questionnaire', {
         body: {
           payload,
@@ -491,12 +808,14 @@ export default function Questionnaire() {
     ? stageFromPath - 1
     : 0;
 
-  const totalSignals = 14;
+  const totalSignals = 16;
   const filledSignals = [
     goal,
     motivation,
+    budget,
     workday,
     tracker,
+    trainingEnvironment,
     discomforts.length ? '1' : '',
     injury,
     age,
@@ -508,6 +827,240 @@ export default function Questionnaire() {
     sleep >= 1 ? '1' : ''
   ].filter(Boolean).length;
   const completion = Math.min(100, Math.round((filledSignals / totalSignals) * 100));
+
+  const recommendedProgram = useMemo(() => {
+    const programs = recommendationProgramsByLocale[locale] || {};
+
+    const scoreByProgram = {
+      [RECOMMENDATION_PROGRAM_IDS.vip]: 0,
+      [RECOMMENDATION_PROGRAM_IDS.weightLoss]: 0,
+      [RECOMMENDATION_PROGRAM_IDS.muscleGain]: 0,
+      [RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus]: 0,
+      [RECOMMENDATION_PROGRAM_IDS.homeTraining]: 0,
+      [RECOMMENDATION_PROGRAM_IDS.mobility]: 0,
+    };
+
+    const addScore = (programId, points) => {
+      scoreByProgram[programId] = (scoreByProgram[programId] || 0) + points;
+    };
+
+    const goalIdx = content.stages[0].goals.indexOf(goal);
+    const budgetIdx = budgetOptions.indexOf(budget);
+    const environmentIdx = content.stages[1].environmentOptions.indexOf(trainingEnvironment);
+    const noDiscomfortOption = content.stages[2].discomfortOptions[5];
+    const hasMeaningfulDiscomfort = discomforts.some((item) => item !== noDiscomfortOption);
+    const noInjuryOption = content.stages[2].injuryOptions[0];
+    const hasInjury = hasText(injury) && injury !== noInjuryOption;
+    const isSedentary = workday === content.stages[1].workdayOptions[0];
+    const usesTrackerRegularly = tracker === content.stages[1].trackerOptions[0];
+
+    switch (goalIdx) {
+      case 0:
+        addScore(RECOMMENDATION_PROGRAM_IDS.mobility, 8);
+        addScore(RECOMMENDATION_PROGRAM_IDS.homeTraining, 4);
+        addScore(RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus, 4);
+        addScore(RECOMMENDATION_PROGRAM_IDS.vip, 3);
+        break;
+      case 1:
+        addScore(RECOMMENDATION_PROGRAM_IDS.weightLoss, 10);
+        addScore(RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus, 4);
+        addScore(RECOMMENDATION_PROGRAM_IDS.homeTraining, 3);
+        addScore(RECOMMENDATION_PROGRAM_IDS.vip, 3);
+        break;
+      case 2:
+        addScore(RECOMMENDATION_PROGRAM_IDS.muscleGain, 10);
+        addScore(RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus, 4);
+        addScore(RECOMMENDATION_PROGRAM_IDS.vip, 3);
+        break;
+      case 3:
+        addScore(RECOMMENDATION_PROGRAM_IDS.vip, 11);
+        addScore(RECOMMENDATION_PROGRAM_IDS.muscleGain, 5);
+        addScore(RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus, 4);
+        break;
+      default:
+        addScore(RECOMMENDATION_PROGRAM_IDS.homeTraining, 2);
+        break;
+    }
+
+    switch (budgetIdx) {
+      case 0:
+        addScore(RECOMMENDATION_PROGRAM_IDS.mobility, 11);
+        addScore(RECOMMENDATION_PROGRAM_IDS.homeTraining, 4);
+        addScore(RECOMMENDATION_PROGRAM_IDS.weightLoss, -2);
+        addScore(RECOMMENDATION_PROGRAM_IDS.muscleGain, -2);
+        addScore(RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus, -4);
+        addScore(RECOMMENDATION_PROGRAM_IDS.vip, -8);
+        break;
+      case 1:
+        addScore(RECOMMENDATION_PROGRAM_IDS.homeTraining, 10);
+        addScore(RECOMMENDATION_PROGRAM_IDS.mobility, 5);
+        addScore(RECOMMENDATION_PROGRAM_IDS.weightLoss, 1);
+        addScore(RECOMMENDATION_PROGRAM_IDS.muscleGain, 1);
+        addScore(RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus, -2);
+        addScore(RECOMMENDATION_PROGRAM_IDS.vip, -6);
+        break;
+      case 2:
+        addScore(RECOMMENDATION_PROGRAM_IDS.weightLoss, 8);
+        addScore(RECOMMENDATION_PROGRAM_IDS.muscleGain, 8);
+        addScore(RECOMMENDATION_PROGRAM_IDS.homeTraining, 3);
+        addScore(RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus, 2);
+        addScore(RECOMMENDATION_PROGRAM_IDS.vip, -3);
+        break;
+      case 3:
+        addScore(RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus, 8);
+        addScore(RECOMMENDATION_PROGRAM_IDS.vip, 5);
+        addScore(RECOMMENDATION_PROGRAM_IDS.weightLoss, 4);
+        addScore(RECOMMENDATION_PROGRAM_IDS.muscleGain, 4);
+        addScore(RECOMMENDATION_PROGRAM_IDS.homeTraining, 2);
+        break;
+      default:
+        break;
+    }
+
+    switch (environmentIdx) {
+      case 0:
+        addScore(RECOMMENDATION_PROGRAM_IDS.homeTraining, 8);
+        addScore(RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus, 7);
+        addScore(RECOMMENDATION_PROGRAM_IDS.mobility, 5);
+        addScore(RECOMMENDATION_PROGRAM_IDS.weightLoss, -1);
+        addScore(RECOMMENDATION_PROGRAM_IDS.muscleGain, -1);
+        break;
+      case 1:
+        addScore(RECOMMENDATION_PROGRAM_IDS.weightLoss, 5);
+        addScore(RECOMMENDATION_PROGRAM_IDS.muscleGain, 5);
+        addScore(RECOMMENDATION_PROGRAM_IDS.vip, 4);
+        addScore(RECOMMENDATION_PROGRAM_IDS.homeTraining, -2);
+        break;
+      case 2:
+        addScore(RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus, 6);
+        addScore(RECOMMENDATION_PROGRAM_IDS.vip, 5);
+        addScore(RECOMMENDATION_PROGRAM_IDS.weightLoss, 3);
+        addScore(RECOMMENDATION_PROGRAM_IDS.muscleGain, 3);
+        addScore(RECOMMENDATION_PROGRAM_IDS.homeTraining, 2);
+        break;
+      default:
+        break;
+    }
+
+    if (hasMeaningfulDiscomfort) {
+      addScore(RECOMMENDATION_PROGRAM_IDS.mobility, 5);
+      addScore(RECOMMENDATION_PROGRAM_IDS.vip, 2);
+      addScore(RECOMMENDATION_PROGRAM_IDS.homeTraining, 1);
+    }
+
+    if (hasInjury) {
+      addScore(RECOMMENDATION_PROGRAM_IDS.mobility, 4);
+      addScore(RECOMMENDATION_PROGRAM_IDS.vip, 3);
+      addScore(RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus, 2);
+    }
+
+    if (sleep <= 4 || stress >= 8) {
+      addScore(RECOMMENDATION_PROGRAM_IDS.mobility, 3);
+      addScore(RECOMMENDATION_PROGRAM_IDS.homeTraining, 2);
+    }
+
+    if (usesTrackerRegularly && (goalIdx === 2 || goalIdx === 3)) {
+      addScore(RECOMMENDATION_PROGRAM_IDS.muscleGain, 2);
+      addScore(RECOMMENDATION_PROGRAM_IDS.vip, 2);
+    }
+
+    if (isSedentary && goalIdx === 1) {
+      addScore(RECOMMENDATION_PROGRAM_IDS.weightLoss, 2);
+      addScore(RECOMMENDATION_PROGRAM_IDS.mobility, 1);
+    }
+
+    const tieBreakByGoal = {
+      0: [
+        RECOMMENDATION_PROGRAM_IDS.mobility,
+        RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus,
+        RECOMMENDATION_PROGRAM_IDS.homeTraining,
+        RECOMMENDATION_PROGRAM_IDS.vip,
+        RECOMMENDATION_PROGRAM_IDS.weightLoss,
+        RECOMMENDATION_PROGRAM_IDS.muscleGain,
+      ],
+      1: [
+        RECOMMENDATION_PROGRAM_IDS.weightLoss,
+        RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus,
+        RECOMMENDATION_PROGRAM_IDS.homeTraining,
+        RECOMMENDATION_PROGRAM_IDS.vip,
+        RECOMMENDATION_PROGRAM_IDS.mobility,
+        RECOMMENDATION_PROGRAM_IDS.muscleGain,
+      ],
+      2: [
+        RECOMMENDATION_PROGRAM_IDS.muscleGain,
+        RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus,
+        RECOMMENDATION_PROGRAM_IDS.vip,
+        RECOMMENDATION_PROGRAM_IDS.homeTraining,
+        RECOMMENDATION_PROGRAM_IDS.weightLoss,
+        RECOMMENDATION_PROGRAM_IDS.mobility,
+      ],
+      3: [
+        RECOMMENDATION_PROGRAM_IDS.vip,
+        RECOMMENDATION_PROGRAM_IDS.muscleGain,
+        RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus,
+        RECOMMENDATION_PROGRAM_IDS.weightLoss,
+        RECOMMENDATION_PROGRAM_IDS.homeTraining,
+        RECOMMENDATION_PROGRAM_IDS.mobility,
+      ],
+    };
+
+    const tieBreakOrder = tieBreakByGoal[goalIdx] || [
+      RECOMMENDATION_PROGRAM_IDS.weightLoss,
+      RECOMMENDATION_PROGRAM_IDS.muscleGain,
+      RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus,
+      RECOMMENDATION_PROGRAM_IDS.homeTraining,
+      RECOMMENDATION_PROGRAM_IDS.mobility,
+      RECOMMENDATION_PROGRAM_IDS.vip,
+    ];
+
+    let selectedProgramId = tieBreakOrder[0];
+    let topScore = Number.NEGATIVE_INFINITY;
+
+    tieBreakOrder.forEach((programId) => {
+      const currentScore = scoreByProgram[programId] || 0;
+      if (currentScore > topScore) {
+        topScore = currentScore;
+        selectedProgramId = programId;
+      }
+    });
+
+    return programs[selectedProgramId] || null;
+  }, [
+    locale,
+    content,
+    goal,
+    budget,
+    workday,
+    tracker,
+    trainingEnvironment,
+    discomforts,
+    injury,
+    sleep,
+    stress,
+    budgetOptions,
+  ]);
+
+  const handleBuyRecommendedProgram = () => {
+    if (!recommendedProgram?.productId) return;
+
+    const unitPriceCents = RECOMMENDATION_PRICE_CENTS_BY_ID[recommendedProgram.productId] || 0;
+    const cart = loadCart();
+    const next = addItem(cart, {
+      kind: 'product',
+      productId: recommendedProgram.productId,
+      name: recommendedProgram.title,
+      imageUrl: recommendedProgram.image,
+      unitPriceCents,
+      qty: 1,
+    });
+    saveCart(next);
+
+    try {
+      window.dispatchEvent(new Event('cart:open'));
+    } catch {
+      // ignore
+    }
+  };
 
   const toggleDiscomfort = (value) => {
     setDiscomforts((prev) => {
@@ -740,6 +1293,7 @@ export default function Questionnaire() {
                         </div>
                       </div>
                     </div>
+
                   </div>
                 </div>
               </section>
@@ -762,6 +1316,20 @@ export default function Questionnaire() {
                           label={item}
                           active={workday === item}
                           onClick={() => setWorkday(item)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="mb-4 block text-lg font-bold text-slate-800">{content.stages[1].environmentQuestion}</label>
+                    <div className="grid gap-3 md:grid-cols-3">
+                      {content.stages[1].environmentOptions.map((item) => (
+                        <ToggleButton
+                          key={item}
+                          label={item}
+                          active={trainingEnvironment === item}
+                          onClick={() => setTrainingEnvironment(item)}
                         />
                       ))}
                     </div>
@@ -950,6 +1518,36 @@ export default function Questionnaire() {
                          ))}
                       </div>
                     </div>
+
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <div>
+                      <label className="mb-4 block text-lg font-bold text-slate-800">{content.stages[3].budgetQuestion}</label>
+                      <div className="rounded-3xl bg-slate-50 p-6 ring-1 ring-black/5">
+                        <div className="mb-4 flex justify-center">
+                          <span className="inline-flex rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-900 ring-1 ring-black/10">
+                            {budgetOptions[normalizedBudgetIndex] || budgetOptions[0]}
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min={0}
+                          max={maxBudgetIndex}
+                          step={0.01}
+                          value={clampedBudgetSliderValue}
+                          onChange={handleBudgetChange}
+                          className="questionnaire-range h-4 w-full cursor-pointer appearance-none rounded-full"
+                          style={{
+                            background: `linear-gradient(to right, #DCF41E 0%, #DCF41E ${budgetProgress}%, #e2e8f0 ${budgetProgress}%, #e2e8f0 100%)`
+                          }}
+                        />
+                        <div className="mt-3 flex justify-between text-xs font-bold text-slate-400">
+                          <span>{budgetOptions[0]}</span>
+                          <span>{budgetOptions[budgetOptions.length - 1]}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -959,12 +1557,84 @@ export default function Questionnaire() {
             {/* Stage 5: Contact / Summary */}
             {activeStage === 4 && (
             <section data-aos="fade-up" className="space-y-8">
+              {showSuccess && recommendedProgram && (
+                <div className="rounded-[2.5rem] bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] ring-1 ring-black/5 sm:p-8">
+                  <div className="mb-6 text-center">
+                    <h3 className="font-heading text-2xl font-bold text-slate-900 sm:text-3xl">{content.summary.recommendationTitle}</h3>
+                    <p className="mx-auto mt-3 max-w-3xl text-sm text-slate-600 sm:text-base">{content.summary.recommendationBody}</p>
+                  </div>
+
+                  <article className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+                    <div className="grid gap-0 lg:grid-cols-[340px_1fr]">
+                      <div className="relative h-64 overflow-hidden lg:h-full">
+                        <img
+                          src={recommendedProgram.image}
+                          alt={recommendedProgram.title}
+                          className="h-full w-full object-cover brightness-110 saturate-110"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                        <div className="absolute bottom-4 left-4 right-4 text-white">
+                          <span className="inline-block rounded-full bg-[#DCF41E] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-black">
+                            {recommendedProgram.duration}
+                          </span>
+                          <h4 className="mt-2 font-heading text-xl font-black leading-tight sm:text-2xl">{recommendedProgram.title}</h4>
+                          {recommendedProgram.subtitle &&
+                            recommendedProgram.subtitle !== recommendedProgram.duration &&
+                            recommendedProgram.subtitle !== recommendedProgram.title && (
+                              <p className="mt-1 text-sm text-white/85">{recommendedProgram.subtitle}</p>
+                            )}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col p-6 sm:p-8">
+                        <p className="text-sm leading-relaxed text-slate-600">{recommendedProgram.description}</p>
+
+                        <div className="mt-6 rounded-2xl bg-slate-50 p-5 ring-1 ring-black/5">
+                          <h5 className="text-xs font-bold uppercase tracking-widest text-black">
+                            {locale === 'lt' ? 'Į programą įeina' : 'Included'}
+                          </h5>
+                          <ul className="mt-4 space-y-3">
+                            {recommendedProgram.extras.map((extra) => (
+                              <li key={extra} className="flex items-start gap-3 text-sm text-slate-700">
+                                <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#DCF41E] text-black">
+                                  <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                  </svg>
+                                </span>
+                                <span className="font-medium">{extra}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div className="mt-6 flex flex-wrap items-end gap-4 border-t border-slate-100 pt-6">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">{content.labels.result}</p>
+                            <p className="mt-2 text-base font-semibold text-slate-900 sm:text-lg">{recommendedProgram.result}</p>
+                          </div>
+                          <div className="ml-auto w-full text-right sm:w-auto sm:shrink-0">
+                            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">{locale === 'lt' ? 'Kaina' : 'Price'}</p>
+                            <p className="font-heading text-3xl font-black text-slate-900">{recommendedProgram.price}</p>
+                            <button
+                              type="button"
+                              onClick={handleBuyRecommendedProgram}
+                              className="mt-3 inline-flex items-center justify-center rounded-full bg-[#DCF41E] px-6 py-3 text-sm font-bold text-black transition hover:brightness-95 hover:shadow-lg"
+                            >
+                              {locale === 'lt' ? 'Pirkti dabar' : 'Buy now'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+              )}
+
               <div className="rounded-[2.5rem] bg-white px-8 py-14 text-center text-slate-900 shadow-2xl">
-                <h3 className="font-heading text-3xl font-bold sm:text-4xl">{locale === 'lt' ? 'Kaip norite, kad su jumis susisiekčiau?' : 'How should I contact you?'}</h3>
+                <h3 className="font-heading text-3xl font-bold sm:text-4xl">{content.summary.title}</h3>
                 <p className="mx-auto mt-5 max-w-xl text-lg text-slate-600 sm:text-xl">
-                  {locale === 'lt' 
-                    ? 'Galite palikti el. paštą, telefono numerį arba abu. Tai reikalinga individualaus plano aptarimui.'
-                    : 'You can leave your email, phone number, or both. This is needed to discuss your individual plan.'}
+                  {content.summary.body}
                 </p>
                 
                 <div className="mx-auto mt-8 max-w-md space-y-4">
@@ -1008,13 +1678,22 @@ export default function Questionnaire() {
                   <button
                     type="button"
                     onClick={handleSubmit}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || showSuccess}
                     className="inline-flex transform items-center justify-center rounded-full bg-[#DCF41E] px-10 py-4 text-lg font-bold text-black transition hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(220,244,30,0.6)] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isSubmitting 
-                      ? (locale === 'lt' ? 'Saugoma...' : 'Saving...') 
-                      : (locale === 'lt' ? 'Išsaugoti ir tęsti' : 'Save and Continue')}
+                    {isSubmitting
+                      ? (locale === 'lt' ? 'Saugoma...' : 'Saving...')
+                      : showSuccess
+                        ? (locale === 'lt' ? 'Išsaugota' : 'Saved')
+                        : content.summary.button}
                   </button>
+                  {showSuccess && (
+                    <p className="mt-3 text-sm font-medium text-slate-600">
+                      {locale === 'lt'
+                        ? 'Anketa išsaugota. Žemiau pateikiama labiausiai jums tinkanti programa.'
+                        : 'Questionnaire saved. The program best matching your answers is shown below.'}
+                    </p>
+                  )}
                 </div>
               </div>
             </section>
@@ -1084,39 +1763,6 @@ export default function Questionnaire() {
                 className="w-full py-3 px-4 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-medium transition-all transform active:scale-95"
               >
                 {locale === 'lt' ? 'Supratau' : 'Got it'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showSuccess && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md bg-white rounded-[2rem] p-8 shadow-2xl scale-100 animate-in zoom-in-95 duration-200">
-            <div className="absolute -top-12 -left-12 h-64 w-64 rounded-full bg-[#DCF41E]/20 blur-3xl pointer-events-none" />
-            
-            <div className="relative text-center space-y-4">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#DCF41E]/20 text-[#acc300]">
-                <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              
-              <h3 className="font-heading text-2xl font-bold text-slate-900">
-                {locale === 'lt' ? 'Ačiū! Anketa išsaugota.' : 'Thank you! Saved.'}
-              </h3>
-              
-              <p className="text-slate-600">
-                {locale === 'lt' 
-                  ? 'Gavome jūsų atsakymus. Susisieksime su jumis netrukus.' 
-                  : 'We received your answers. We will be in touch shortly.'}
-              </p>
-
-              <button
-                onClick={() => navigate(`/${locale}`)}
-                className="mt-6 w-full rounded-full bg-black py-4 text-base font-bold text-white transition hover:-translate-y-1 hover:shadow-lg"
-              >
-                {locale === 'lt' ? 'Grįžti į pradžią' : 'Back to Home'}
               </button>
             </div>
           </div>

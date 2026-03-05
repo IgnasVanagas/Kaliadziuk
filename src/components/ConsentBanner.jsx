@@ -26,7 +26,7 @@ export default function ConsentBanner() {
     localStorage.setItem(STORAGE_KEY, value);
     setShow(false);
     
-    // Dispatch event so other components (GoogleAnalytics) can react immediately
+    // Dispatch event so other components (SiteMetrics) can react immediately
     window.dispatchEvent(new CustomEvent('cookie-consent-updated', { detail: value }));
   };
 
