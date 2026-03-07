@@ -8,6 +8,7 @@ import { addItem, loadCart, saveCart } from './state/cart';
 import { getProductImageUrl } from './lib/productImages';
 import { sendEvent } from './lib/tracking';
 import { ProgramModal } from './components/ProgramModal';
+import BotProtectionCheck from './components/BotProtectionCheck';
 
 const fromUploads = (file) => new URL(`../uploads/${file}`, import.meta.url).pathname;
 
@@ -1470,6 +1471,7 @@ function AnimatedCounter({ from = 0, to, suffix = '', delay = 0 }) {
 function App({ locale = 'lt' }) {
   const activeLocale = locale === 'en' ? 'en' : 'lt';
   const location = useLocation();
+  const turnstileSiteKey = String(import.meta.env.VITE_TURNSTILE_SITE_KEY || '').trim();
 
   useEffect(() => {
     const items = activeLocale === 'lt' ? programsLt : programsEn;
@@ -1491,6 +1493,8 @@ function App({ locale = 'lt' }) {
   const [contactError, setContactError] = useState(null);
   const [selectedProgram, setSelectedProgram] = useState(null);
   const [contactBusy, setContactBusy] = useState(false);
+  const [contactBotToken, setContactBotToken] = useState('');
+  const [contactBotResetSignal, setContactBotResetSignal] = useState(0);
   const [expandedProgramIdsMobile, setExpandedProgramIdsMobile] = useState(() => ({}));
 
   const cartPath = activeLocale === 'lt' ? '/lt/krepselis' : '/en/cart';
@@ -2024,6 +2028,24 @@ function App({ locale = 'lt' }) {
                   ? 'Pasirinkite programą pagal savo tikslus – kiekviena sudaroma individualiai, atsižvelgiant į jūsų poreikius ir galimybes.'
                   : 'Choose a program for your goals — each one is tailored to your needs and capabilities.'}
               </p>
+            </div>
+            <div className="mx-auto mt-8 max-w-3xl" data-aos="fade-up" data-aos-delay="80">
+              <div className="flex flex-col items-center justify-between gap-4 rounded-3xl border border-black/10 bg-[linear-gradient(135deg,#ffffff_0%,#edf3bf_100%)] px-6 py-5 text-center sm:flex-row sm:text-left">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-black/55">
+                    {activeLocale === 'lt' ? 'Populiariausia' : 'Most popular'}
+                  </p>
+                  <p className="mt-1 text-lg font-bold text-black">
+                    {activeLocale === 'lt' ? 'Svorio metimo programa' : 'Weight loss program'}
+                  </p>
+                </div>
+                <Link
+                  to={activeLocale === 'lt' ? '/lt/svorio-metimo-programa' : '/en/weight-loss-program'}
+                  className="inline-flex items-center justify-center rounded-full glass-green-surface px-6 py-2.5 text-sm font-extrabold text-black"
+                >
+                  {activeLocale === 'lt' ? 'Atidaryti puslapį' : 'Open landing page'}
+                </Link>
+              </div>
             </div>
             <div className="mt-16 grid gap-8 pb-6 lg:grid-cols-2 xl:grid-cols-3">
               {displayedPrograms.map((plan, index) => (
@@ -2943,8 +2965,18 @@ function App({ locale = 'lt' }) {
                       phone: String(fd.get('phone') || '').trim(),
                       email: String(fd.get('email') || '').trim(),
                       message: String(fd.get('message') || '').trim(),
+                      turnstile_token: turnstileSiteKey ? contactBotToken : undefined,
                       page_url: typeof window !== 'undefined' ? window.location.href : null,
                     };
+
+                    if (turnstileSiteKey && !contactBotToken) {
+                      setContactError(
+                        activeLocale === 'lt'
+                          ? 'Patvirtinkite, kad nesate robotas.'
+                          : 'Please confirm you are not a robot.'
+                      );
+                      return;
+                    }
 
                     const headers = {
                       'Content-Type': 'application/json',
@@ -2976,6 +3008,7 @@ function App({ locale = 'lt' }) {
                         : 'Thanks! Your message was sent. I will contact you soon.'
                     );
                     form.reset();
+                    setContactBotResetSignal((value) => value + 1);
                   } catch (e) {
                     const status = Number(e?.status || 0);
                     if (status === 401) {
@@ -2984,6 +3017,16 @@ function App({ locale = 'lt' }) {
                           ? 'Nepavyko išsiųsti (401). Patikrinkite VITE_SUPABASE_ANON_KEY ir VITE_SUPABASE_FUNCTIONS_URL (ar tai tas pats Supabase projektas) bei ar contact-form Edge Function leidžia anoniminius kvietimus.'
                           : 'Failed to send (401). Check VITE_SUPABASE_ANON_KEY and VITE_SUPABASE_FUNCTIONS_URL (same Supabase project) and that the contact-form Edge Function allows anonymous calls.'
                       );
+                      return;
+                    }
+                    const errCode = String(e?.message || '');
+                    if (errCode === 'captcha_failed' || errCode === 'missing_captcha') {
+                      setContactError(
+                        activeLocale === 'lt'
+                          ? 'Nepavyko patvirtinti, kad nesate robotas. Pabandykite dar kartą.'
+                          : 'Could not verify that you are not a robot. Please try again.'
+                      );
+                      setContactBotResetSignal((value) => value + 1);
                       return;
                     }
                     setContactError(
@@ -3057,6 +3100,17 @@ function App({ locale = 'lt' }) {
                     className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-black placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
                     required
                   />
+                </div>
+                <div>
+                  {turnstileSiteKey ? (
+                    <BotProtectionCheck
+                      locale={activeLocale}
+                      checkId="contact-bot-check"
+                      value={contactBotToken}
+                      onChange={setContactBotToken}
+                      resetSignal={contactBotResetSignal}
+                    />
+                  ) : null}
                 </div>
                 <label className="flex items-center gap-3 text-sm text-black cursor-pointer group">
                   <div className="relative flex h-5 w-5 items-center justify-center">

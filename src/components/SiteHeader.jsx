@@ -36,6 +36,7 @@ function swapLocalePath(pathname, nextLocale) {
   const mapping = {
     lt: {
       planai: 'plans',
+      'svorio-metimo-programa': 'weight-loss-program',
       'dovanu-kuponas': 'gift-card',
       krepselis: 'cart',
       prisijungti: 'login',
@@ -49,6 +50,7 @@ function swapLocalePath(pathname, nextLocale) {
     },
     en: {
       plans: 'planai',
+      'weight-loss-program': 'svorio-metimo-programa',
       'gift-card': 'dovanu-kuponas',
       cart: 'krepselis',
       login: 'prisijungti',

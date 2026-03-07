@@ -15,6 +15,8 @@ const ROUTES = [
   '/en/',
   '/lt/planai/',
   '/en/plans/',
+  '/lt/svorio-metimo-programa/',
+  '/en/weight-loss-program/',
   '/lt/dovanu-kuponas/',
   '/en/gift-card/',
   '/lt/privatumas/',

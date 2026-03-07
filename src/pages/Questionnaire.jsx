@@ -5,12 +5,15 @@ import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../auth/AuthProvider';
-import { addItem, loadCart, saveCart } from '../state/cart';
+import BotProtectionCheck from '../components/BotProtectionCheck';
 
 const fromUploads = (file) => `/uploads/${String(file || '').replace(/^\/+/, '')}`;
 
 const heroImage = fromUploads('_optimized/IMG_0443-scaled-1920w.webp');
 const accentImage = fromUploads('_optimized/IMG_0469-scaled-2560w.webp');
+const QUESTIONNAIRE_PROGRESS_KEY = 'questionnaire_progress';
+const QUESTIONNAIRE_SAVED_KEY = 'questionnaire_saved';
+const QUESTIONNAIRE_RESULT_KEY = 'questionnaire_recommended_program';
 
 const RECOMMENDATION_PROGRAM_IDS = {
   weightLoss: '11111111-1111-1111-1111-111111111111',
@@ -19,15 +22,6 @@ const RECOMMENDATION_PROGRAM_IDS = {
   mobility: '44444444-4444-4444-4444-444444444444',
   vip: '55555555-5555-5555-5555-555555555555',
   homeTrainingPlus: '66666666-6666-6666-6666-666666666666',
-};
-
-const RECOMMENDATION_PRICE_CENTS_BY_ID = {
-  [RECOMMENDATION_PROGRAM_IDS.weightLoss]: 19900,
-  [RECOMMENDATION_PROGRAM_IDS.muscleGain]: 19900,
-  [RECOMMENDATION_PROGRAM_IDS.homeTraining]: 14700,
-  [RECOMMENDATION_PROGRAM_IDS.mobility]: 9700,
-  [RECOMMENDATION_PROGRAM_IDS.vip]: 49900,
-  [RECOMMENDATION_PROGRAM_IDS.homeTrainingPlus]: 29900,
 };
 
 const recommendationProgramsByLocale = {
@@ -560,6 +554,7 @@ export default function Questionnaire() {
   const { step } = useParams();
   const locale = useMemo(() => (location.pathname.startsWith('/en') ? 'en' : 'lt'), [location.pathname]);
   const content = copyByLocale[locale];
+  const turnstileSiteKey = String(import.meta.env.VITE_TURNSTILE_SITE_KEY || '').trim();
 
   const [goal, setGoal] = useState('');
   const [motivation, setMotivation] = useState('');
@@ -580,8 +575,10 @@ export default function Questionnaire() {
   
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
+  const [questionnaireBotToken, setQuestionnaireBotToken] = useState('');
+  const [questionnaireBotResetSignal, setQuestionnaireBotResetSignal] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [isProgressHydrated, setIsProgressHydrated] = useState(false);
   const [errorPopup, setErrorPopup] = useState(null); // { title: string, message: string }
 
@@ -606,6 +603,27 @@ export default function Questionnaire() {
 
   const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
   const hasSelection = (value) => hasText(value);
+  const isStage1Complete = hasSelection(goal) && hasSelection(motivation);
+  const isStage2Complete =
+    hasSelection(workday) &&
+    hasSelection(trainingEnvironment) &&
+    hasSelection(tracker) &&
+    sleep >= 1 &&
+    sleep <= 10;
+  const isStage3Complete =
+    Array.isArray(discomforts) &&
+    discomforts.length > 0 &&
+    hasSelection(injury);
+  const isStage4Complete =
+    hasSelection(gender) &&
+    hasSelection(age) &&
+    hasSelection(weight) &&
+    hasSelection(height) &&
+    hasSelection(family) &&
+    hasSelection(budget) &&
+    stress >= 1 &&
+    stress <= 10;
+  const stageCompletion = [isStage1Complete, isStage2Complete, isStage3Complete, isStage4Complete];
 
   const getMissingFields = (stageScope = 'all') => {
     const missing = [];
@@ -645,7 +663,7 @@ export default function Questionnaire() {
   // Load progress
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('questionnaire_progress');
+      const saved = localStorage.getItem(QUESTIONNAIRE_PROGRESS_KEY);
       if (saved) {
         const p = JSON.parse(saved);
         if (p.goal) setGoal(p.goal);
@@ -669,6 +687,7 @@ export default function Questionnaire() {
         if (p.gender) setGender(p.gender);
         if (p.email) setEmail(p.email);
         if (p.phone) setPhone(p.phone);
+        if (typeof p.acceptPrivacy === 'boolean') setAcceptPrivacy(p.acceptPrivacy);
       }
     } catch (e) {
       // ignore
@@ -682,12 +701,12 @@ export default function Questionnaire() {
     if (!isProgressHydrated) return;
 
     const timer = setTimeout(() => {
-      const payload = { goal, motivation, budget, workday, sleep, tracker, trainingEnvironment, discomforts, injury, age, weight, height, family, stress, gender, email, phone };
-      localStorage.setItem('questionnaire_progress', JSON.stringify(payload));
+      const payload = { goal, motivation, budget, workday, sleep, tracker, trainingEnvironment, discomforts, injury, age, weight, height, family, stress, gender, email, phone, acceptPrivacy };
+      localStorage.setItem(QUESTIONNAIRE_PROGRESS_KEY, JSON.stringify(payload));
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [goal, motivation, budget, workday, sleep, tracker, trainingEnvironment, discomforts, injury, age, weight, height, family, stress, gender, email, phone, isProgressHydrated]);
+  }, [goal, motivation, budget, workday, sleep, tracker, trainingEnvironment, discomforts, injury, age, weight, height, family, stress, gender, email, phone, acceptPrivacy, isProgressHydrated]);
 
   useEffect(() => {
     if (!isProgressHydrated) return;
@@ -757,6 +776,30 @@ export default function Questionnaire() {
       });
       return;
     }
+
+    if (!acceptPrivacy) {
+      setErrorPopup({
+        title: locale === 'lt' ? 'Reikalingas sutikimas' : 'Consent Required',
+        message: locale === 'lt' ? 'Prašome sutikti su privatumo politika.' : 'Please agree to the privacy policy.',
+        onClose: () => {
+          const el = document.getElementById('q-privacy-consent');
+          if (el) el.focus();
+        }
+      });
+      return;
+    }
+
+    if (turnstileSiteKey && !questionnaireBotToken) {
+      setErrorPopup({
+        title: locale === 'lt' ? 'Reikalingas patvirtinimas' : 'Verification Required',
+        message: locale === 'lt' ? 'Patvirtinkite, kad nesate robotas.' : 'Please confirm you are not a robot.',
+        onClose: () => {
+          const el = document.getElementById('q-bot-check');
+          if (el) el.focus();
+        }
+      });
+      return;
+    }
     
     setIsSubmitting(true);
     try {
@@ -785,13 +828,38 @@ export default function Questionnaire() {
           payload,
           email: user?.email || email,
           user_id: user?.id,
-          locale
+          locale,
+          turnstile_token: turnstileSiteKey ? questionnaireBotToken : undefined,
         }
       });
-      if (error) throw error;
+      if (error) {
+        const errCode = String(error?.message || '');
+        if (errCode === 'captcha_failed' || errCode === 'missing_captcha') {
+          setQuestionnaireBotResetSignal((value) => value + 1);
+          setErrorPopup({
+            title: locale === 'lt' ? 'Nepavyko patvirtinti' : 'Verification Failed',
+            message: locale === 'lt'
+              ? 'Nepavyko patvirtinti, kad nesate robotas. Pabandykite dar kartą.'
+              : 'Could not verify that you are not a robot. Please try again.'
+          });
+          return;
+        }
+        throw error;
+      }
       
-      localStorage.removeItem('questionnaire_progress');
-      setShowSuccess(true);
+      localStorage.removeItem(QUESTIONNAIRE_PROGRESS_KEY);
+      localStorage.setItem(QUESTIONNAIRE_SAVED_KEY, '1');
+      if (recommendedProgram) {
+        try {
+          sessionStorage.setItem(QUESTIONNAIRE_RESULT_KEY, JSON.stringify(recommendedProgram));
+        } catch {
+          // ignore
+        }
+      }
+      navigate(locale === 'lt' ? '/lt/anketa/sekme' : '/en/questionnaire/success', {
+        replace: true,
+        state: { recommendedProgram }
+      });
     } catch (e) {
       setErrorPopup({
         title: locale === 'lt' ? 'Klaida' : 'Error',
@@ -1040,28 +1108,6 @@ export default function Questionnaire() {
     budgetOptions,
   ]);
 
-  const handleBuyRecommendedProgram = () => {
-    if (!recommendedProgram?.productId) return;
-
-    const unitPriceCents = RECOMMENDATION_PRICE_CENTS_BY_ID[recommendedProgram.productId] || 0;
-    const cart = loadCart();
-    const next = addItem(cart, {
-      kind: 'product',
-      productId: recommendedProgram.productId,
-      name: recommendedProgram.title,
-      imageUrl: recommendedProgram.image,
-      unitPriceCents,
-      qty: 1,
-    });
-    saveCart(next);
-
-    try {
-      window.dispatchEvent(new Event('cart:open'));
-    } catch {
-      // ignore
-    }
-  };
-
   const toggleDiscomfort = (value) => {
     setDiscomforts((prev) => {
       const exists = prev.includes(value);
@@ -1197,7 +1243,7 @@ export default function Questionnaire() {
               <div className="hidden lg:block overflow-hidden rounded-3xl bg-white p-2 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-black/5">
                 {content.stages.map((stage, index) => {
                   const isActive = activeStage === index;
-                  const isCompleted = index < activeStage; 
+                  const isCompleted = Boolean(stageCompletion[index]);
                   
                   return (
                     <button
@@ -1557,80 +1603,6 @@ export default function Questionnaire() {
             {/* Stage 5: Contact / Summary */}
             {activeStage === 4 && (
             <section data-aos="fade-up" className="space-y-8">
-              {showSuccess && recommendedProgram && (
-                <div className="rounded-[2.5rem] bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] ring-1 ring-black/5 sm:p-8">
-                  <div className="mb-6 text-center">
-                    <h3 className="font-heading text-2xl font-bold text-slate-900 sm:text-3xl">{content.summary.recommendationTitle}</h3>
-                    <p className="mx-auto mt-3 max-w-3xl text-sm text-slate-600 sm:text-base">{content.summary.recommendationBody}</p>
-                  </div>
-
-                  <article className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-                    <div className="grid gap-0 lg:grid-cols-[340px_1fr]">
-                      <div className="relative h-64 overflow-hidden lg:h-full">
-                        <img
-                          src={recommendedProgram.image}
-                          alt={recommendedProgram.title}
-                          className="h-full w-full object-cover brightness-110 saturate-110"
-                          loading="lazy"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                        <div className="absolute bottom-4 left-4 right-4 text-white">
-                          <span className="inline-block rounded-full bg-[#DCF41E] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-black">
-                            {recommendedProgram.duration}
-                          </span>
-                          <h4 className="mt-2 font-heading text-xl font-black leading-tight sm:text-2xl">{recommendedProgram.title}</h4>
-                          {recommendedProgram.subtitle &&
-                            recommendedProgram.subtitle !== recommendedProgram.duration &&
-                            recommendedProgram.subtitle !== recommendedProgram.title && (
-                              <p className="mt-1 text-sm text-white/85">{recommendedProgram.subtitle}</p>
-                            )}
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col p-6 sm:p-8">
-                        <p className="text-sm leading-relaxed text-slate-600">{recommendedProgram.description}</p>
-
-                        <div className="mt-6 rounded-2xl bg-slate-50 p-5 ring-1 ring-black/5">
-                          <h5 className="text-xs font-bold uppercase tracking-widest text-black">
-                            {locale === 'lt' ? 'Į programą įeina' : 'Included'}
-                          </h5>
-                          <ul className="mt-4 space-y-3">
-                            {recommendedProgram.extras.map((extra) => (
-                              <li key={extra} className="flex items-start gap-3 text-sm text-slate-700">
-                                <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#DCF41E] text-black">
-                                  <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                  </svg>
-                                </span>
-                                <span className="font-medium">{extra}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        <div className="mt-6 flex flex-wrap items-end gap-4 border-t border-slate-100 pt-6">
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">{content.labels.result}</p>
-                            <p className="mt-2 text-base font-semibold text-slate-900 sm:text-lg">{recommendedProgram.result}</p>
-                          </div>
-                          <div className="ml-auto w-full text-right sm:w-auto sm:shrink-0">
-                            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">{locale === 'lt' ? 'Kaina' : 'Price'}</p>
-                            <p className="font-heading text-3xl font-black text-slate-900">{recommendedProgram.price}</p>
-                            <button
-                              type="button"
-                              onClick={handleBuyRecommendedProgram}
-                              className="mt-3 inline-flex items-center justify-center rounded-full bg-[#DCF41E] px-6 py-3 text-sm font-bold text-black transition hover:brightness-95 hover:shadow-lg"
-                            >
-                              {locale === 'lt' ? 'Pirkti dabar' : 'Buy now'}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </article>
-                </div>
-              )}
-
               <div className="rounded-[2.5rem] bg-white px-8 py-14 text-center text-slate-900 shadow-2xl">
                 <h3 className="font-heading text-3xl font-bold sm:text-4xl">{content.summary.title}</h3>
                 <p className="mx-auto mt-5 max-w-xl text-lg text-slate-600 sm:text-xl">
@@ -1672,28 +1644,63 @@ export default function Questionnaire() {
                       className="w-full rounded-2xl border-2 border-slate-200 px-6 py-3 text-lg outline-none focus:border-[#DCF41E] focus:ring-1 focus:ring-[#DCF41E]" 
                     />
                   </div>
+
+                  {turnstileSiteKey ? (
+                    <BotProtectionCheck
+                      locale={locale}
+                      checkId="q-bot-check"
+                      value={questionnaireBotToken}
+                      onChange={setQuestionnaireBotToken}
+                      resetSignal={questionnaireBotResetSignal}
+                    />
+                  ) : null}
+
+                  <label className="flex items-center gap-3 text-left text-sm text-black cursor-pointer group">
+                    <div className="relative flex h-5 w-5 items-center justify-center">
+                      <input
+                        id="q-privacy-consent"
+                        type="checkbox"
+                        checked={acceptPrivacy}
+                        onChange={(event) => setAcceptPrivacy(event.target.checked)}
+                        className="peer sr-only"
+                      />
+                      <div className="h-5 w-5 rounded-full border-2 border-slate-300 bg-white transition-all peer-checked:border-[#DCF41E] peer-checked:bg-[#DCF41E] peer-focus:ring-2 peer-focus:ring-[#DCF41E] peer-focus:ring-offset-2"></div>
+                      <svg
+                        className="pointer-events-none absolute left-1/2 top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 text-black opacity-0 transition-opacity peer-checked:opacity-100"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </div>
+                    <span>
+                      {locale === 'lt' ? 'Sutinku su ' : 'I agree to the '}
+                      <a
+                        href={locale === 'lt' ? '/lt/privatumas' : '/en/privacy'}
+                        className="underline underline-offset-2 hover:text-accent"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {locale === 'lt' ? 'privatumo politika' : 'privacy policy'}
+                      </a>
+                    </span>
+                  </label>
                 </div>
 
                 <div className="mt-8">
                   <button
                     type="button"
                     onClick={handleSubmit}
-                    disabled={isSubmitting || showSuccess}
+                    disabled={isSubmitting}
                     className="inline-flex transform items-center justify-center rounded-full bg-[#DCF41E] px-10 py-4 text-lg font-bold text-black transition hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(220,244,30,0.6)] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting
                       ? (locale === 'lt' ? 'Saugoma...' : 'Saving...')
-                      : showSuccess
-                        ? (locale === 'lt' ? 'Išsaugota' : 'Saved')
-                        : content.summary.button}
+                      : content.summary.button}
                   </button>
-                  {showSuccess && (
-                    <p className="mt-3 text-sm font-medium text-slate-600">
-                      {locale === 'lt'
-                        ? 'Anketa išsaugota. Žemiau pateikiama labiausiai jums tinkanti programa.'
-                        : 'Questionnaire saved. The program best matching your answers is shown below.'}
-                    </p>
-                  )}
                 </div>
               </div>
             </section>

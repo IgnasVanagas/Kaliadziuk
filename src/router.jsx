@@ -19,6 +19,8 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const Auth = lazy(() => import('./pages/Auth'));
 const Account = lazy(() => import('./pages/Account'));
 const Questionnaire = lazy(() => import('./pages/Questionnaire'));
+const QuestionnaireSuccess = lazy(() => import('./pages/QuestionnaireSuccess'));
+const WeightLossLanding = lazy(() => import('./pages/WeightLossLanding'));
 import RequireAuth from './auth/RequireAuth.jsx';
 
 function RootRedirect() {
@@ -89,9 +91,14 @@ export default function AppRouter() {
           <Route path="/lt/planai" element={<Plans />} />
           <Route path="/en/plans" element={<Plans />} />
 
+          <Route path="/lt/svorio-metimo-programa" element={<WeightLossLanding />} />
+          <Route path="/en/weight-loss-program" element={<WeightLossLanding />} />
+
           <Route path="/lt/anketa" element={<Navigate to="/lt/anketa/1" replace />} />
+          <Route path="/lt/anketa/sekme" element={<QuestionnaireSuccess />} />
           <Route path="/lt/anketa/:step" element={<Questionnaire />} />
           <Route path="/en/questionnaire" element={<Navigate to="/en/questionnaire/1" replace />} />
+          <Route path="/en/questionnaire/success" element={<QuestionnaireSuccess />} />
           <Route path="/en/questionnaire/:step" element={<Questionnaire />} />
 
           <Route path="/lt/dovanu-kuponas" element={<GiftCard />} />

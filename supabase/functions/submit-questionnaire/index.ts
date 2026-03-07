@@ -27,6 +27,53 @@ const orderedKeys = [
   'discomforts', 'injury', 'family'
 ];
 
+function asTrimmedString(v: unknown) {
+  const s = String(v ?? '').trim();
+  return s.length ? s : '';
+}
+
+function clamp(s: string, max: number) {
+  if (s.length <= max) return s;
+  return s.slice(0, max);
+}
+
+function getIp(req: Request): string {
+  const xf = req.headers.get('x-forwarded-for');
+  if (xf) return xf.split(',')[0].trim();
+  const real = req.headers.get('x-real-ip');
+  if (real) return real.trim();
+  return 'unknown';
+}
+
+async function verifyTurnstile(args: { token: string; ip?: string | null }) {
+  const secret = Deno.env.get('TURNSTILE_SECRET_KEY');
+  if (!secret || !secret.trim()) {
+    return { enforced: false, ok: true as const };
+  }
+
+  const token = String(args.token || '').trim();
+  if (!token) {
+    return { enforced: true, ok: false as const, error: 'missing_captcha' as const };
+  }
+
+  const form = new URLSearchParams();
+  form.set('secret', secret.trim());
+  form.set('response', token);
+  if (args.ip && args.ip !== 'unknown') form.set('remoteip', args.ip);
+
+  const resp = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: form.toString(),
+  });
+
+  const data: any = await resp.json().catch(() => null);
+  if (data?.success) {
+    return { enforced: true, ok: true as const };
+  }
+  return { enforced: true, ok: false as const, error: 'captcha_failed' as const };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -38,7 +85,20 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { payload, email, user_id, locale } = await req.json();
+    const body: any = await req.json();
+    const { payload, email, user_id, locale } = body;
+
+    const captchaToken = clamp(
+      asTrimmedString(body?.turnstile_token ?? body?.cf_turnstile_response ?? body?.captcha_token),
+      3000
+    );
+    const captcha = await verifyTurnstile({ token: captchaToken, ip: getIp(req) });
+    if (!captcha.ok) {
+      return new Response(JSON.stringify({ error: captcha.error }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // 1. Save to DB
     const { error: dbError } = await supabase
@@ -116,7 +176,8 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('Submission error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    const message = error instanceof Error ? error.message : 'server_error';
+    return new Response(JSON.stringify({ error: message }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

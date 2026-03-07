@@ -226,6 +226,12 @@ function InnerPayment({ locale, orderId, clientSecret, totalCents, currency }) {
         <p className="text-black/70">{t('payment.subtitle')}</p>
       </div>
 
+      {/* Order Summary Sidebar on mobile */}
+      <div className="rounded-2xl border-2 border-accent/20 bg-accent/5 p-4 flex justify-between items-center mb-6">
+        <div className="font-semibold text-lg">{locale === 'lt' ? 'Suma apmokėjimui:' : 'Total to pay:'}</div>
+        <div className="text-2xl font-extrabold font-heading">{totalCents ? (totalCents / 100).toFixed(2).replace('.', ',') + ' €' : ''}</div>
+      </div>
+      
       {paymentRequest ? (
         <div className="rounded-2xl border border-black/10 p-5 space-y-3">
           <div className="font-heading font-extrabold">{t('payment.expressTitle')}</div>

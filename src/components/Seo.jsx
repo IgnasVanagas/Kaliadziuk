@@ -91,6 +91,15 @@ function seoForRoute(locale, pathname) {
       : 'Pasirinkite treniruočių planą svorio metimui ar raumenų auginimui. Aiški struktūra, grįžtamasis ryšys ir progreso stebėjimas.';
   }
 
+  if (/^\/(lt\/svorio-metimo-programa|en\/weight-loss-program)\b/.test(pathname)) {
+    title = isEn
+      ? 'Weight loss program | Personal trainer in Vilnius – Pavel Kaliadziuk'
+      : 'Svorio metimo programa | Asmeninis treneris Vilniuje – Pavel Kaliadziuk';
+    description = isEn
+      ? 'Popular weight loss program with a personalized training plan, clear nutrition guidelines, and technique feedback for sustainable results.'
+      : 'Populiariausia svorio metimo programa: individualus treniruočių planas, aiškios mitybos gairės ir technikos korekcijos tvariems rezultatams.';
+  }
+
   if (/^\/(lt\/dovanu-kuponas|en\/gift-card)\b/.test(pathname)) {
     title = isEn
       ? 'Gift voucher | Pavel Kaliadziuk'
