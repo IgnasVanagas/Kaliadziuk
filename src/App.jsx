@@ -2029,24 +2029,6 @@ function App({ locale = 'lt' }) {
                   : 'Choose a program for your goals — each one is tailored to your needs and capabilities.'}
               </p>
             </div>
-            <div className="mx-auto mt-8 max-w-3xl" data-aos="fade-up" data-aos-delay="80">
-              <div className="flex flex-col items-center justify-between gap-4 rounded-3xl border border-black/10 bg-[linear-gradient(135deg,#ffffff_0%,#edf3bf_100%)] px-6 py-5 text-center sm:flex-row sm:text-left">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-black/55">
-                    {activeLocale === 'lt' ? 'Populiariausia' : 'Most popular'}
-                  </p>
-                  <p className="mt-1 text-lg font-bold text-black">
-                    {activeLocale === 'lt' ? 'Svorio metimo programa' : 'Weight loss program'}
-                  </p>
-                </div>
-                <Link
-                  to={activeLocale === 'lt' ? '/lt/svorio-metimo-programa' : '/en/weight-loss-program'}
-                  className="inline-flex items-center justify-center rounded-full glass-green-surface px-6 py-2.5 text-sm font-extrabold text-black"
-                >
-                  {activeLocale === 'lt' ? 'Atidaryti puslapį' : 'Open landing page'}
-                </Link>
-              </div>
-            </div>
             <div className="mt-16 grid gap-8 pb-6 lg:grid-cols-2 xl:grid-cols-3">
               {displayedPrograms.map((plan, index) => (
                 <article
@@ -2106,7 +2088,7 @@ function App({ locale = 'lt' }) {
                                 return (
                                   <>
                                     <span className="font-bold block">{label}</span>
-                                    <span className="text-black block">{rest.join(' – ')}</span>
+                                    <span className="text-black/50 block">{rest.join(' – ')}</span>
                                   </>
                                 );
                               })()}
@@ -2254,7 +2236,7 @@ function App({ locale = 'lt' }) {
                     <h3 className="font-heading text-4xl font-black uppercase text-white sm:text-5xl md:text-6xl">
                       Nežinai, ką rinktis?
                     </h3>
-                    <p className="mx-auto max-w-xl text-lg font-medium text-white/90 sm:text-xl">
+                    <p className="mx-auto max-w-xl text-lg font-medium text-white/70 sm:text-xl">
                       Užpildyk trumpą anketą ir aš asmeniškai peržiūrėsiu tavo situaciją bei patarsiu, kuris planas tau tinkamiausias.
                     </p>
                     <div className="pt-4">
@@ -2702,7 +2684,7 @@ function App({ locale = 'lt' }) {
                       ? 'Padovanok geresnę savijautą artimiesiems be papildomo streso.'
                       : 'Gift better well-being to someone you care about — without extra stress.'}
                   </h3>
-                  <p className="text-base text-white/90">
+                  <p className="text-base text-white/70">
                     {activeLocale === 'lt'
                       ? 'Pasirinkite sumą, o likusia dalimi pasirūpinsiu asmeniškai: tikslų aptarimas, individualus planas ir aiškios pirmosios užduotys.'
                       : 'Choose an amount and I’ll take care of the rest: goals, a personal plan, and clear first steps.'}
@@ -2885,7 +2867,7 @@ function App({ locale = 'lt' }) {
           <div className="order-2 lg:order-1 space-y-8 text-black">
                 <div className="space-y-4">
                   <h2 className="font-heading text-4xl font-black uppercase">{activeLocale === 'lt' ? 'Susisiekite dabar' : 'Contact me'}</h2>
-                  <p className="text-base text-black">
+                  <p className="text-base text-black/70">
                     {activeLocale === 'lt'
                       ? 'Įveskite savo kontaktus ir per 24 valandas suderinsime individualų susitikimo laiką bei aptarsime jūsų tikslus.'
                       : 'Leave your contact details and we’ll schedule a time within 24 hours to discuss your goals.'}

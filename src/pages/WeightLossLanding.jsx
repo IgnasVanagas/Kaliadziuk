@@ -723,7 +723,7 @@ export default function WeightLossLanding() {
             <div className="max-w-3xl space-y-8">
               <div className="space-y-4">
                 <h1 className="font-heading text-4xl font-black leading-tight sm:text-5xl md:text-6xl">{content.title}</h1>
-                <p className="max-w-2xl text-base text-white/90 sm:text-lg">{content.subtitle}</p>
+                <p className="max-w-2xl text-base text-white/70 sm:text-lg">{content.subtitle}</p>
               </div>
 
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -736,7 +736,7 @@ export default function WeightLossLanding() {
                 </button>
                 <Link
                   to={questionnairePath}
-                  className="inline-flex min-h-[52px] items-center justify-center rounded-full border border-white/35 px-8 py-3 text-lg font-bold text-white transition hover:bg-white/10"
+                  className="inline-flex min-h-[52px] items-center justify-center rounded-full border border-white/35 px-8 py-3 text-lg font-bold text-white/70 transition hover:bg-white/10"
                 >
                   {content.secondaryCta}
                 </Link>
@@ -755,7 +755,7 @@ export default function WeightLossLanding() {
                     <span className="mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#DCF41E] text-sm font-black">✓</span>
                     <p>
                       <span className="block text-lg font-bold leading-tight">{item.title}</span>
-                      <span className="mt-1 block text-black/70">{item.detail}</span>
+                      <span className="mt-1 block text-black/50">{item.detail}</span>
                     </p>
                   </li>
                 ))}
@@ -781,6 +781,126 @@ export default function WeightLossLanding() {
                   <h3 className="font-heading text-xl font-bold uppercase text-white">{card.title}</h3>
                   <p className="mt-4 text-base leading-relaxed text-white/80">{card.text}</p>
                 </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto py-16 md:py-24 bg-slate-50/50">
+          <div className="w-full max-w-5xl px-4 sm:px-6 lg:px-8 mx-auto">
+            <div className="flex flex-col gap-3 text-center mb-16" data-aos="fade-up">
+              <h2 className="font-heading text-4xl font-black uppercase text-slate-900">
+                {locale === 'lt' ? 'Klientų pokyčiai' : 'Client Transformations'}
+              </h2>
+              <p className="text-base text-slate-600 max-w-2xl mx-auto">
+                {locale === 'lt'
+                  ? 'Rezultatai, kalbantys patys už save.'
+                  : 'Results that speak for themselves.'}
+              </p>
+            </div>
+            
+            <div className="flex flex-col gap-8 md:gap-12">
+              {['JOLITA VARNAGIRIENĖ', 'ROKAS RUTKAUSKAS', 'MIROSLAV MICHOLČ']
+                .map(name => transformationsByLocale[locale].find(t => t.name === name))
+                .filter(Boolean)
+                .map((item) => (
+                  <article key={item.name} className="flex flex-col md:flex-row gap-6 sm:gap-8 rounded-[2rem] border border-black/10 bg-white p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06)] items-center">
+                    
+                    <div className="flex-1 w-full space-y-6 md:pr-4">
+                      <h3 className="font-heading text-2xl sm:text-3xl font-black uppercase text-slate-900">{item.name}</h3>
+                      
+                      <div className="space-y-4">
+                        <div className="rounded-2xl bg-slate-50 p-5 border border-slate-100">
+                          <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">
+                            {locale === 'lt' ? 'Tikslas' : 'Goal'}
+                          </div>
+                          <p className="font-medium text-slate-800 leading-relaxed">{item.goal}</p>
+                        </div>
+
+                        <div className="rounded-2xl bg-[linear-gradient(135deg,#ffffff_0%,#edf3bf_100%)] p-5 border border-black/5">
+                          <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-600 mb-2">
+                            {locale === 'lt' ? 'Rezultatas' : 'Result'}
+                          </div>
+                          <p className="text-xl font-bold text-slate-900">{item.result}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex-1 w-full flex gap-3 sm:gap-4 shrink-0 max-w-md mx-auto md:max-w-none">
+                      <div className="flex-1 relative aspect-[3/4] overflow-hidden rounded-2xl bg-slate-100 border border-black/5 shadow-inner">
+                        <img
+                          src={item.before.image}
+                          alt={`${locale === 'lt' ? 'Prieš' : 'Before'} ${item.name}`}
+                          className="absolute inset-0 h-full w-full object-cover"
+                          style={{ objectPosition: item.before.objectPosition || 'center top' }}
+                          loading="lazy"
+                        />
+                        <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full border border-white/10">
+                           {item.before.weight}
+                        </div>
+                        <div className="absolute top-3 left-3 bg-white text-slate-900 text-[10px] font-black uppercase tracking-[0.15em] px-3 py-1.5 rounded-full shadow-sm">
+                           {locale === 'lt' ? 'Prieš' : 'Before'}
+                        </div>
+                      </div>
+                      
+                      <div className="flex-1 relative aspect-[3/4] overflow-hidden rounded-2xl bg-slate-100 border border-black/5 shadow-inner group">
+                        <img
+                          src={item.after.image}
+                          alt={`${locale === 'lt' ? 'Po' : 'After'} ${item.name}`}
+                          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          style={{ objectPosition: item.after.objectPosition || 'center top' }}
+                          loading="lazy"
+                        />
+                        <div className="absolute bottom-3 right-3 bg-[#DCF41E] text-slate-900 text-xs font-black px-3 py-1.5 rounded-full shadow-md">
+                           {item.after.weight}
+                        </div>
+                        <div className="absolute top-3 left-3 bg-white text-slate-900 text-[10px] font-black uppercase tracking-[0.15em] px-3 py-1.5 rounded-full shadow-sm">
+                           {locale === 'lt' ? 'Po' : 'After'}
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+            </div>
+
+            <div className="mt-12 flex justify-center" data-aos="fade-up">
+              <button
+                type="button"
+                onClick={onStartNow}
+                className="inline-flex min-h-[56px] items-center justify-center rounded-full bg-[#DCF41E] px-10 py-3 text-lg font-black text-slate-900 transition hover:-translate-y-0.5 shadow-lg shadow-[#DCF41E]/20"
+              >
+                {locale === 'lt' ? 'Pradėti savo istoriją' : 'Start your story'}
+              </button>
+            </div>
+          </div>
+        </section>
+
+        
+
+        <section className="relative overflow-hidden py-16 md:py-24">
+          <div className="absolute inset-0">
+             <img src={fromUploads('IMG_0488-scaled.jpg')} alt="" className="h-full w-full object-cover" loading="lazy" />
+             <div className="absolute inset-0 bg-black/60" />
+          </div>
+          <div className="relative mx-auto max-w-4xl px-6 lg:px-8 text-center">
+            <h2 className="font-heading text-3xl font-black uppercase text-white sm:text-5xl">{content.faqTitle}</h2>
+          </div>
+          <div className="relative mx-auto max-w-3xl px-6 lg:px-8 mt-12 sm:mt-16">
+            <div className="flex flex-col gap-6">
+              {content.faq.map((item) => (
+                <div key={item.q} className="rounded-[1.5rem] bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl text-left p-6 sm:p-8 flex items-start gap-4 sm:gap-6 transition-all hover:bg-white/20 duration-300">
+                  <div className="flex-shrink-0 flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-[#DCF41E] text-slate-900 shadow-lg mt-1 sm:mt-0 font-heading text-2xl font-black">
+                    ?
+                  </div>
+                  <div>
+                    <h3 className="uppercase font-heading text-xl font-bold text-white mb-3">
+                      {item.q}
+                    </h3>
+                    <div className="text-base leading-relaxed text-white/80">
+                      {item.a}
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -863,42 +983,11 @@ export default function WeightLossLanding() {
           </div>
         </section>
 
-        
-
-        <section className="relative overflow-hidden py-16 md:py-24">
-          <div className="absolute inset-0">
-             <img src={fromUploads('IMG_0488-scaled.jpg')} alt="" className="h-full w-full object-cover" loading="lazy" />
-             <div className="absolute inset-0 bg-black/60" />
-          </div>
-          <div className="relative mx-auto max-w-4xl px-6 lg:px-8 text-center">
-            <h2 className="font-heading text-3xl font-black uppercase text-white sm:text-5xl">{content.faqTitle}</h2>
-          </div>
-          <div className="relative mx-auto max-w-3xl px-6 lg:px-8 mt-12 sm:mt-16">
-            <div className="flex flex-col gap-4">
-              {content.faq.map((item) => (
-                <details key={item.q} open className="group rounded-[1.5rem] bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.25)] transition-all duration-300 open:bg-white/20 open:shadow-2xl hover:bg-white/20 text-left">
-                  <summary className="flex cursor-pointer items-center justify-between gap-4 p-6 sm:p-8 list-none font-heading text-lg font-bold text-white select-none [&::-webkit-details-marker]:hidden">
-                    <span className="uppercase pr-4">{item.q}</span>
-                    <span className="flex h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 items-center justify-center rounded-full bg-[#DCF41E] text-slate-900 transition-transform duration-300 group-open:rotate-45">
-                      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                      </svg>
-                    </span>
-                  </summary>
-                  <div className="px-6 pb-6 pt-0 sm:px-8 sm:pb-8 text-base leading-relaxed text-white/80">
-                    {item.a}
-                  </div>
-                </details>
-              ))}
-            </div>
-          </div>
-        </section>
-
         <section className="px-6 py-16 md:py-24">
           <div className="mx-auto max-w-6xl overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
             <div className="p-8 md:p-16 text-slate-900 flex flex-col items-start sm:items-center sm:text-center">
               <h2 className="font-heading text-4xl font-black uppercase leading-tight sm:text-5xl">{content.finalCtaTitle}</h2>
-              <p className="mt-6 max-w-2xl text-lg text-slate-600">{content.finalCtaText}</p>
+              <p className="mt-6 max-w-2xl text-lg text-black/70">{content.finalCtaText}</p>
               <div className="mt-10 flex flex-col sm:flex-row items-start sm:items-center gap-6">
                 <button
                   type="button"
@@ -909,7 +998,7 @@ export default function WeightLossLanding() {
                 </button>
                 <div className="text-4xl font-black text-slate-900">199€</div>
               </div>
-              <Link to={questionnairePath} className="mt-8 inline-flex text-sm font-bold uppercase tracking-wider text-slate-600 transition-colors hover:text-slate-900 underline underline-offset-4">
+              <Link to={questionnairePath} className="mt-8 inline-flex text-sm font-bold uppercase tracking-wider text-black/70 transition-colors hover:text-black underline underline-offset-4">
                 {content.questionnaireLabel}
               </Link>
             </div>

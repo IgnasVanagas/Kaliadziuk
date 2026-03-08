@@ -36,6 +36,38 @@ function functionHeaders(accessToken) {
   return headers;
 }
 
+const PRODUCT_FEATURES = {
+  '11111111-1111-1111-1111-111111111111': {
+    lt: ['Individualus sporto planas', 'Aiškios mitybos gairės', 'Technikos korekcijos'],
+    en: ['Individual training plan', 'Clear nutrition guidance', 'Technique corrections']
+  },
+  '22222222-2222-2222-2222-222222222222': {
+    lt: ['Individualus sporto planas', 'Mitybos gairės masei', 'Technikos korekcijos'],
+    en: ['Individual training plan', 'Nutrition guidance for mass', 'Technique corrections']
+  },
+  '33333333-3333-3333-3333-333333333333': {
+    lt: ['Individualus namų planas', 'Pratimų video biblioteka', 'Technikos įvedimas'],
+    en: ['Individual home plan', 'Exercise video library', 'Technique onboarding']
+  },
+  '44444444-4444-4444-4444-444444444444': {
+    lt: ['Mobilumo planas kasdienai', 'Judesio video seka', 'Laikysenos gerinimas'],
+    en: ['Daily mobility plan', 'Video movement sequence', 'Posture improvements']
+  },
+  '55555555-5555-5555-5555-555555555555': {
+    lt: ['Kasdienė komunikacija', 'Neribotos konsultacijos', 'Technikos video analizė'],
+    en: ['Daily communication', 'Unlimited consultations', 'Technique video analysis']
+  },
+  '66666666-6666-6666-6666-666666666666': {
+    lt: ['Individualus namų planas', 'Kasdienis trenerio ryšys', 'Video technikos analizė'],
+    en: ['Individual home plan', 'Daily trainer connection', 'Video technique analysis']
+  },
+};
+
+const DEFAULT_FEATURES = {
+  lt: ['Individualus sporto planas', 'Aiškios mitybos gairės', 'Technikos korekcijos'],
+  en: ['Individual training plan', 'Clear nutrition guidance', 'Technique corrections']
+};
+
 export default function Cart() {
   const { t } = useTranslation();
   const { session } = useAuth();
@@ -361,82 +393,111 @@ export default function Cart() {
       {cart.items.length === 0 ? (
         <p className="text-black/70">{t('cart.empty')}</p>
       ) : (
-        <div className="space-y-3">
-          {cart.items.map((it, idx) => (
-            <div key={idx} className="rounded-2xl border border-black/10 p-3 sm:p-4 flex flex-col sm:flex-row items-start justify-between gap-4">
-              <div className="flex items-start gap-4">
+        <div className="rounded-2xl border border-black/10 overflow-hidden bg-white shadow-sm">
+          <div className="flex flex-col divide-y divide-black/5">
+            {cart.items.map((it, idx) => (
+              <div key={idx} className="p-4 flex items-start sm:items-center gap-3 relative">
                 {it.imageUrl ? (
                   <img
                     src={it.imageUrl}
-                    alt={it.name ? String(it.name) : ''}
-                    className="h-14 w-14 rounded-xl object-cover border border-black/10"
+                    alt=""
+                    className="h-12 w-12 rounded-xl object-cover border border-black/5 shrink-0"
                     loading="lazy"
                     decoding="async"
-                    width={56}
-                    height={56}
                   />
                 ) : null}
-                <div>
-                  <div className="font-semibold">{it.name}</div>
-                  <div className="text-sm text-black/60">{it.qty} × {formatEurFromCents(it.unitPriceCents)}</div>
-                  <ul className="mt-2 space-y-1 text-sm text-black/80 font-medium list-none">
-                    <li className="flex items-start gap-2"><svg className="w-4 h-4 text-green-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>Individualus sporto planas</li>
-                    <li className="flex items-start gap-2"><svg className="w-4 h-4 text-green-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>Aiškios mitybos gairės</li>
-                    <li className="flex items-start gap-2"><svg className="w-4 h-4 text-green-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>Technikos korekcijos</li>
+                <div className="flex-1 min-w-0 pr-6 sm:pr-0">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
+                    <div className="font-semibold text-[15px] leading-tight truncate">{it.name}</div>
+                    <div className="font-bold sm:text-right shrink-0">
+                      {it.qty > 1 ? <span className="text-sm font-normal text-black/50 mr-2">{it.qty} × {formatEurFromCents(it.unitPriceCents)}</span> : null}
+                      {formatEurFromCents((it.unitPriceCents || 0) * (it.qty || 1))}
+                    </div>
+                  </div>
+                  <ul className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-black/70">
+                    {(PRODUCT_FEATURES[it.productId]?.[locale] || DEFAULT_FEATURES[locale]).map((feature, fIdx) => (
+                      <li key={fIdx} className="flex items-center gap-1.5 whitespace-nowrap">
+                        <span className="inline-flex h-3 w-3 shrink-0 items-center justify-center rounded-full bg-accent text-black">
+                          <svg className="h-2 w-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                          </svg>
+                        </span>
+                        {feature}
+                      </li>
+                    ))}
                   </ul>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => onRemove(idx)}
+                  className="absolute right-3 top-3 sm:top-auto sm:relative sm:right-auto p-1.5 text-black/30 hover:text-red-500 transition-colors rounded-full hover:bg-red-50"
+                  aria-label={t('cart.remove')}
+                >
+                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
               </div>
+            ))}
+          </div>
+
+          <div className="border-t border-black/5 p-4 bg-white flex flex-col gap-1 text-sm">
+            {(cart.giftDiscountCents || 0) > 0 && <div className="flex justify-between text-green-600 font-medium pb-1.5"><span>{t('cart.discount')}</span><span>-{formatEurFromCents(Math.min(subtotal, cart.giftDiscountCents || 0))}</span></div>}
+            <div className="flex justify-between items-center font-bold text-xl">
+              <span>{t('cart.total')}</span>
+              <span>{formatEurFromCents(total)}</span>
+            </div>
+          </div>
+
+          <div className="border-t border-black/5 bg-black/[0.02] p-3 sm:p-4 flex flex-col sm:flex-row items-center gap-3">
+             <div className="font-semibold text-sm shrink-0 w-full sm:w-auto">{t('cart.giftCode')}</div>
+             <div className="flex w-full flex-1 gap-2">
+              <input
+                className="w-full flex-1 rounded-lg border border-black/15 bg-white px-3 py-1.5 text-sm outline-none focus:border-black/30 transition-colors"
+                value={giftCodeInput}
+                onChange={e => setGiftCodeInput(e.target.value)}
+                placeholder={t('cart.giftCodePlaceholder')}
+              />
               <button
                 type="button"
-                onClick={() => onRemove(idx)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white text-black transition hover:border-accent"
-                aria-label={t('cart.remove')}
-                title={t('cart.remove')}
+                disabled={busy}
+                onClick={onApplyGiftCode}
+                className="shrink-0 rounded-lg bg-black px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-black/80 disabled:opacity-50"
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 6V4h8v2" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l1 16h10l1-16" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 11v6" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M14 11v6" />
-                </svg>
+                {t('cart.apply')}
               </button>
             </div>
-          ))}
+          </div>
         </div>
       )}
 
-      <div className="rounded-2xl border border-black/10 p-5 space-y-3">
-        <div className="font-heading font-extrabold">{t('cart.giftCode')}</div>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <input
-            className="w-full rounded-xl border border-black/20 px-3 py-2 sm:flex-1"
-            value={giftCodeInput}
-            onChange={e => setGiftCodeInput(e.target.value)}
-            placeholder={t('cart.giftCodePlaceholder')}
-          />
-          <button
-            type="button"
-            disabled={busy}
-            onClick={onApplyGiftCode}
-            className="w-full whitespace-nowrap rounded-full border border-black/20 px-4 py-2 font-semibold sm:w-auto"
-          >
-            {t('cart.apply')}
-          </button>
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-black/10 p-5 space-y-2">
-        <div className="flex justify-between"><span>{t('cart.subtotal')}</span><span>{formatEurFromCents(subtotal)}</span></div>
-        <div className="flex justify-between"><span>{t('cart.discount')}</span><span>-{formatEurFromCents(Math.min(subtotal, cart.giftDiscountCents || 0))}</span></div>
-        <div className="flex justify-between items-center font-heading font-extrabold text-lg">
-          <div className="flex flex-col">
-             <span>{t('cart.total')}</span>
-             
+      {cart.items.length > 0 && (
+        <details className="group rounded-2xl border border-black/10 bg-white overflow-hidden shadow-sm">
+          <summary className="flex cursor-pointer items-center justify-between p-4 font-semibold outline-none hover:bg-black/[0.02]">
+            {locale === 'lt' ? 'O kas bus po pirkimo?' : 'What happens after purchase?'}
+            <svg className="h-5 w-5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+          </summary>
+          <div className="border-t border-black/10 p-4 text-sm text-black/80 space-y-2">
+            {locale === 'lt' ? (
+              <ul className="space-y-2.5 list-none">
+                <li className="flex items-start gap-2.5"><span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent text-black ring-1 ring-black/10"><svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></span>Susisieksiu su tavimi iš karto</li>
+                <li className="flex items-start gap-2.5"><span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent text-black ring-1 ring-black/10"><svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></span>Maksimaliai individualų planą</li>
+                <li className="flex items-start gap-2.5"><span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent text-black ring-1 ring-black/10"><svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></span>2 konsultacijos įskaičiuotos</li>
+                <li className="flex items-start gap-2.5"><span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent text-black ring-1 ring-black/10"><svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></span>Išmoksi rūpintis savimi už sporto salės ribų</li>
+                <li className="flex items-start gap-2.5"><span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent text-black ring-1 ring-black/10"><svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></span>Aiškų sporto planą ir lanksčias mitybos gaires</li>
+                <li className="flex items-start gap-2.5"><span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent text-black ring-1 ring-black/10"><svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></span>Moksliškai pagrįstą ir praktiškai patikrintą sistemą</li>
+              </ul>
+            ) : (
+              <ul className="space-y-2.5 list-none">
+                <li className="flex items-start gap-2.5"><span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent text-black ring-1 ring-black/10"><svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></span>I will contact you immediately</li>
+                <li className="flex items-start gap-2.5"><span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent text-black ring-1 ring-black/10"><svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></span>Maximally personalized plan</li>
+                <li className="flex items-start gap-2.5"><span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent text-black ring-1 ring-black/10"><svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></span>2 consultations included</li>
+                <li className="flex items-start gap-2.5"><span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent text-black ring-1 ring-black/10"><svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></span>You will learn to take care of yourself outside the gym</li>
+                <li className="flex items-start gap-2.5"><span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent text-black ring-1 ring-black/10"><svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></span>Clear workout plan and flexible nutrition guidelines</li>
+                <li className="flex items-start gap-2.5"><span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent text-black ring-1 ring-black/10"><svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></span>Scientifically based and practically proven system</li>
+              </ul>
+            )}
           </div>
-          <span className="text-3xl">{formatEurFromCents(total)}</span>
-        </div>
-      </div>
+        </details>
+      )}
 
       <div className="rounded-2xl border border-black/10 p-5 space-y-4">
         <div className="font-heading font-extrabold">{t('cart.contact.title')}</div>
@@ -518,8 +579,11 @@ export default function Cart() {
             <input
               type="checkbox"
               className="peer sr-only"
-              checked={acceptTerms}
-              onChange={e => setAcceptTerms(e.target.checked)}
+              checked={acceptTerms && acceptPrivacy}
+              onChange={e => {
+                setAcceptTerms(e.target.checked);
+                setAcceptPrivacy(e.target.checked);
+              }}
             />
             <div className="h-5 w-5 rounded-full border-2 border-slate-300 bg-white transition-all peer-checked:border-[#DCF41E] peer-checked:bg-[#DCF41E] peer-focus:ring-2 peer-focus:ring-[#DCF41E] peer-focus:ring-offset-2"></div>
             <svg
@@ -539,32 +603,7 @@ export default function Cart() {
             <Link to={termsPath} onClick={(e) => e.stopPropagation()} className="underline underline-offset-2 hover:text-accent">
               {t('legal.terms')}
             </Link>
-            <span className="text-red-600"> *</span>
-          </span>
-        </label>
-        <label className="flex items-center gap-3 text-sm text-black cursor-pointer group">
-          <div className="relative flex h-5 w-5 items-center justify-center">
-            <input
-              type="checkbox"
-              className="peer sr-only"
-              checked={acceptPrivacy}
-              onChange={e => setAcceptPrivacy(e.target.checked)}
-            />
-            <div className="h-5 w-5 rounded-full border-2 border-slate-300 bg-white transition-all peer-checked:border-[#DCF41E] peer-checked:bg-[#DCF41E] peer-focus:ring-2 peer-focus:ring-[#DCF41E] peer-focus:ring-offset-2"></div>
-            <svg
-              className="pointer-events-none absolute left-1/2 top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 text-black opacity-0 transition-opacity peer-checked:opacity-100"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          </div>
-          <span>
-            {locale === 'lt' ? 'Sutinku su ' : 'I accept the '}
+            {locale === 'lt' ? ' ir ' : ' and '}
             <Link to={privacyPath} onClick={(e) => e.stopPropagation()} className="underline underline-offset-2 hover:text-accent">
               {t('legal.privacy')}
             </Link>
@@ -581,12 +620,6 @@ export default function Cart() {
             resetSignal={turnstileResetSignal}
           />
         ) : null}
-
-        {locale === 'lt' && (
-          <div className="rounded-xl bg-[#F4F4F4] px-4 py-3 text-sm text-black/80 font-medium leading-relaxed">
-            Po apmokėjimo su Jumis susisieksiu ir suderinsiu nemokamą pirmąją nuotolinę konsultaciją. Jos metu įvertinsiu Jūsų kūno poreikius, galimybes ir tikslus.
-          </div>
-        )}
 
         <button
           type="button"

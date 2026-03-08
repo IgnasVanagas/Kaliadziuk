@@ -83,10 +83,10 @@ export function ProgramModal({ program, onClose, onBuy }) {
               <div className="space-y-6">
                 {program.highlights.map((highlight, idx) => (
                   <div key={idx}>
-                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">
+                    <h4 className="text-sm font-semibold text-slate-900">
                       {highlight.title}
                     </h4>
-                    <p className="text-sm font-semibold text-slate-900">
+                    <p className="text-sm text-slate-500">
                       {highlight.detail}
                     </p>
                   </div>
