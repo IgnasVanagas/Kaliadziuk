@@ -60,7 +60,7 @@ export default function BotProtectionCheck({
 
     widgetIdRef.current = window.turnstile.render(containerRef.current, {
       sitekey: siteKey,
-      size: 'invisible',
+      size: 'flexible',
       callback: (token) => {
         setHasError(false);
         setIsVerifying(false);
@@ -94,6 +94,7 @@ export default function BotProtectionCheck({
   const runCheck = () => {
     if (!isEnabled) return;
     if (isChecked) return;
+    if (isVerifying) return;
     if (!window.turnstile?.execute || widgetIdRef.current === null) {
       setHasError(true);
       return;

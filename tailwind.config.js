@@ -13,12 +13,17 @@ export default {
       },
       animation: {
         'marquee': 'marquee 40s linear infinite',
+        'fadeInUp': 'fadeInUp 0.35s ease-out',
       },
       keyframes: {
         marquee: {
           '0%': { transform: 'translateX(0%)' },
           '100%': { transform: 'translateX(-50%)' },
-        }
+        },
+        fadeInUp: {
+          '0%': { opacity: '0', transform: 'translateY(16px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
       }
     },
   },

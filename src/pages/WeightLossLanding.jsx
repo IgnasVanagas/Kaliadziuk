@@ -216,16 +216,16 @@ const contentByLocale = {
     trustTitle: 'Kodėl ši programa veikia',
     trustCards: [
       {
-        title: 'Aiškus procesas',
-        text: 'Nuo pirmos savaitės žinote, ką darote, kodėl ir kokį rezultatą tai kuria.',
+        title: 'Individualus sporto planas',
+        text: 'pagal jūsų poreikius ir pajėgumą',
       },
       {
-        title: 'Pritaikyta realiam gyvenimui',
-        text: 'Planas kuriamas pagal jūsų tempą, darbo ritmą ir kasdienius įpročius.',
+        title: 'Aiškios mitybos gairės',
+        text: 'be griežtų dietų',
       },
       {
-        title: 'Reguliarios korekcijos',
-        text: 'Programa adaptuojama pagal progresą, kad rezultatas nesustotų po kelių savaičių.',
+        title: 'Technikos korekcijos',
+        text: 'saugesni ir efektyvesni pratimai',
       },
     ],
     faqTitle: 'Dažniausi klausimai',
@@ -243,7 +243,7 @@ const contentByLocale = {
         a: 'Dauguma klientų pirmus pokyčius pajunta per 2-4 savaites, o ryškesnius rezultatus mato per 8-12 savaičių.',
       },
     ],
-    finalCtaTitle: 'Pradėkite šiandien',
+    finalCtaTitle: 'Pradėk šiandien',
     finalCtaText: 'Viena aiški sistema, individualus planas ir nuoseklus svorio mažinimas be chaoso.',
     cartLabel: 'Atidaryti krepšelį',
     questionnaireLabel: 'Pirmiausia noriu konsultacijos',
@@ -272,16 +272,16 @@ const contentByLocale = {
     trustTitle: 'Why this program works',
     trustCards: [
       {
-        title: 'Clear structure',
-        text: 'From week one, you know exactly what to do and why it moves you forward.',
+        title: 'Individual training plan',
+        text: 'based on your goals and current capacity',
       },
       {
-        title: 'Built for real life',
-        text: 'Your plan is adapted to your schedule, routine, and day-to-day reality.',
+        title: 'Clear nutrition guidelines',
+        text: 'without strict dieting',
       },
       {
-        title: 'Ongoing adjustments',
-        text: 'Your strategy is updated based on progress so results keep moving.',
+        title: 'Technique corrections',
+        text: 'for safer and more effective workouts',
       },
     ],
     faqTitle: 'Frequently asked questions',
@@ -363,7 +363,7 @@ const transformationsLt = [
     name: 'MIROSLAV MICHOLČ',
     program: 'Svorio metimo',
     goal: 'Atsikratyti riebalinės masės',
-    result: 'Numetė 14 kg',
+    result: 'Numetė 14 kg per 2 mėnesius',
     period: '2 mėnesius',
     before: {
       image: fromUploads('_optimized/atsiliepimai/image00001-960w.webp'),
@@ -715,7 +715,11 @@ export default function WeightLossLanding() {
       <main className="bg-white text-black">
         <section className="relative overflow-hidden bg-black text-white">
           <div className="absolute inset-0">
-            <img src={heroImage} alt={content.heroAlt} className="h-full w-full object-cover opacity-70" loading="eager" />
+            <picture>
+              <source type="image/avif" srcSet={[320, 480, 640, 768, 960, 1024, 1280, 1440, 1600].map(w => `${fromUploads(`_optimized/brokolis-${w}w.avif`)} ${w}w`).join(', ')} sizes="100vw" />
+              <source type="image/webp" srcSet={[320, 480, 640, 768, 960, 1024, 1280, 1440, 1600].map(w => `${fromUploads(`_optimized/brokolis-${w}w.webp`)} ${w}w`).join(', ')} sizes="100vw" />
+              <img src={heroImage} alt={content.heroAlt} className="h-full w-full object-cover opacity-70" loading="eager" fetchPriority="high" />
+            </picture>
             <div className="absolute inset-0 bg-[linear-gradient(130deg,rgba(0,0,0,0.85)_10%,rgba(0,0,0,0.45)_45%,rgba(220,244,30,0.28)_100%)]" />
           </div>
 
@@ -734,39 +738,106 @@ export default function WeightLossLanding() {
                 >
                   {content.primaryCta}
                 </button>
-                <Link
-                  to={questionnairePath}
-                  className="inline-flex min-h-[52px] items-center justify-center rounded-full border border-white/35 px-8 py-3 text-lg font-bold text-white/70 transition hover:bg-white/10"
-                >
-                  {content.secondaryCta}
-                </Link>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-3xl px-6 py-16 md:py-20">
-          <div className="flex flex-col gap-6">
-            <article className="rounded-3xl border border-black/10 bg-white p-7 shadow-[0_20px_50px_rgba(0,0,0,0.06)]">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-black/55">{content.highlightsTitle}</p>
-              <ul className="mt-6 space-y-5">
-                {content.highlights.map((item) => (
-                  <li key={item.title} className="flex items-start gap-4">
-                    <span className="mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#DCF41E] text-sm font-black">✓</span>
-                    <p>
-                      <span className="block text-lg font-bold leading-tight">{item.title}</span>
-                      <span className="mt-1 block text-black/50">{item.detail}</span>
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            </article>
+        <section id="apie-mane" className="bg-white py-20 text-black">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
+              <div>
+                <figure className="rounded-2xl overflow-hidden">
+                  <img
+                    src={fromUploads('_optimized/IMG_0462-scaled-e1750332801471-1347w.webp')}
+                    alt={
+                      locale === 'lt'
+                        ? 'Asmeninis treneris Pavel Kaliadziuk – apie mane'
+                        : 'Personal trainer Pavel Kaliadziuk – about me'
+                    }
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </figure>
+              </div>
+              <div>
+                <h2 className="font-heading text-4xl font-black uppercase">{locale === 'lt' ? 'Apie mane' : 'About me'}</h2>
+                <div className="mt-6 space-y-4 text-base text-black/75">
+                  {locale === 'lt' ? (
+                    <>
+                      <p>
+                        Labas, aš Pavel Kaliadziuk — asmeninis treneris Vilniuje, sveikatingumo treneris ir biomechanikos specialistas,
+                        jau daugiau nei aštuonerius metus padedantis žmonėms raumenų auginimo, svorio metimo ir judėjimo be skausmo kelyje.
+                      </p>
+                      <p>
+                        <strong className="font-semibold text-black">Skausmas neturi būti tavo sporto norma.</strong> Dauguma žmonių stringa ne
+                        dėl motyvacijos stokos, o dėl to, kad treniruojasi per skausmą ir kartoja tas pačias technikos klaidas.
+                      </p>
+                      <p>
+                        <strong className="font-semibold text-black">Mano stiprybė — biomechanika ir judėjimas be skausmo.</strong> Esu asmeninis
+                        treneris Vilniuje ir jau daugiau nei 8 metus padedu žmonėms saugiai siekti rezultatų: raumenų auginimo, svorio metimo ir
+                        tvirto, funkcionalaus kūno.
+                      </p>
+                      <p>
+                        <strong className="font-semibold text-black">Ką tai reiškia tau praktiškai?</strong> Kartu išmokstame judėti tiksliai,
+                        mažiname pečių, nugaros ir kelių perkrovas, o progresą kuriame be bereikalingų traumų ir pasikartojančių skausmų.
+                      </p>
+                      <p>
+                        <strong className="font-semibold text-black">8+ metų patirtis ir sporto universiteto išsilavinimas.</strong> Mano metodika
+                        paremta ne spėjimais, o anatomija, biomechanika, praktika su klientais ir nuosekliu planu, pritaikytu tavo kūnui.
+                      </p>
+                      <p>
+                        Esu praėjęs kelią nuo traumų iki protingo judėjimo, todėl padedu tau išvengti klaidų, kurios kainuoja laiką, sveikatą ir
+                        motyvaciją. Mes dirbame taip, kad kūnas stiprėtų, o ne „gesintų gaisrus“ po kiekvienos treniruotės.
+                      </p>
+                      <p>
+                        Jei nori ne tik atrodyti geriau, bet ir jaustis stabiliai kasdienybėje, pradėkime nuo pagrindo — nuo judėjimo be skausmo.
+                        Tada raumenų auginimas ir svorio metimas vyksta greičiau, saugiau ir tvariau.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p>
+                        Hi, I’m Pavel — a health & wellness coach and biomechanics specialist. For more than eight years I’ve been helping
+                        people not only get physically stronger, but also find inner calm and confidence.
+                      </p>
+                      <p>
+                        My journey in sports started when I was seven. Even as a kid I felt that inner fire — the desire to discover myself and
+                        become strong not only in body, but in character.
+                        Sport became my way to grow and prove that I can do more, even when life didn’t offer much support.
+                      </p>
+                      <p>
+                        Through movement, I found stability and realized that when you learn to control your body, overcoming fear and doubt becomes
+                        achievable. Today, my mission is to share this experience.
+                      </p>
+                      <p>
+                        I work with clients looking to break through physical barriers and build habits for an active life. I focus on biomechanics,
+                        meaning we reduce the risk of injuries and make workouts efficient and sustainable.
+                        I provide realistic, clear advice without unnecessary restrictions.
+                      </p>
+                      <p>
+                        <strong className="font-semibold text-black">My experience:</strong> over 8 years in the field and a university degree
+                        in sports backing every method I use.
+                      </p>
+                      <p>
+                        <strong className="font-semibold text-black">My goal is simple:</strong> to help you realize that movement brings energy
+                        and peace. I strive for each client to discover their true strength and achieve lasting results.
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
         <section className="relative overflow-hidden py-16 md:py-24">
           <div className="absolute inset-0">
-            <img src={fromUploads('IMG_0481-scaled.jpg')} alt="" className="h-full w-full object-cover" loading="lazy" />
+            <picture>
+              <source type="image/avif" srcSet={[320, 480, 640, 768, 960, 1024, 1280, 1440, 1600, 1920, 2112].map(w => `${fromUploads(`_optimized/IMG_0481-scaled-${w}w.avif`)} ${w}w`).join(', ')} sizes="100vw" />
+              <source type="image/webp" srcSet={[320, 480, 640, 768, 960, 1024, 1280, 1440, 1600, 1920, 2112].map(w => `${fromUploads(`_optimized/IMG_0481-scaled-${w}w.webp`)} ${w}w`).join(', ')} sizes="100vw" />
+              <img src={fromUploads('IMG_0481-scaled.jpg')} alt="" className="h-full w-full object-cover" loading="lazy" />
+            </picture>
             <div className="absolute inset-0 bg-black/60" />
           </div>
           <div className="relative mx-auto max-w-6xl px-6 lg:px-8">
@@ -788,7 +859,7 @@ export default function WeightLossLanding() {
 
         <section className="mx-auto py-16 md:py-24 bg-slate-50/50">
           <div className="w-full max-w-5xl px-4 sm:px-6 lg:px-8 mx-auto">
-            <div className="flex flex-col gap-3 text-center mb-16" data-aos="fade-up">
+            <div className="flex flex-col gap-3 text-center mb-16">
               <h2 className="font-heading text-4xl font-black uppercase text-slate-900">
                 {locale === 'lt' ? 'Klientų pokyčiai' : 'Client Transformations'}
               </h2>
@@ -809,21 +880,21 @@ export default function WeightLossLanding() {
                     <div className="flex-1 w-full space-y-6 md:pr-4">
                       <h3 className="font-heading text-2xl sm:text-3xl font-black uppercase text-slate-900">{item.name}</h3>
                       
-                      <div className="space-y-4">
+                      <dl className="space-y-4">
                         <div className="rounded-2xl bg-slate-50 p-5 border border-slate-100">
-                          <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">
+                          <dt className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">
                             {locale === 'lt' ? 'Tikslas' : 'Goal'}
-                          </div>
-                          <p className="font-medium text-slate-800 leading-relaxed">{item.goal}</p>
+                          </dt>
+                          <dd className="font-medium text-slate-800 leading-relaxed m-0">{item.goal}</dd>
                         </div>
 
                         <div className="rounded-2xl bg-[linear-gradient(135deg,#ffffff_0%,#edf3bf_100%)] p-5 border border-black/5">
-                          <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-600 mb-2">
+                          <dt className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-600 mb-2">
                             {locale === 'lt' ? 'Rezultatas' : 'Result'}
-                          </div>
-                          <p className="text-xl font-bold text-slate-900">{item.result}</p>
+                          </dt>
+                          <dd className="text-xl font-bold text-slate-900 m-0">{item.result}</dd>
                         </div>
-                      </div>
+                      </dl>
                     </div>
 
                     <div className="flex-1 w-full flex gap-3 sm:gap-4 shrink-0 max-w-md mx-auto md:max-w-none">
@@ -863,11 +934,11 @@ export default function WeightLossLanding() {
                 ))}
             </div>
 
-            <div className="mt-12 flex justify-center" data-aos="fade-up">
+            <div className="mt-12 flex justify-center">
               <button
                 type="button"
                 onClick={onStartNow}
-                className="inline-flex min-h-[56px] items-center justify-center rounded-full bg-[#DCF41E] px-10 py-3 text-lg font-black text-slate-900 transition hover:-translate-y-0.5 shadow-lg shadow-[#DCF41E]/20"
+                className="inline-flex h-14 items-center justify-center rounded-full bg-[#DCF41E] px-8 text-sm font-bold uppercase tracking-widest text-black transition-all hover:scale-105 hover:bg-white shadow-[0_0_20px_rgba(220,244,30,0.3)]"
               >
                 {locale === 'lt' ? 'Pradėti savo istoriją' : 'Start your story'}
               </button>
@@ -984,7 +1055,7 @@ export default function WeightLossLanding() {
         </section>
 
         <section className="px-6 py-16 md:py-24">
-          <div className="mx-auto max-w-6xl overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
+          <div className="mx-auto max-w-6xl overflow-hidden rounded-[2rem] border border-black/10 bg-[linear-gradient(135deg,#ffffff_0%,#edf3bf_100%)] shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
             <div className="p-8 md:p-16 text-slate-900 flex flex-col items-start sm:items-center sm:text-center">
               <h2 className="font-heading text-4xl font-black uppercase leading-tight sm:text-5xl">{content.finalCtaTitle}</h2>
               <p className="mt-6 max-w-2xl text-lg text-black/70">{content.finalCtaText}</p>

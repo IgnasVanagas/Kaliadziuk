@@ -116,9 +116,6 @@ export function ProgramModal({ program, onClose, onBuy }) {
             {/* Result */}
              {program.result && (
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">
-                  {locale === 'lt' ? 'Rezultatas' : 'Result'}
-                </h4>
                 <p className="text-sm font-bold text-slate-900 leading-tight">
                   {program.result}
                 </p>

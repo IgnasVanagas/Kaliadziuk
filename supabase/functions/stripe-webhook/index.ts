@@ -282,8 +282,7 @@ Deno.serve(async (req: Request) => {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e ?? 'invalid_signature');
       console.error('[stripe-webhook] invalid signature', msg);
-      // Include message so Stripe dashboard shows whether it's a timestamp tolerance issue vs wrong secret.
-      return new Response(`invalid_signature:${msg}`.slice(0, 500), { status: 400, headers: corsHeaders });
+      return new Response('invalid_signature', { status: 400, headers: corsHeaders });
     }
 
     console.log('[stripe-webhook] event received', { id: event?.id, type: event?.type });

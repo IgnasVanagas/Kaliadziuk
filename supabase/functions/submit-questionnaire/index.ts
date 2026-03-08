@@ -1,7 +1,7 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
-import { corsHeaders } from "../_shared/cors.ts";
-import { sendEmail } from "../_shared/email.ts";
+import { getCorsHeaders, handleOptions } from '../_shared/cors.ts';
+import { getServiceClient } from '../_shared/supabase.ts';
+import { rateLimit } from '../_shared/rateLimit.ts';
+import { sendEmail } from '../_shared/email.ts';
 
 const fieldLabels: Record<string, string> = {
   goal: "Pagrindinis tikslas",
@@ -35,6 +35,15 @@ function asTrimmedString(v: unknown) {
 function clamp(s: string, max: number) {
   if (s.length <= max) return s;
   return s.slice(0, max);
+}
+
+function escapeHtml(s: string): string {
+  return String(s)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
 }
 
 function getIp(req: Request): string {
@@ -74,16 +83,20 @@ async function verifyTurnstile(args: { token: string; ip?: string | null }) {
   return { enforced: true, ok: false as const, error: 'captcha_failed' as const };
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+Deno.serve(async (req: Request) => {
+  const preflight = handleOptions(req);
+  if (preflight) return preflight;
+
+  const corsHeaders = getCorsHeaders(req);
+
+  if (req.method !== 'POST') {
+    return new Response('method_not_allowed', { status: 405, headers: corsHeaders });
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    await rateLimit(req, 'submit-questionnaire', 10, 60);
+
+    const supabase = getServiceClient();
 
     const body: any = await req.json();
     const { payload, email, user_id, locale } = body;
@@ -125,12 +138,12 @@ serve(async (req) => {
       // First, iterate nicely ordered keys
       for (const key of orderedKeys) {
         if (payload[key] !== undefined && payload[key] !== '') {
-          const label = fieldLabels[key] || key;
+          const label = fieldLabels[key] || escapeHtml(key);
           let val = payload[key];
           if (Array.isArray(val)) {
             val = val.join(', ');
           }
-          rows += `<li style="margin-bottom: 8px;"><strong>${label}:</strong> <br/><span style="color: #333;">${val}</span></li>`;
+          rows += `<li style="margin-bottom: 8px;"><strong>${label}:</strong> <br/><span style="color: #333;">${escapeHtml(String(val))}</span></li>`;
         }
       }
 
@@ -138,7 +151,7 @@ serve(async (req) => {
       for (const key of Object.keys(payload)) {
         if (!orderedKeys.includes(key) && key !== 'email') {
            const val = Array.isArray(payload[key]) ? payload[key].join(', ') : payload[key];
-           rows += `<li style="margin-bottom: 8px;"><strong>${key}:</strong> <br/><span style="color: #333;">${val}</span></li>`;
+           rows += `<li style="margin-bottom: 8px;"><strong>${escapeHtml(key)}:</strong> <br/><span style="color: #333;">${escapeHtml(String(val))}</span></li>`;
         }
       }
 
@@ -147,9 +160,9 @@ serve(async (req) => {
           <h1 style="border-bottom: 2px solid #eee; padding-bottom: 10px;">Nauja anketos užklausa</h1>
           
           <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-            <p style="margin: 5px 0;"><strong>El. paštas:</strong> <a href="mailto:${email}">${email || 'Nenurodytas'}</a></p>
-            <p style="margin: 5px 0;"><strong>Vartotojo ID:</strong> ${user_id || 'Nėra'}</p>
-            <p style="margin: 5px 0;"><strong>Kalba:</strong> ${formattedLocale.toUpperCase()}</p>
+            <p style="margin: 5px 0;"><strong>El. paštas:</strong> <a href="mailto:${escapeHtml(email || '')}">${escapeHtml(email || 'Nenurodytas')}</a></p>
+            <p style="margin: 5px 0;"><strong>Vartotojo ID:</strong> ${escapeHtml(String(user_id || 'Nėra'))}</p>
+            <p style="margin: 5px 0;"><strong>Kalba:</strong> ${escapeHtml(formattedLocale.toUpperCase())}</p>
           </div>
 
           <h3>Kliento atsakymai:</h3>
@@ -157,14 +170,14 @@ serve(async (req) => {
           
           <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 10px; color: #999; font-size: 12px;">
              <p>Neapdoroti duomenys:</p>
-             <pre style="background: #eee; padding: 10px; overflow-x: auto;">${JSON.stringify(payload, null, 2)}</pre>
+             <pre style="background: #eee; padding: 10px; overflow-x: auto;">${escapeHtml(JSON.stringify(payload, null, 2))}</pre>
           </div>
         </div>
       `;
 
       await sendEmail({
         to: adminEmail,
-        subject: `Nauja anketa: ${email || 'Nenurodytas'}`,
+        subject: `Nauja anketa: ${String(email || 'Nenurodytas').slice(0, 100)}`,
         html,
         template: 'questionnaire_submission',
         locale: 'lt',
@@ -174,11 +187,14 @@ serve(async (req) => {
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (error) {
-    console.error('Submission error:', error);
-    const message = error instanceof Error ? error.message : 'server_error';
-    return new Response(JSON.stringify({ error: message }), {
-      status: 400,
+  } catch (e: any) {
+    const isRateLimited = String(e?.message || '') === 'rate_limited';
+    if (!isRateLimited) {
+      console.error('[submit-questionnaire] error', e);
+    }
+    const status = isRateLimited ? 429 : 500;
+    return new Response(JSON.stringify({ error: isRateLimited ? 'rate_limited' : 'server_error' }), {
+      status,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

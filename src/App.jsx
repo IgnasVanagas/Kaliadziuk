@@ -121,6 +121,7 @@ const Hero = ({ stats, backgroundDesktop, backgroundMobile, title, subtitle, cta
         className="h-full w-full object-cover brightness-110 md:brightness-100"
         style={{ objectPosition: 'center 30%' }}
         loading="eager"
+        fetchPriority="high"
       />
     <div
       className="pointer-events-none absolute inset-0 z-10"
@@ -200,6 +201,8 @@ const programsLt = [
     duration: '12 savaičių',
     hasDietician: true,
     image: fromUploads('IMG_0469-scaled.jpg'),
+    imageWebpSrcSet: [320, 480, 640, 768, 960, 1024, 1280, 1440, 1600, 1920, 2560].map(w => `${fromUploads(`_optimized/IMG_0469-scaled-${w}w.webp`)} ${w}w`).join(', '),
+    imageAvifSrcSet: [320, 480, 640, 768, 960, 1024, 1280, 1440, 1600, 1920, 2560].map(w => `${fromUploads(`_optimized/IMG_0469-scaled-${w}w.avif`)} ${w}w`).join(', '),
     result: 'Maksimali transformacija per trumpiausią laiką.',
     highlights: [
       {
@@ -242,6 +245,8 @@ const programsLt = [
     duration: '8–12 savaičių',
     hasDietician: true,
     image: fromUploads('brokolis.jpg'),
+    imageWebpSrcSet: [320, 480, 640, 768, 960, 1024, 1280, 1440, 1600].map(w => `${fromUploads(`_optimized/brokolis-${w}w.webp`)} ${w}w`).join(', '),
+    imageAvifSrcSet: [320, 480, 640, 768, 960, 1024, 1280, 1440, 1600].map(w => `${fromUploads(`_optimized/brokolis-${w}w.avif`)} ${w}w`).join(', '),
     result: 'Svorio mažinimas vyksta tvariai ir nuosekliai.',
     highlights: [
       {
@@ -282,6 +287,8 @@ const programsLt = [
     duration: '8–12 savaičių',
     hasDietician: true,
     image: fromUploads('paaugliu4.jpg'),
+    imageWebpSrcSet: [320, 480, 640, 768, 960, 1024, 1280, 1440, 1600].map(w => `${fromUploads(`_optimized/paaugliu4-${w}w.webp`)} ${w}w`).join(', '),
+    imageAvifSrcSet: [320, 480, 640, 768, 960, 1024, 1280, 1440, 1600].map(w => `${fromUploads(`_optimized/paaugliu4-${w}w.avif`)} ${w}w`).join(', '),
     result: 'Raumenų masė ir jėga didinamos pagal aiškią metodiką.',
     highlights: [
       {
@@ -320,6 +327,8 @@ const programsLt = [
     price: '299€', // Anchor Price
     duration: '8 savaitės',
     image: fromUploads('grupine8.jpg'),
+    imageWebpSrcSet: [320, 480, 640, 768, 960, 1024, 1280, 1440, 1600].map(w => `${fromUploads(`_optimized/grupine8-${w}w.webp`)} ${w}w`).join(', '),
+    imageAvifSrcSet: [320, 480, 640, 768, 960, 1024, 1280, 1440, 1600].map(w => `${fromUploads(`_optimized/grupine8-${w}w.avif`)} ${w}w`).join(', '),
     result: 'Namų treniruotės vykdomos pagal struktūruotą planą su nuolatine profesionalo priežiūra.',
     highlights: [
       {
@@ -393,6 +402,8 @@ const programsLt = [
     price: '97€',
     duration: '6–8 savaitės',
     image: fromUploads('_optimized/testavimas4-960w.webp'),
+    imageWebpSrcSet: [320, 480, 640, 768, 960, 1024, 1280, 1440, 1600].map(w => `${fromUploads(`_optimized/testavimas4-${w}w.webp`)} ${w}w`).join(', '),
+    imageAvifSrcSet: [320, 480, 640, 768, 960, 1024, 1280, 1440, 1600].map(w => `${fromUploads(`_optimized/testavimas4-${w}w.avif`)} ${w}w`).join(', '),
     result: 'Daugiau laisvės judėti be įtampos.',
     highlights: [
       {
@@ -431,6 +442,8 @@ const programsEn = [
     duration: '12 weeks',
     hasDietician: true,
     image: fromUploads('IMG_0469-scaled.jpg'),
+    imageWebpSrcSet: [320, 480, 640, 768, 960, 1024, 1280, 1440, 1600, 1920, 2560].map(w => `${fromUploads(`_optimized/IMG_0469-scaled-${w}w.webp`)} ${w}w`).join(', '),
+    imageAvifSrcSet: [320, 480, 640, 768, 960, 1024, 1280, 1440, 1600, 1920, 2560].map(w => `${fromUploads(`_optimized/IMG_0469-scaled-${w}w.avif`)} ${w}w`).join(', '),
     result: 'Maximum transformation in the shortest time.',
     highlights: [
       {
@@ -472,6 +485,8 @@ const programsEn = [
     duration: '8–12 weeks',
     hasDietician: true,
     image: fromUploads('brokolis.jpg'),
+    imageWebpSrcSet: [320, 480, 640, 768, 960, 1024, 1280, 1440, 1600].map(w => `${fromUploads(`_optimized/brokolis-${w}w.webp`)} ${w}w`).join(', '),
+    imageAvifSrcSet: [320, 480, 640, 768, 960, 1024, 1280, 1440, 1600].map(w => `${fromUploads(`_optimized/brokolis-${w}w.avif`)} ${w}w`).join(', '),
     result: 'Weight drops sustainably and confidently.',
     highlights: [
       {
@@ -512,6 +527,8 @@ const programsEn = [
     duration: '8–12 weeks',
     hasDietician: true,
     image: fromUploads('paaugliu4.jpg'),
+    imageWebpSrcSet: [320, 480, 640, 768, 960, 1024, 1280, 1440, 1600].map(w => `${fromUploads(`_optimized/paaugliu4-${w}w.webp`)} ${w}w`).join(', '),
+    imageAvifSrcSet: [320, 480, 640, 768, 960, 1024, 1280, 1440, 1600].map(w => `${fromUploads(`_optimized/paaugliu4-${w}w.avif`)} ${w}w`).join(', '),
     result: 'Build muscle and strength without guesswork.',
     highlights: [
       {
@@ -550,6 +567,8 @@ const programsEn = [
     price: '299€',
     duration: '8 weeks',
     image: fromUploads('grupine8.jpg'),
+    imageWebpSrcSet: [320, 480, 640, 768, 960, 1024, 1280, 1440, 1600].map(w => `${fromUploads(`_optimized/grupine8-${w}w.webp`)} ${w}w`).join(', '),
+    imageAvifSrcSet: [320, 480, 640, 768, 960, 1024, 1280, 1440, 1600].map(w => `${fromUploads(`_optimized/grupine8-${w}w.avif`)} ${w}w`).join(', '),
     result: 'Home workouts with professional daily supervision.',
     highlights: [
       {
@@ -623,6 +642,8 @@ const programsEn = [
     price: '97€',
     duration: '6–8 weeks',
     image: fromUploads('_optimized/testavimas4-960w.webp'),
+    imageWebpSrcSet: [320, 480, 640, 768, 960, 1024, 1280, 1440, 1600].map(w => `${fromUploads(`_optimized/testavimas4-${w}w.webp`)} ${w}w`).join(', '),
+    imageAvifSrcSet: [320, 480, 640, 768, 960, 1024, 1280, 1440, 1600].map(w => `${fromUploads(`_optimized/testavimas4-${w}w.avif`)} ${w}w`).join(', '),
     result: 'More freedom to move without tension.',
     highlights: [
       {
@@ -1866,31 +1887,35 @@ function App({ locale = 'lt' }) {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const mobileQuery = window.matchMedia('(max-width: 767px)');
 
+    let initTimeout;
     const initAos = () => {
       AOS.init({
         once: true,
         duration: mobileQuery.matches ? 560 : 700,
         easing: 'ease-out-cubic',
         offset: mobileQuery.matches ? 90 : 120,
-        disable: false,
+        disable: prefersReducedMotion.matches,
       });
-      AOS.refreshHard();
+      // Defer hard refresh outside of the critical render path
+      initTimeout = window.setTimeout(() => {
+        window.requestAnimationFrame(() => AOS.refreshHard());
+      }, 750);
     };
 
     initAos();
 
-    const handleChange = () => initAos();
+    const handleChange = () => {
+      clearTimeout(initTimeout);
+      initAos();
+    };
+
     mobileQuery.addEventListener('change', handleChange);
     prefersReducedMotion.addEventListener('change', handleChange);
-    window.addEventListener('load', AOS.refreshHard);
-    window.addEventListener('orientationchange', AOS.refreshHard);
-    window.setTimeout(() => AOS.refreshHard(), 350);
 
     return () => {
+      clearTimeout(initTimeout);
       mobileQuery.removeEventListener('change', handleChange);
       prefersReducedMotion.removeEventListener('change', handleChange);
-      window.removeEventListener('load', AOS.refreshHard);
-      window.removeEventListener('orientationchange', AOS.refreshHard);
     };
   }, []);
 
@@ -1934,7 +1959,7 @@ function App({ locale = 'lt' }) {
                 </figure>
               </div>
               <div>
-                <h3 className="font-heading text-4xl font-black uppercase">{activeLocale === 'lt' ? 'Apie mane' : 'About me'}</h3>
+                <h2 className="font-heading text-4xl font-black uppercase">{activeLocale === 'lt' ? 'Apie mane' : 'About me'}</h2>
                 <div className="mt-6 space-y-4 text-base text-black/75">
                   {activeLocale === 'lt' ? (
                     <>
@@ -2052,11 +2077,19 @@ function App({ locale = 'lt' }) {
                       </span>
                     )}
                     <div className={`flex h-full items-center justify-center ${plan.isMostPopular ? 'pt-11' : ''}`}>
-                      <h3 className="w-full text-center font-heading text-xl font-black leading-tight text-black sm:text-2xl">{plan.title}</h3>
+                      <h3 className="w-full text-center font-heading text-xl font-black tracking-tight leading-tight text-black sm:text-2xl">{plan.title}</h3>
                     </div>
                   </div>
                   <div className="relative h-[380px] sm:h-[360px] shrink-0">
-                    <img src={plan.image} alt={plan.title} className="absolute inset-0 h-full w-full object-cover brightness-110 saturate-110" loading="lazy" />
+                    {plan.imageAvifSrcSet || plan.imageWebpSrcSet ? (
+                      <picture>
+                        {plan.imageAvifSrcSet && <source type="image/avif" srcSet={plan.imageAvifSrcSet} sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />}
+                        {plan.imageWebpSrcSet && <source type="image/webp" srcSet={plan.imageWebpSrcSet} sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />}
+                        <img src={plan.image} alt={plan.title} className="absolute inset-0 h-full w-full object-cover brightness-110 saturate-110" loading="lazy" />
+                      </picture>
+                    ) : (
+                      <img src={plan.image} alt={plan.title} className="absolute inset-0 h-full w-full object-cover brightness-110 saturate-110" loading="lazy" />
+                    )}
                     {plan.isPremium && (
                       <div className="absolute top-6 left-6 sm:top-8 sm:left-8 z-10">
                         <span className="inline-block rounded-full bg-yellow-400 px-3 py-1 text-xs font-bold uppercase tracking-widest text-black shadow-md">
@@ -2070,9 +2103,6 @@ function App({ locale = 'lt' }) {
                     className="flex flex-col flex-1 gap-6 bg-white p-6 sm:p-8 text-slate-900 text-center items-center"
                   >
                     <div className="space-y-4 w-full flex flex-col items-center">
-                      <p className="text-xs uppercase tracking-widest text-black mb-2">
-                        {activeLocale === 'lt' ? 'Programos akcentai' : 'Key highlights'}
-                      </p>
                       <ul className="space-y-3 w-full max-w-[280px]">
                         {plan.extras.slice(0, 3).map(extra => (
                           <li key={extra} className="flex items-start gap-3.5 text-sm font-normal text-black text-left">
@@ -2098,13 +2128,10 @@ function App({ locale = 'lt' }) {
                       </ul>
                     </div>
 
-                    <div className="mt-auto space-y-6">
+                    <div className="mt-auto space-y-6 w-full">
                       {plan.result && (
                         <div className="pt-6 border-t border-slate-100 w-full text-center">
-                          <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">
-                            {activeLocale === 'lt' ? 'Rezultatas' : 'The Result'}
-                          </p>
-                          <p className="text-xl font-semibold leading-snug text-slate-950">{plan.result}</p>
+                          <p className="text-xl font-semibold leading-snug text-slate-950 flex items-center justify-center min-h-[5.5rem]">{plan.result}</p>
                         </div>
                       )}
                       <div className="flex flex-col gap-4 w-full items-center">
@@ -2468,7 +2495,7 @@ function App({ locale = 'lt' }) {
                             <h3 className="font-heading text-2xl sm:text-3xl font-black tracking-tight uppercase text-white">{item.name}</h3>
                           </div>
 
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                               <dt className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 mb-1.5">
                                 {activeLocale === 'lt' ? 'Tikslas' : 'Goal'}
@@ -2483,7 +2510,7 @@ function App({ locale = 'lt' }) {
                                 <dd className="text-sm font-medium text-white/90">{periodText}</dd>
                               </div>
                             ) : null}
-                          </div>
+                          </dl>
 
                           <div className="mt-auto rounded-2xl border border-white/10 bg-white/[0.07] p-4 sm:p-5">
                             <div className="flex items-start justify-between gap-4">
@@ -2611,12 +2638,20 @@ function App({ locale = 'lt' }) {
                       className="flex flex-col h-full overflow-hidden rounded-[32px] border border-slate-200 bg-white"
                     >
                       <figure className="relative h-56 w-full sm:h-64">
-                        <img
-                          src={service.image}
-                          alt={service.title}
-                          className="h-full w-full object-cover"
-                          loading="lazy"
-                        />
+                        {service.imageWebpSrcSet || service.imageAvifSrcSet ? (
+                          <picture>
+                            {service.imageAvifSrcSet && <source type="image/avif" srcSet={service.imageAvifSrcSet} sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />}
+                            {service.imageWebpSrcSet && <source type="image/webp" srcSet={service.imageWebpSrcSet} sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />}
+                            <img src={service.image} alt={service.title} className="h-full w-full object-cover" loading="lazy" />
+                          </picture>
+                        ) : (
+                          <img
+                            src={service.image}
+                            alt={service.title}
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                          />
+                        )}
                       </figure>
                       <div className="flex flex-1 flex-col gap-6 p-8 text-slate-700">
                         <div>
@@ -2714,7 +2749,7 @@ function App({ locale = 'lt' }) {
                 </Link>
                 <Link
                   to={activeLocale === 'lt' ? '/lt/anketa' : '/en/questionnaire'}
-                  className="inline-flex items-center justify-center rounded-full border border-white px-6 py-3 font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:text-accent"
+                  className="inline-flex items-center justify-center rounded-full border border-white/35 px-6 py-3 font-semibold text-white/70 transition duration-200 hover:-translate-y-0.5 hover:text-accent hover:border-white/50"
                 >
                   {activeLocale === 'lt' ? 'Išbandyti nemokamai' : 'Try for free'}
                 </Link>

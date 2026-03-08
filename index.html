@@ -3,8 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://challenges.cloudflare.com https://www.googletagmanager.com https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.supabase.co https://api.stripe.com https://challenges.cloudflare.com https://www.google-analytics.com https://region1.google-analytics.com; frame-src https://challenges.cloudflare.com https://js.stripe.com https://hooks.stripe.com; base-uri 'self'; form-action 'self';" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/favicon.png" />
+    <link rel="preload" as="image" type="image/webp" media="(max-width: 768px)" fetchpriority="high" imagesrcset="/uploads/_optimized/IMG_0441-modified-scaled-e1750335226133-320w.webp 320w, /uploads/_optimized/IMG_0441-modified-scaled-e1750335226133-480w.webp 480w, /uploads/_optimized/IMG_0441-modified-scaled-e1750335226133-640w.webp 640w, /uploads/_optimized/IMG_0441-modified-scaled-e1750335226133-768w.webp 768w, /uploads/_optimized/IMG_0441-modified-scaled-e1750335226133-960w.webp 960w, /uploads/_optimized/IMG_0441-modified-scaled-e1750335226133-1024w.webp 1024w, /uploads/_optimized/IMG_0441-modified-scaled-e1750335226133-1280w.webp 1280w, /uploads/_optimized/IMG_0441-modified-scaled-e1750335226133-1440w.webp 1440w, /uploads/_optimized/IMG_0441-modified-scaled-e1750335226133-1485w.webp 1485w" imagesizes="100vw" />
+    <link rel="preload" as="image" type="image/webp" media="(min-width: 769px)" fetchpriority="high" imagesrcset="/uploads/_optimized/IMG_0443-scaled-640w.webp 640w, /uploads/_optimized/IMG_0443-scaled-768w.webp 768w, /uploads/_optimized/IMG_0443-scaled-960w.webp 960w, /uploads/_optimized/IMG_0443-scaled-1024w.webp 1024w, /uploads/_optimized/IMG_0443-scaled-1280w.webp 1280w, /uploads/_optimized/IMG_0443-scaled-1440w.webp 1440w, /uploads/_optimized/IMG_0443-scaled-1600w.webp 1600w, /uploads/_optimized/IMG_0443-scaled-1920w.webp 1920w, /uploads/_optimized/IMG_0443-scaled-2560w.webp 2560w" imagesizes="100vw" />
+    <link rel="preload" href="/src/assets/fonts/Outfit-latin.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="/src/assets/fonts/Outfit-latin-ext.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
   </head>
   <body>
     <div id="root"></div>

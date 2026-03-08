@@ -28,6 +28,47 @@ type CartItem = {
 const PRIVATE_TEST_PRODUCT_ID = 'private_test_1eur';
 const PRIVATE_TEST_PRODUCT_PRICE_CENTS = 100;
 
+function asTrimmedString(v: unknown) {
+  const s = String(v ?? '').trim();
+  return s.length ? s : '';
+}
+
+function clamp(s: string, max: number) {
+  if (s.length <= max) return s;
+  return s.slice(0, max);
+}
+
+function getIp(req: Request): string {
+  const xf = req.headers.get('x-forwarded-for');
+  if (xf) return xf.split(',')[0].trim();
+  const real = req.headers.get('x-real-ip');
+  if (real) return real.trim();
+  return 'unknown';
+}
+
+async function verifyTurnstile(args: { token: string; ip?: string | null }) {
+  const secret = Deno.env.get('TURNSTILE_SECRET_KEY');
+  if (!secret || !secret.trim()) {
+    return { enforced: false, ok: true as const };
+  }
+  const token = String(args.token || '').trim();
+  if (!token) {
+    return { enforced: true, ok: false as const, error: 'missing_captcha' as const };
+  }
+  const form = new URLSearchParams();
+  form.set('secret', secret.trim());
+  form.set('response', token);
+  if (args.ip && args.ip !== 'unknown') form.set('remoteip', args.ip);
+  const resp = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: form.toString(),
+  });
+  const data: any = await resp.json().catch(() => null);
+  if (data?.success) return { enforced: true, ok: true as const };
+  return { enforced: true, ok: false as const, error: 'captcha_failed' as const };
+}
+
 function getHeader(req: Request, name: string) {
   return req.headers.get(name) || req.headers.get(name.toLowerCase()) || null;
 }
@@ -62,6 +103,19 @@ Deno.serve(async (req: Request) => {
 
     if (!origin.startsWith('http')) {
       return new Response(JSON.stringify({ error: 'invalid_origin' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Verify Turnstile bot protection
+    const captchaToken = clamp(
+      asTrimmedString(body?.cf_turnstile_response ?? body?.turnstile_token ?? body?.captcha_token),
+      3000,
+    );
+    const captcha = await verifyTurnstile({ token: captchaToken, ip: getIp(req) });
+    if (!captcha.ok) {
+      return new Response(JSON.stringify({ error: captcha.error }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

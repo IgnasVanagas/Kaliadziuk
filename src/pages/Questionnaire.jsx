@@ -1,8 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import Seo from '../components/Seo.jsx';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../auth/AuthProvider';
 import BotProtectionCheck from '../components/BotProtectionCheck';
@@ -495,9 +493,9 @@ const ToggleButton = ({ active, label, onClick }) => (
     type="button"
     onClick={onClick}
     aria-pressed={active}
-    className={`w-full text-pretty rounded-2xl border px-5 py-4 text-left text-base font-medium transition-all duration-200 no-underline ${
+    className={`w-full text-pretty rounded-2xl border px-5 py-4 text-left text-base font-medium transition-colors duration-200 no-underline ${
       active
-        ? 'border-black bg-black text-white shadow-xl scale-[1.02]'
+        ? 'border-black bg-black text-white shadow-xl'
         : 'border-black/10 bg-white hover:border-black/40 hover:bg-zinc-50'
     }`}
   >
@@ -514,8 +512,6 @@ const ToggleButton = ({ active, label, onClick }) => (
 
 const RangeSlider = ({ value, min, max, step, onChange, background }) => {
   const percentage = ((value - min) / (max - min)) * 100;
-  // Scale from 1.0 up to 1.8 depending on value
-  const scale = 1 + (percentage / 100) * 0.8; 
 
   return (
     <div className="relative mt-8 mb-6">
@@ -525,10 +521,7 @@ const RangeSlider = ({ value, min, max, step, onChange, background }) => {
             left: `calc(${percentage}% + ${(8 - percentage * 0.16)}px)` 
           }}
        >
-         <span 
-            className="font-black text-slate-900 transition-transform duration-100 ease-out text-2xl"
-            style={{ transform: `scale(${scale})` }}
-         >
+         <span className="font-black text-slate-900 text-2xl">
            {Math.round(value)}
          </span>
        </div>
@@ -1147,65 +1140,30 @@ export default function Questionnaire() {
   };
 
   useEffect(() => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const mobileQuery = window.matchMedia('(max-width: 767px)');
-
-    const initAos = () => {
-      AOS.init({
-        once: true,
-        duration: mobileQuery.matches ? 560 : 700,
-        easing: 'ease-out-cubic',
-        offset: mobileQuery.matches ? 60 : 100,
-        disable: false,
-      });
-      AOS.refreshHard();
-    };
-
-    initAos();
-
-    const handleChange = () => initAos();
-    mobileQuery.addEventListener('change', handleChange);
-    prefersReducedMotion.addEventListener('change', handleChange);
-    window.addEventListener('load', AOS.refreshHard);
-    window.addEventListener('orientationchange', AOS.refreshHard);
-    window.setTimeout(() => AOS.refreshHard(), 350);
-
-    return () => {
-      mobileQuery.removeEventListener('change', handleChange);
-      prefersReducedMotion.removeEventListener('change', handleChange);
-      window.removeEventListener('load', AOS.refreshHard);
-      window.removeEventListener('orientationchange', AOS.refreshHard);
-    };
-  }, []);
-
-  // Re-trigger AOS on step change
-  useEffect(() => {
     if (!Number.isInteger(stageFromPath) || stageFromPath < 1 || stageFromPath > 5) {
       navigate(`/${locale}/${locale === 'lt' ? 'anketa' : 'questionnaire'}/1`, { replace: true });
       return;
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    AOS.refresh();
+    window.scrollTo({ top: 0 });
   }, [activeStage, locale, navigate, stageFromPath]);
 
   return (
     <main className="relative min-h-screen bg-[#F8F9FA]">
       <Seo locale={locale} />
       
-      {/* Decorative background elements */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-[10%] -top-[10%] h-[50vh] w-[50vh] rounded-full bg-gradient-to-br from-[#DCF41E]/20 to-transparent blur-[120px]" />
-        <div className="absolute -right-[10%] top-[20%] h-[40vh] w-[40vh] rounded-full bg-gradient-to-bl from-blue-100/30 to-transparent blur-[100px]" />
-        <div className="absolute bottom-0 left-[20%] h-[40vh] w-[60vh] rounded-full bg-gradient-to-t from-gray-200/40 to-transparent blur-[120px]" />
+      {/* Decorative background elements — simple radial gradients, no blur filter */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute -left-[10%] -top-[10%] h-[50vh] w-[50vh] rounded-full" style={{background:'radial-gradient(circle,rgba(220,244,30,0.12) 0%,transparent 70%)'}} />
+        <div className="absolute -right-[10%] top-[20%] h-[40vh] w-[40vh] rounded-full" style={{background:'radial-gradient(circle,rgba(219,234,254,0.18) 0%,transparent 70%)'}} />
+        <div className="absolute bottom-0 left-[20%] h-[40vh] w-[60vh] rounded-full" style={{background:'radial-gradient(circle,rgba(229,231,235,0.22) 0%,transparent 70%)'}} />
       </div>
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         
         {/* Header Section */}
-        <div className="mb-12 max-w-3xl" data-aos="fade-up">
+        <div className="mb-12 max-w-3xl">
           <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-white px-4 py-1.5 shadow-sm ring-1 ring-black/5">
             <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#DCF41E] opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-[#acc300]"></span>
             </span>
             <span className="text-xs font-bold uppercase tracking-wider text-black/60">{content.hero.time}</span>
@@ -1222,7 +1180,7 @@ export default function Questionnaire() {
         <div className="grid gap-8 lg:grid-cols-[380px_1fr] lg:gap-12">
           
           {/* Sidebar */}
-          <aside className="relative lg:order-1 order-1" data-aos="fade-right" data-aos-delay="100">
+          <aside className="relative lg:order-1 order-1">
             <div className="sticky top-28 space-y-6">
               
               {/* Progress Card */}
@@ -1286,7 +1244,7 @@ export default function Questionnaire() {
             
             {/* Stage 1 */}
             {activeStage === 0 && (
-              <section data-aos="fade-up" className="space-y-8">
+              <section className="space-y-8 animate-[fadeInUp_0.35s_ease-out]">
                 
                 <div className="relative overflow-hidden rounded-[2.5rem] bg-white p-8 shadow-[0_2px_40px_rgb(0,0,0,0.06)] ring-1 ring-black/5 sm:p-10">
                   <h2 className="font-heading text-3xl font-bold text-slate-900 sm:text-4xl">{content.stages[0].title}</h2>
@@ -1347,7 +1305,7 @@ export default function Questionnaire() {
 
             {/* Stage 2 */}
             {activeStage === 1 && (
-            <section data-aos="fade-up" className="space-y-8">
+            <section className="space-y-8 animate-[fadeInUp_0.35s_ease-out]">
 
               <div className="rounded-[2.5rem] bg-white p-8 shadow-[0_2px_40px_rgb(0,0,0,0.06)] ring-1 ring-black/5 sm:p-10">
                 <h2 className="font-heading text-3xl font-bold text-slate-900 sm:text-4xl">{content.stages[1].title}</h2>
@@ -1421,7 +1379,7 @@ export default function Questionnaire() {
 
             {/* Stage 3 */}
             {activeStage === 2 && (
-            <section data-aos="fade-up" className="space-y-8">
+            <section className="space-y-8 animate-[fadeInUp_0.35s_ease-out]">
 
               <div className="rounded-[2.5rem] bg-white p-8 shadow-[0_2px_40px_rgb(0,0,0,0.06)] ring-1 ring-black/5 sm:p-10">
                 <h2 className="font-heading text-3xl font-bold text-slate-900 sm:text-4xl">{content.stages[2].title}</h2>
@@ -1489,12 +1447,12 @@ export default function Questionnaire() {
 
             {/* Stage 4 */}
             {activeStage === 3 && (
-            <section data-aos="fade-up" className="space-y-8">
+            <section className="space-y-8 animate-[fadeInUp_0.35s_ease-out]">
               
 
               <div className="relative overflow-hidden rounded-[2.5rem] bg-white p-8 shadow-[0_2px_40px_rgb(0,0,0,0.06)] ring-1 ring-black/5 sm:p-10">
                 {/* Decorative blob in stage 4 */}
-                <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-gradient-to-br from-[#DCF41E]/30 to-transparent blur-3xl" />
+                <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full" style={{background:'radial-gradient(circle,rgba(220,244,30,0.18) 0%,transparent 70%)'}} />
                 
                 <h2 className="relative font-heading text-3xl font-bold text-slate-900 sm:text-4xl">{content.stages[3].title}</h2>
 
@@ -1602,7 +1560,7 @@ export default function Questionnaire() {
 
             {/* Stage 5: Contact / Summary */}
             {activeStage === 4 && (
-            <section data-aos="fade-up" className="space-y-8">
+            <section className="space-y-8 animate-[fadeInUp_0.35s_ease-out]">
               <div className="rounded-[2.5rem] bg-white px-8 py-14 text-center text-slate-900 shadow-2xl">
                 <h3 className="font-heading text-3xl font-bold sm:text-4xl">{content.summary.title}</h3>
                 <p className="mx-auto mt-5 max-w-xl text-lg text-slate-600 sm:text-xl">
@@ -1731,7 +1689,7 @@ export default function Questionnaire() {
 
       {/* Error / Validation Popup */}
       {errorPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-in fade-in duration-200">
           <div className="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full p-8 relative scale-100 animate-in zoom-in-95 duration-200 border-l-4 border-red-500">
             <button 
               onClick={() => {

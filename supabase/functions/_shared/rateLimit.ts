@@ -13,38 +13,17 @@ export async function rateLimit(req: Request, name: string, limit: number, windo
   const key = `${name}:${ip}`;
   const supabase = getServiceClient();
 
-  const now = new Date();
-  const windowStart = new Date(Math.floor(now.getTime() / (windowSeconds * 1000)) * windowSeconds * 1000);
+  // Atomic check-and-increment via Postgres function to prevent TOCTOU races.
+  const result = await supabase.rpc('check_rate_limit', {
+    p_key: key,
+    p_limit: limit,
+    p_window_seconds: windowSeconds,
+  });
 
-  const existing = await supabase.from('function_rate_limits').select('*').eq('key', key).maybeSingle();
-  if (existing.error) throw new Error(existing.error.message);
+  if (result.error) throw new Error(result.error.message);
 
-  if (!existing.data) {
-    const ins = await supabase.from('function_rate_limits').insert({
-      key,
-      window_started_at: windowStart.toISOString(),
-      count: 1,
-    });
-    if (ins.error) throw new Error(ins.error.message);
-    return;
-  }
-
-  const existingStart = new Date(existing.data.window_started_at);
-  if (existingStart.getTime() !== windowStart.getTime()) {
-    const up = await supabase.from('function_rate_limits').update({
-      window_started_at: windowStart.toISOString(),
-      count: 1,
-    }).eq('key', key);
-    if (up.error) throw new Error(up.error.message);
-    return;
-  }
-
-  if (existing.data.count >= limit) {
+  // The function returns true if allowed, false if rate-limited.
+  if (result.data === false) {
     throw new Error('rate_limited');
   }
-
-  const up = await supabase.from('function_rate_limits').update({
-    count: existing.data.count + 1,
-  }).eq('key', key);
-  if (up.error) throw new Error(up.error.message);
 }

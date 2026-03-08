@@ -106,7 +106,16 @@ export default function SiteHeader() {
   }, [homeBase, locale]);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 24);
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrolled(window.scrollY > 24);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
     handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -137,14 +146,10 @@ export default function SiteHeader() {
     };
   }, []);
 
-  const headerClass = `fixed top-0 left-0 right-0 z-50 transition-transform duration-700 ${
+  const headerClass = `fixed top-0 left-0 right-0 z-50 transition-transform duration-700 will-change-transform ${
     scrolled ? 'translate-y-4' : 'translate-y-0'
   }`;
-  const headerSurfaceClass = `w-full px-6 transition-all duration-700 backdrop-saturate-150 ${
-    scrolled
-      ? 'mx-auto max-w-6xl !rounded-[2rem] border border-white/30 glass-green py-3 text-black shadow-[0_35px_90px_rgba(0,0,0,0.35)]'
-      : 'mx-auto max-w-full rounded-none border-b border-black/10 bg-white py-5 text-black shadow-[0_12px_45px_rgba(15,23,42,0.08)]'
-  }`;
+
   const desktopLinkClass = 'transition text-black hover:text-slate-900';
   const desktopCtaClass = 'inline-flex items-center justify-center rounded-full bg-black px-6 py-2 text-sm font-semibold text-white transition hover:bg-slate-900';
   const mobileMenuBaseClass = 'border border-black/15 bg-white/95 text-black backdrop-blur-md rounded-3xl mt-4';
@@ -168,8 +173,22 @@ export default function SiteHeader() {
   return (
     <>
     <header className={headerClass}>
-      <div className={headerSurfaceClass}>
-        <div className={`flex items-center justify-between w-full ${!scrolled ? 'max-w-7xl mx-auto' : ''}`}>
+      <div className="relative mx-auto w-full max-w-full">
+        {/* Background Layers - Decoupled to eliminate layout thrashing and repaint spikes on slow devices */}
+        <div 
+          className={`absolute inset-0 z-0 border-b border-black/10 shadow-[0_12px_45px_rgba(15,23,42,0.08)] pointer-events-none transition-[opacity,background-color] duration-700 ${scrolled ? 'opacity-0 bg-transparent' : 'opacity-100 bg-white'}`}
+        />
+        <div 
+          className={`!absolute inset-0 mx-auto transition-[max-width,opacity,border-radius] duration-700 pointer-events-none z-0 ${
+            scrolled 
+              ? 'max-w-[calc(100%-3rem)] md:max-w-6xl opacity-100 !rounded-[2rem] glass-green backdrop-saturate-150 border border-white/30 shadow-[0_35px_90px_rgba(0,0,0,0.35)]' 
+              : 'max-w-full opacity-0 rounded-none border-transparent shadow-none'
+          }`}
+        />
+
+        <div className={`relative z-10 w-full mx-auto flex items-center justify-between transition-all duration-700 ${
+          scrolled ? 'max-w-[calc(100%-3rem)] md:max-w-6xl px-4 md:px-6 py-2' : 'max-w-7xl px-4 py-3 md:px-6 md:py-5'
+        }`}>
           <a href={`${homeBase}#hero`} className="transition-opacity duration-300 hover:opacity-80">
             <picture>
               <source type="image/avif" srcSet={logoSrcSetAvif} sizes="(min-width: 768px) 240px, 180px" />
@@ -177,7 +196,8 @@ export default function SiteHeader() {
               <img
                 src={logoUrl}
                 alt="Kaliadziuk"
-                className={`w-auto object-contain transition-all duration-700 ${scrolled ? 'h-10' : 'h-14'}`}
+                className="w-auto object-contain transition-transform duration-700 origin-left h-10 md:h-14"
+                style={{ transform: scrolled ? 'scale(0.714)' : 'scale(1)' }}
                 decoding="async"
                 width={3223}
                 height={677}
