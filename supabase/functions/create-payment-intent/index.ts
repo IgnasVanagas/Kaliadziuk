@@ -1,4 +1,4 @@
-import { getCorsHeaders, handleOptions } from '../_shared/cors.ts';
+import { getCorsHeaders, handleOptions, isAllowedOrigin } from '../_shared/cors.ts';
 import { getServiceClient } from '../_shared/supabase.ts';
 import { getStripe } from '../_shared/stripe.ts';
 import { normalizeGiftCode, randomGiftCode, sha256Hex } from '../_shared/crypto.ts';
@@ -38,18 +38,44 @@ function clamp(s: string, max: number) {
   return s.slice(0, max);
 }
 
+/** Prevent timing side-channel when comparing secret tokens. */
+function timingSafeEqual(a: string, b: string): boolean {
+  const encoder = new TextEncoder();
+  const bufA = encoder.encode(a);
+  const bufB = encoder.encode(b);
+  if (bufA.length !== bufB.length) return false;
+  let result = 0;
+  for (let i = 0; i < bufA.length; i++) {
+    result |= bufA[i] ^ bufB[i];
+  }
+  return result === 0;
+}
+
 function getIp(req: Request): string {
-  const xf = req.headers.get('x-forwarded-for');
-  if (xf) return xf.split(',')[0].trim();
+  const cf = req.headers.get('cf-connecting-ip');
+  if (cf) return cf.trim();
   const real = req.headers.get('x-real-ip');
   if (real) return real.trim();
+  const xf = req.headers.get('x-forwarded-for');
+  if (xf) return xf.split(',')[0].trim();
   return 'unknown';
 }
 
 async function verifyTurnstile(args: { token: string; ip?: string | null }) {
   const secret = Deno.env.get('TURNSTILE_SECRET_KEY');
   if (!secret || !secret.trim()) {
-    return { enforced: false, ok: true as const };
+    if (Deno.env.get('TURNSTILE_DISABLED') === 'true') {
+      const stripeKey = Deno.env.get('STRIPE_SECRET_KEY') || '';
+      const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+      const isLocal = supabaseUrl.includes('localhost') || supabaseUrl.includes('127.0.0.1');
+      if (!stripeKey.startsWith('sk_live_') && isLocal) {
+        console.warn('[turnstile] bypassed – local development environment');
+        return { enforced: false, ok: true as const };
+      }
+      console.error('[turnstile] TURNSTILE_DISABLED ignored – not a local dev environment');
+    }
+    console.error('CRITICAL: TURNSTILE_SECRET_KEY not set. Set TURNSTILE_DISABLED=true to bypass in development.');
+    return { enforced: true, ok: false as const, error: 'captcha_unavailable' as const };
   }
   const token = String(args.token || '').trim();
   if (!token) {
@@ -99,9 +125,10 @@ Deno.serve(async (req: Request) => {
 
     const body: any = await req.json();
     const locale: 'lt' | 'en' = body?.locale === 'en' ? 'en' : 'lt';
-    const origin = String(body?.origin || '').replace(/\/$/, '');
+    // Use the real HTTP Origin header for security decisions (not attacker-controlled body).
+    const origin = (req.headers.get('Origin') || '').replace(/\/$/, '');
 
-    if (!origin.startsWith('http')) {
+    if (!origin.startsWith('http') || !isAllowedOrigin(origin)) {
       return new Response(JSON.stringify({ error: 'invalid_origin' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -139,6 +166,12 @@ Deno.serve(async (req: Request) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+    if (items.length > 50) {
+      return new Response(JSON.stringify({ error: 'too_many_items' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     const hasPrivateTestItem = items.some((it) => it?.kind === 'product' && String(it?.productId || '') === PRIVATE_TEST_PRODUCT_ID);
 
@@ -150,7 +183,7 @@ Deno.serve(async (req: Request) => {
     const acceptTerms = Boolean(customer?.accept_terms);
     const acceptPrivacy = Boolean(customer?.accept_privacy);
 
-    if (!email || !acceptTerms || !acceptPrivacy) {
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || !acceptTerms || !acceptPrivacy) {
       return new Response(JSON.stringify({ error: 'missing_required_fields' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -216,8 +249,8 @@ Deno.serve(async (req: Request) => {
           }
 
           const expected = Deno.env.get('TEST_CHECKOUT_TOKEN') || '';
-          const got = String(getHeader(req, 'x-test-checkout-token') || '');
-          if (!expected || !got || got !== expected) {
+          const got = String(body?.test_checkout_token || '');
+          if (!expected || !got || !timingSafeEqual(got, expected)) {
             return new Response(JSON.stringify({ error: 'test_item_forbidden' }), {
               status: 403,
               headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -263,8 +296,8 @@ Deno.serve(async (req: Request) => {
         });
       } else if (it.kind === 'gift_card') {
         const amountCents = Math.round(Number(it.amountCents || it.unitPriceCents || 0));
-        // Minimum gift card: 50 EUR
-        if (!Number.isFinite(amountCents) || amountCents < 5000) {
+        // Minimum gift card: 50 EUR, maximum: 500 EUR
+        if (!Number.isFinite(amountCents) || amountCents < 5000 || amountCents > 50000) {
           return new Response(JSON.stringify({ error: 'invalid_gift_amount' }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -337,17 +370,11 @@ Deno.serve(async (req: Request) => {
         });
       }
 
-      const available = await supabase.rpc('gift_card_available_cents', { p_gift_card_id: gc.data.id });
-      if (available.error) throw new Error(available.error.message);
-
-      const availCents = Number(available.data || 0);
-      discountCents = Math.min(availCents, subtotalCents);
       giftCardId = gc.data.id;
     }
 
-    const totalCents = Math.max(0, subtotalCents - discountCents);
-
-    // Create order
+    // Create order first (needed for the atomic reservation RPC).
+    // discount_cents will be updated after atomic reservation confirms the amount.
     const orderIns = await supabase
       .from('orders')
       .insert({
@@ -355,8 +382,8 @@ Deno.serve(async (req: Request) => {
         auth_user_id: authUserId,
         status: 'pending',
         subtotal_cents: subtotalCents,
-        discount_cents: discountCents,
-        total_cents: totalCents,
+        discount_cents: 0,
+        total_cents: subtotalCents,
         currency: 'EUR',
         locale,
       })
@@ -372,24 +399,26 @@ Deno.serve(async (req: Request) => {
       if (ins.error) throw new Error(ins.error.message);
     }
 
-    // Create reservation if gift card applied
-    if (giftCardId && discountCents > 0) {
-      const expires = new Date(Date.now() + 30 * 60 * 1000).toISOString();
-      const res = await supabase.from('gift_card_reservations').insert({
-        gift_card_id: giftCardId,
-        order_id: orderId,
-        amount_cents: discountCents,
-        status: 'active',
-        expires_at: expires,
+    // Atomically reserve gift card balance (prevents double-spend race condition).
+    if (giftCardId) {
+      const reserved = await supabase.rpc('reserve_gift_card_cents', {
+        p_gift_card_id: giftCardId,
+        p_order_id: orderId,
+        p_max_cents: subtotalCents,
       });
-      if (res.error) throw new Error(res.error.message);
+      if (reserved.error) throw new Error(reserved.error.message);
+      discountCents = Number(reserved.data || 0);
+    }
 
-      await supabase.from('gift_card_ledger').insert({
-        gift_card_id: giftCardId,
-        type: 'reserve',
-        order_id: orderId,
-        amount_cents: -discountCents,
-      });
+    const totalCents = Math.max(0, subtotalCents - discountCents);
+
+    // Update order with final discount/total now that reservation is confirmed.
+    if (discountCents > 0) {
+      const upd = await supabase
+        .from('orders')
+        .update({ discount_cents: discountCents, total_cents: totalCents })
+        .eq('id', orderId);
+      if (upd.error) throw new Error(upd.error.message);
     }
 
     if (totalCents <= 0) {

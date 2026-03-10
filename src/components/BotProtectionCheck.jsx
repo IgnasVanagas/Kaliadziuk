@@ -15,6 +15,8 @@ export default function BotProtectionCheck({
 
   const containerRef = useRef(null);
   const widgetIdRef = useRef(null);
+  // Track one automatic silent retry before surfacing an error to the user.
+  const retriedRef = useRef(false);
   const [isScriptReady, setIsScriptReady] = useState(() => Boolean(window.turnstile));
   const [isVerifying, setIsVerifying] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -60,8 +62,13 @@ export default function BotProtectionCheck({
 
     widgetIdRef.current = window.turnstile.render(containerRef.current, {
       sitekey: siteKey,
-      size: 'flexible',
+      // Only fire verification when .execute() is explicitly called (on user click).
+      execution: 'execute',
+      // Render the widget into the container only if Cloudflare needs user interaction
+      // (e.g. a CAPTCHA puzzle). Otherwise the container stays visually empty.
+      appearance: 'interaction-only',
       callback: (token) => {
+        retriedRef.current = false;
         setHasError(false);
         setIsVerifying(false);
         onChange(String(token || '').trim());
@@ -71,6 +78,25 @@ export default function BotProtectionCheck({
         onChange('');
       },
       'error-callback': () => {
+        // Cloudflare sometimes emits a transient error on first attempt (e.g. a network
+        // hiccup). Silently reset + retry once before surfacing "Nepavyko" to the user.
+        if (!retriedRef.current) {
+          retriedRef.current = true;
+          setHasError(false);
+          if (widgetIdRef.current !== null && window.turnstile?.reset) {
+            window.turnstile.reset(widgetIdRef.current);
+          }
+          // Re-execute after the widget has had a tick to reset itself.
+          setTimeout(() => {
+            try {
+              if (widgetIdRef.current !== null && window.turnstile?.execute) {
+                window.turnstile.execute(widgetIdRef.current);
+              }
+            } catch { /* ignore */ }
+          }, 300);
+          return;
+        }
+        // Second failure — give up and show the error so the user can try again.
         setHasError(true);
         setIsVerifying(false);
         onChange('');
@@ -83,6 +109,7 @@ export default function BotProtectionCheck({
     if (widgetIdRef.current !== null && window.turnstile?.reset) {
       window.turnstile.reset(widgetIdRef.current);
     }
+    retriedRef.current = false;
     setHasError(false);
     setIsVerifying(false);
     onChange('');
@@ -159,7 +186,7 @@ export default function BotProtectionCheck({
       <div
         ref={containerRef}
         aria-hidden="true"
-        className="pointer-events-none absolute h-0 w-0 overflow-hidden opacity-0"
+        className="mt-1 min-h-0 [&>*]:mt-1"
       />
 
       {hasError ? (

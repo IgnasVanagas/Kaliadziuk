@@ -20,7 +20,7 @@ function getAllowedOrigins() {
   return configured ?? DEFAULT_ALLOWED_ORIGINS;
 }
 
-function isAllowedOrigin(origin: string) {
+export function isAllowedOrigin(origin: string) {
   const allowed = getAllowedOrigins();
   return allowed.includes(origin);
 }
@@ -30,7 +30,7 @@ export function getCorsHeaders(req: Request): Record<string, string> {
   const allowOrigin = origin && isAllowedOrigin(origin) ? origin : '';
 
   const headers: Record<string, string> = {
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature, x-test-checkout-token',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Max-Age': '86400',
     Vary: 'Origin',
@@ -44,7 +44,7 @@ export function getCorsHeaders(req: Request): Record<string, string> {
 // Back-compat export (prefer getCorsHeaders(req) in handlers).
 export const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': DEFAULT_ALLOWED_ORIGINS[0],
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature, x-test-checkout-token',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Max-Age': '86400',
   Vary: 'Origin',

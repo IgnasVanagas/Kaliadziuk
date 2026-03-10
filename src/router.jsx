@@ -125,7 +125,7 @@ export default function AppRouter() {
           <Route path="/lt/atsaukta" element={<Cancel />} />
           <Route path="/en/cancel" element={<Cancel />} />
 
-          <Route path="/lt/admin" element={<Admin />} />
+          <Route path="/lt/admin" element={<RequireAuth locale="lt"><Admin /></RequireAuth>} />
           <Route path="/en/admin" element={<Navigate to="/lt/admin" replace />} />
 
           <Route path="/lt/*" element={<NotFound />} />

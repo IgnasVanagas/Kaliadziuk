@@ -3,9 +3,18 @@ import { useLocation } from 'react-router-dom';
 
 const STORAGE_KEY = 'cookie_consent';
 
+const CONSENT_VERSION = 1;
+
 export function getConsent() {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem(STORAGE_KEY);
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed?.value || null;
+  } catch {
+    return raw; // Legacy plain-string format
+  }
 }
 
 export default function ConsentBanner() {
@@ -23,7 +32,10 @@ export default function ConsentBanner() {
 
   const handleResponse = (granted) => {
     const value = granted ? 'granted' : 'denied';
-    localStorage.setItem(STORAGE_KEY, value);
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ value, timestamp: new Date().toISOString(), version: CONSENT_VERSION }),
+    );
     setShow(false);
     
     // Dispatch event so other components (SiteMetrics) can react immediately

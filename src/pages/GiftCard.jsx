@@ -29,8 +29,9 @@ export default function GiftCard() {
       return;
     }
 
-    const amountEur = Number(amountVal);
-    const amountCents = Math.round(amountEur * 100);
+    // Use integer parsing to avoid floating-point precision errors (input is whole EUR only)
+    const amountEur = parseInt(amountVal, 10);
+    const amountCents = Number.isFinite(amountEur) ? amountEur * 100 : NaN;
 
     // Validate number and minimum amount (50 EUR)
     if (!Number.isFinite(amountCents) || amountCents < 5000) {

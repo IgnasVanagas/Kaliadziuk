@@ -83,6 +83,14 @@ export default function Auth() {
       }
 
       if (mode === 'register') {
+        if (password.length < 8) {
+          setError(locale === 'en' ? 'Password must be at least 8 characters.' : 'Slaptažodis turi būti bent 8 simbolių.');
+          return;
+        }
+        if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+          setError(locale === 'en' ? 'Password must contain at least one letter and one number.' : 'Slaptažodyje turi būti bent viena raidė ir vienas skaičius.');
+          return;
+        }
         const { error: err } = await supabase.auth.signUp({
           email: safeEmail,
           password,

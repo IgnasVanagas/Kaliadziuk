@@ -1,4 +1,4 @@
-import { getCorsHeaders, handleOptions } from '../_shared/cors.ts';
+import { getCorsHeaders, handleOptions, isAllowedOrigin } from '../_shared/cors.ts';
 import { getServiceClient } from '../_shared/supabase.ts';
 import { getStripe } from '../_shared/stripe.ts';
 import { normalizeGiftCode, sha256Hex } from '../_shared/crypto.ts';
@@ -38,17 +38,30 @@ function clamp(s: string, max: number) {
 }
 
 function getIp(req: Request): string {
-  const xf = req.headers.get('x-forwarded-for');
-  if (xf) return xf.split(',')[0].trim();
+  const cf = req.headers.get('cf-connecting-ip');
+  if (cf) return cf.trim();
   const real = req.headers.get('x-real-ip');
   if (real) return real.trim();
+  const xf = req.headers.get('x-forwarded-for');
+  if (xf) return xf.split(',')[0].trim();
   return 'unknown';
 }
 
 async function verifyTurnstile(args: { token: string; ip?: string | null }) {
   const secret = Deno.env.get('TURNSTILE_SECRET_KEY');
   if (!secret || !secret.trim()) {
-    return { enforced: false, ok: true as const };
+    if (Deno.env.get('TURNSTILE_DISABLED') === 'true') {
+      const stripeKey = Deno.env.get('STRIPE_SECRET_KEY') || '';
+      const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+      const isLocal = supabaseUrl.includes('localhost') || supabaseUrl.includes('127.0.0.1');
+      if (!stripeKey.startsWith('sk_live_') && isLocal) {
+        console.warn('[turnstile] bypassed – local development environment');
+        return { enforced: false, ok: true as const };
+      }
+      console.error('[turnstile] TURNSTILE_DISABLED ignored – not a local dev environment');
+    }
+    console.error('CRITICAL: TURNSTILE_SECRET_KEY not set. Set TURNSTILE_DISABLED=true to bypass in development.');
+    return { enforced: true, ok: false as const, error: 'captcha_unavailable' as const };
   }
   const token = String(args.token || '').trim();
   if (!token) {
@@ -93,10 +106,21 @@ Deno.serve(async (req: Request) => {
 
     const body: any = await req.json();
     const locale: 'lt' | 'en' = body?.locale === 'en' ? 'en' : 'lt';
-    const origin = String(body?.origin || '').replace(/\/$/, '');
+    // Use the real HTTP Origin header for security decisions (not attacker-controlled body).
+    const origin = (req.headers.get('Origin') || '').replace(/\/$/, '');
 
-    if (!origin.startsWith('http')) {
+    if (!origin.startsWith('http') || !isAllowedOrigin(origin)) {
       return new Response(JSON.stringify({ error: 'invalid_origin' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    // Safety: don't allow production site to accidentally use Stripe test mode.
+    const isProdOrigin = /^https:\/\/(www\.)?kaliadziuk\.lt$/i.test(origin);
+    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY') || '';
+    if (isProdOrigin && stripeSecretKey.startsWith('sk_test_')) {
+      return new Response(JSON.stringify({ error: 'stripe_test_mode_in_production' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // Verify Turnstile bot protection
@@ -116,6 +140,9 @@ Deno.serve(async (req: Request) => {
     if (items.length === 0) {
       return new Response(JSON.stringify({ error: 'empty_cart' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
+    if (items.length > 50) {
+      return new Response(JSON.stringify({ error: 'too_many_items' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
 
     const customer = body?.customer || {};
     const email = String(customer?.email || '').trim();
@@ -123,9 +150,14 @@ Deno.serve(async (req: Request) => {
     const fullName = String(customer?.full_name || '').trim() || null;
     const marketingOptIn = Boolean(customer?.marketing_opt_in);
     const acceptTerms = Boolean(customer?.accept_terms);
+
+    // Server-side email format validation
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      return new Response(JSON.stringify({ error: 'invalid_email' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
     const acceptPrivacy = Boolean(customer?.accept_privacy);
 
-    if (!email || !acceptTerms || !acceptPrivacy) {
+    if (!acceptTerms || !acceptPrivacy) {
       return new Response(JSON.stringify({ error: 'missing_required_fields' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
@@ -203,7 +235,7 @@ Deno.serve(async (req: Request) => {
         });
       } else if (it.kind === 'gift_card') {
         const amountCents = Math.round(Number(it.amountCents || it.unitPriceCents || 0));
-        if (!Number.isFinite(amountCents) || amountCents < 1000) {
+        if (!Number.isFinite(amountCents) || amountCents < 5000 || amountCents > 50000) {
           return new Response(JSON.stringify({ error: 'invalid_gift_amount' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
         }
 
@@ -235,6 +267,7 @@ Deno.serve(async (req: Request) => {
     // Gift code (optional): create reservation + one-time coupon
     let discountCents = 0;
     let stripeDiscounts: any[] = [];
+    let giftCardId: string | null = null;
 
     const rawGift = body?.gift_code ? String(body.gift_code) : '';
     if (rawGift) {
@@ -268,6 +301,7 @@ Deno.serve(async (req: Request) => {
 
       const availCents = Number(available.data || 0);
       discountCents = Math.min(availCents, subtotalCents);
+      giftCardId = gc.data.id;
 
       if (discountCents > 0) {
         const coupon = await stripe.coupons.create({
@@ -279,9 +313,6 @@ Deno.serve(async (req: Request) => {
         });
 
         stripeDiscounts = [{ coupon: coupon.id }];
-
-        // Keep gc id + discount for later
-        body._gift_card_internal = { id: gc.data.id, discountCents };
       }
     }
 
@@ -312,25 +343,25 @@ Deno.serve(async (req: Request) => {
       if (ins.error) throw new Error(ins.error.message);
     }
 
-    // Create reservation if gift card applied
-    const giftInternal = body._gift_card_internal;
-    if (giftInternal?.id && giftInternal?.discountCents > 0) {
-      const expires = new Date(Date.now() + 30 * 60 * 1000).toISOString();
-      const res = await supabase.from('gift_card_reservations').insert({
-        gift_card_id: giftInternal.id,
-        order_id: orderId,
-        amount_cents: giftInternal.discountCents,
-        status: 'active',
-        expires_at: expires,
+    // Atomically reserve gift card balance (prevents double-spend race condition).
+    if (giftCardId) {
+      const reserved = await supabase.rpc('reserve_gift_card_cents', {
+        p_gift_card_id: giftCardId,
+        p_order_id: orderId,
+        p_max_cents: subtotalCents,
       });
-      if (res.error) throw new Error(res.error.message);
+      if (reserved.error) throw new Error(reserved.error.message);
+      const confirmedDiscount = Number(reserved.data || 0);
 
-      await supabase.from('gift_card_ledger').insert({
-        gift_card_id: giftInternal.id,
-        type: 'reserve',
-        order_id: orderId,
-        amount_cents: -giftInternal.discountCents,
-      });
+      // Update order with confirmed discount
+      if (confirmedDiscount !== discountCents) {
+        discountCents = confirmedDiscount;
+        const newTotal = Math.max(0, subtotalCents - discountCents);
+        await supabase
+          .from('orders')
+          .update({ discount_cents: discountCents, total_cents: newTotal })
+          .eq('id', orderId);
+      }
     }
 
     const session = await stripe.checkout.sessions.create({

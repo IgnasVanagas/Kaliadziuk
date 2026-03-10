@@ -20,7 +20,7 @@ Deno.serve(async (req: any) => {
   }
 
   try {
-    await rateLimit(req, 'admin-delete-gift-card', 30, 60);
+    await rateLimit(req, 'admin-delete-gift-card', 5, 60);
 
     const auth = req.headers.get('authorization') || req.headers.get('Authorization');
     if (!auth || !auth.toLowerCase().startsWith('bearer ')) {
@@ -62,6 +62,36 @@ Deno.serve(async (req: any) => {
       return new Response(JSON.stringify({ error: 'missing_id' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Validate UUID format to prevent injection of invalid identifiers
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+      return new Response(JSON.stringify({ error: 'invalid_id_format' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Audit trail: log deletion before it happens so it is recoverable.
+    const gcData = await supabase
+      .from('gift_cards')
+      .select('purchased_order_id,initial_amount_cents,remaining_amount_cents,status')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (gcData.data?.purchased_order_id) {
+      await supabase.from('order_events').insert({
+        order_id: gcData.data.purchased_order_id,
+        actor_type: 'admin',
+        event_type: 'gift_card_deleted',
+        payload: {
+          gift_card_id: id,
+          admin_user_id: userRes.data.user.id,
+          initial_amount_cents: gcData.data.initial_amount_cents,
+          remaining_amount_cents: gcData.data.remaining_amount_cents,
+          status_before: gcData.data.status,
+        },
       });
     }
 

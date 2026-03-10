@@ -31,6 +31,13 @@ export default function Success() {
       
       saveCart(clearCart());
       sessionStorage.removeItem(CLEAR_CART_FLAG_KEY);
+      // Payment succeeded — remove the checkout contact draft so it doesn't
+      // pre-fill a future checkout session with stale data.
+      try {
+        for (const key of ['checkout_draft_lt', 'checkout_draft_en']) {
+          sessionStorage.removeItem(key);
+        }
+      } catch { /* ignore */ }
     } catch {
       // ignore
     }

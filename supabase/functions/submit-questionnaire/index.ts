@@ -47,17 +47,30 @@ function escapeHtml(s: string): string {
 }
 
 function getIp(req: Request): string {
-  const xf = req.headers.get('x-forwarded-for');
-  if (xf) return xf.split(',')[0].trim();
+  const cf = req.headers.get('cf-connecting-ip');
+  if (cf) return cf.trim();
   const real = req.headers.get('x-real-ip');
   if (real) return real.trim();
+  const xf = req.headers.get('x-forwarded-for');
+  if (xf) return xf.split(',')[0].trim();
   return 'unknown';
 }
 
 async function verifyTurnstile(args: { token: string; ip?: string | null }) {
   const secret = Deno.env.get('TURNSTILE_SECRET_KEY');
   if (!secret || !secret.trim()) {
-    return { enforced: false, ok: true as const };
+    if (Deno.env.get('TURNSTILE_DISABLED') === 'true') {
+      const stripeKey = Deno.env.get('STRIPE_SECRET_KEY') || '';
+      const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+      const isLocal = supabaseUrl.includes('localhost') || supabaseUrl.includes('127.0.0.1');
+      if (!stripeKey.startsWith('sk_live_') && isLocal) {
+        console.warn('[turnstile] bypassed – local development environment');
+        return { enforced: false, ok: true as const };
+      }
+      console.error('[turnstile] TURNSTILE_DISABLED ignored – not a local dev environment');
+    }
+    console.error('CRITICAL: TURNSTILE_SECRET_KEY not set. Set TURNSTILE_DISABLED=true to bypass in development.');
+    return { enforced: true, ok: false as const, error: 'captcha_unavailable' as const };
   }
 
   const token = String(args.token || '').trim();
@@ -101,6 +114,38 @@ Deno.serve(async (req: Request) => {
     const body: any = await req.json();
     const { payload, email, user_id, locale } = body;
 
+    // Validate email format
+    const emailStr = clamp(asTrimmedString(email), 200);
+    if (!emailStr || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailStr)) {
+      return new Response(JSON.stringify({ error: 'invalid_email' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Validate payload: must be an object and within size limit
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+      return new Response(JSON.stringify({ error: 'invalid_payload' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const payloadStr = JSON.stringify(payload);
+    if (payloadStr.length > 10000) {
+      return new Response(JSON.stringify({ error: 'payload_too_large' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Validate user_id format if provided
+    if (user_id && (typeof user_id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(user_id))) {
+      return new Response(JSON.stringify({ error: 'invalid_user_id' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const captchaToken = clamp(
       asTrimmedString(body?.turnstile_token ?? body?.cf_turnstile_response ?? body?.captcha_token),
       3000
@@ -118,7 +163,7 @@ Deno.serve(async (req: Request) => {
       .from('questionnaire_submissions')
       .insert({
         payload,
-        email,
+        email: emailStr,
         user_id: user_id || null,
       });
 

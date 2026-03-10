@@ -18,6 +18,6 @@ verify_jwt = false
 [functions.stripe-webhook]
 verify_jwt = false
 
-# Admin-only function should keep JWT verification enabled (default)
-# [functions.admin-delete-gift-card]
-# verify_jwt = true
+# Admin-only function: keep JWT verification enabled
+[functions.admin-delete-gift-card]
+verify_jwt = true

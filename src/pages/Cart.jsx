@@ -116,18 +116,20 @@ export default function Cart() {
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(checkoutDraftKey);
+      const raw = sessionStorage.getItem(checkoutDraftKey);
       if (!raw) return;
       const draft = JSON.parse(raw);
       if (draft && typeof draft === 'object') {
+        // Restore contact fields from sessionStorage (tab-scoped: clears when tab is closed).
+        // sessionStorage is appropriate here — it is never shared across tabs or persisted to disk
+        // beyond the browser session, so accidental PII leakage risk is minimal.
         if (typeof draft.email === 'string') setEmail(draft.email);
         if (typeof draft.phone === 'string') setPhone(draft.phone);
-        if (typeof draft.phoneCode === 'string') setPhoneCode(draft.phoneCode);
         if (typeof draft.fullName === 'string') setFullName(draft.fullName);
+        if (typeof draft.phoneCode === 'string') setPhoneCode(draft.phoneCode);
         if (typeof draft.marketing === 'boolean') setMarketing(draft.marketing);
         if (typeof draft.acceptTerms === 'boolean') setAcceptTerms(draft.acceptTerms);
         if (typeof draft.acceptPrivacy === 'boolean') setAcceptPrivacy(draft.acceptPrivacy);
-        if (typeof draft.giftCodeInput === 'string') setGiftCodeInput(draft.giftCodeInput);
       }
     } catch {
       // ignore
@@ -136,7 +138,11 @@ export default function Cart() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(
+      // Store contact details in sessionStorage (tab-scoped, cleared on tab close).
+      // We intentionally include email/phone/name so users don't lose entered data on
+      // accidental refresh. sessionStorage is NOT shared across tabs or persisted beyond
+      // the current browser session — this is a deliberate, safe trade-off.
+      sessionStorage.setItem(
         checkoutDraftKey,
         JSON.stringify({
           email,
@@ -145,14 +151,13 @@ export default function Cart() {
           marketing,
           acceptTerms,
           acceptPrivacy,
-          giftCodeInput,
           phoneCode,
         })
       );
     } catch {
       // ignore
     }
-  }, [checkoutDraftKey, email, phone, fullName, marketing, acceptTerms, acceptPrivacy, giftCodeInput, phoneCode]);
+  }, [checkoutDraftKey, email, phone, fullName, marketing, acceptTerms, acceptPrivacy, phoneCode]);
 
   const subtotal = computeSubtotalCents(cart);
   const total = computeTotalCents(cart);
@@ -299,9 +304,6 @@ export default function Cart() {
       }
 
       const headers = functionHeaders(session?.access_token);
-      if (hasPrivateTestItem && testCheckoutToken) {
-        headers['x-test-checkout-token'] = testCheckoutToken;
-      }
 
       const resp = await fetch(url, {
         method: 'POST',
@@ -311,6 +313,7 @@ export default function Cart() {
           origin,
           gift_code: cart.giftCode,
           cf_turnstile_response: turnstileToken,
+          test_checkout_token: hasPrivateTestItem ? testCheckoutToken : undefined,
           items: cart.items,
           customer: {
             email,
@@ -341,19 +344,24 @@ export default function Cart() {
       setOrderId(body.order_id || null);
 
       try {
+        const paymentToken = crypto.randomUUID();
         sessionStorage.setItem(
-          `payment_intent_${body.order_id}`,
+          `ps_${paymentToken}`,
           JSON.stringify({
+            order_id: body.order_id,
             client_secret: body.client_secret,
             total_cents: body.total_cents,
             currency: body.currency || 'eur',
           })
         );
+        // Keep the checkout draft in sessionStorage so contact fields are restored
+        // if the user returns after a failed payment. The draft expires naturally
+        // when the tab is closed (sessionStorage is tab-scoped).
+        window.location.assign(`${origin}${locale === 'lt' ? '/lt/mokejimas' : '/en/payment'}?pt=${encodeURIComponent(paymentToken)}`);
       } catch {
-        // ignore
+        // Fallback: navigate without session (Payment page will show error)
+        window.location.assign(`${origin}${locale === 'lt' ? '/lt/mokejimas' : '/en/payment'}`);
       }
-
-      window.location.assign(`${origin}${locale === 'lt' ? '/lt/mokejimas' : '/en/payment'}?order_id=${encodeURIComponent(body.order_id)}`);
     } catch (e) {
       setUiError(e?.message || String(e));
     } finally {

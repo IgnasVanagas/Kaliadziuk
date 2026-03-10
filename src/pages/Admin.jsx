@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { supabase } from '../lib/supabaseClient';
 import { formatEurFromCents } from '../lib/money';
 
@@ -325,9 +326,15 @@ export default function Admin() {
     setSelectedGiftCard(null);
   };
 
+  // Generic meta tag to keep admin out of search engines.
+  const noIndexHelmet = (
+    <Helmet><meta name="robots" content="noindex, nofollow" /></Helmet>
+  );
+
   if (!session) {
     return (
       <main className="mx-auto max-w-md px-6 py-16 space-y-4">
+        {noIndexHelmet}
         <h1 className="font-heading text-3xl font-extrabold">Prisijungimas</h1>
         {err ? <div className="text-red-600 text-sm">{err}</div> : null}
         <label className="block">
@@ -348,16 +355,9 @@ export default function Admin() {
   if (isAdmin === false) {
     return (
       <main className="mx-auto max-w-xl px-6 py-16 space-y-4">
-        <h1 className="font-heading text-3xl font-extrabold">Administravimas</h1>
-        <div className="rounded-2xl border border-black/10 p-5">
-          <p className="text-black/80">Šis vartotojas neturi administratoriaus teisių.</p>
-          <div className="mt-3 text-sm text-black/70 space-y-1">
-            <div><span className="text-black/50">El. paštas:</span> {session?.user?.email || '-'}</div>
-            <div><span className="text-black/50">User ID:</span> <span className="font-mono break-all">{session?.user?.id || '-'}</span></div>
-          </div>
-          <button type="button" onClick={checkAdmin} className="mt-4 underline">Patikrinti dar kartą</button>
-          <button type="button" onClick={signOut} className="mt-4 underline">Atsijungti</button>
-        </div>
+        {noIndexHelmet}
+        <p className="text-black/70">Prieiga negalima.</p>
+        <button type="button" onClick={signOut} className="underline">Atsijungti</button>
       </main>
     );
   }
@@ -365,17 +365,10 @@ export default function Admin() {
   if (isAdmin === null) {
     return (
       <main className="mx-auto max-w-xl px-6 py-16 space-y-4">
-        <h1 className="font-heading text-3xl font-extrabold">Administravimas</h1>
+        {noIndexHelmet}
         {err ? <div className="text-red-600 text-sm">{err}</div> : null}
-        <div className="rounded-2xl border border-black/10 p-5">
-          <p className="text-black/80">Tikrinamos administratoriaus teisės…</p>
-          <div className="mt-3 text-sm text-black/70 space-y-1">
-            <div><span className="text-black/50">El. paštas:</span> {session?.user?.email || '-'}</div>
-            <div><span className="text-black/50">User ID:</span> <span className="font-mono break-all">{session?.user?.id || '-'}</span></div>
-          </div>
-          <button type="button" onClick={checkAdmin} className="mt-4 underline">Patikrinti dar kartą</button>
-          <button type="button" onClick={signOut} className="mt-4 underline">Atsijungti</button>
-        </div>
+        <p className="text-black/80">Tikrinama…</p>
+        <button type="button" onClick={signOut} className="underline">Atsijungti</button>
       </main>
     );
   }

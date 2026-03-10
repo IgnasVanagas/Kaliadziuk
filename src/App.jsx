@@ -10,7 +10,7 @@ import { sendEvent } from './lib/tracking';
 import { ProgramModal } from './components/ProgramModal';
 import BotProtectionCheck from './components/BotProtectionCheck';
 
-const fromUploads = (file) => new URL(`../uploads/${file}`, import.meta.url).pathname;
+const fromUploads = (file) => `/uploads/${String(file || '').replace(/^\/+/, '')}`;
 
 const heroImageDesktop = fromUploads('_optimized/IMG_0443-scaled-2560w.webp');
 const heroImageDesktopAvif = fromUploads('_optimized/IMG_0443-scaled-2560w.avif');

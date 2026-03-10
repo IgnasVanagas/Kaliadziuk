@@ -16,7 +16,9 @@ export function loadCart() {
 }
 
 export function saveCart(cart) {
-  localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  // Strip sensitive gift code data — only persist cart items.
+  const { giftCode, giftDiscountCents, ...safe } = cart;
+  localStorage.setItem(CART_KEY, JSON.stringify(safe));
 
   // Notify same-tab listeners (the 'storage' event only fires across tabs).
   try {

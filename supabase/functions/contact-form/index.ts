@@ -19,17 +19,30 @@ function clamp(s: string, max: number) {
 }
 
 function getIp(req: Request): string {
-  const xf = req.headers.get('x-forwarded-for');
-  if (xf) return xf.split(',')[0].trim();
+  const cf = req.headers.get('cf-connecting-ip');
+  if (cf) return cf.trim();
   const real = req.headers.get('x-real-ip');
   if (real) return real.trim();
+  const xf = req.headers.get('x-forwarded-for');
+  if (xf) return xf.split(',')[0].trim();
   return 'unknown';
 }
 
 async function verifyTurnstile(args: { token: string; ip?: string | null }) {
   const secret = Deno.env.get('TURNSTILE_SECRET_KEY');
   if (!secret || !secret.trim()) {
-    return { enforced: false, ok: true as const };
+    if (Deno.env.get('TURNSTILE_DISABLED') === 'true') {
+      const stripeKey = Deno.env.get('STRIPE_SECRET_KEY') || '';
+      const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+      const isLocal = supabaseUrl.includes('localhost') || supabaseUrl.includes('127.0.0.1');
+      if (!stripeKey.startsWith('sk_live_') && isLocal) {
+        console.warn('[turnstile] bypassed – local development environment');
+        return { enforced: false, ok: true as const };
+      }
+      console.error('[turnstile] TURNSTILE_DISABLED ignored – not a local dev environment');
+    }
+    console.error('CRITICAL: TURNSTILE_SECRET_KEY not set. Set TURNSTILE_DISABLED=true to bypass in development.');
+    return { enforced: true, ok: false as const, error: 'captcha_unavailable' as const };
   }
 
   const token = String(args.token || '').trim();

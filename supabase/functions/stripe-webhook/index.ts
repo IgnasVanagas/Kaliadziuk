@@ -29,10 +29,11 @@ async function handleOrderPaid(
     paidAt: string;
     stripePaymentIntentId?: string | null;
     stripeCustomerId?: string | null;
+    stripeAmountCents?: number | null;
     locale?: 'lt' | 'en';
   }
 ) {
-  const { orderId, paidAt, stripePaymentIntentId, stripeCustomerId } = params;
+  const { orderId, paidAt, stripePaymentIntentId, stripeCustomerId, stripeAmountCents } = params;
 
   const orderRes = await supabase
     .from('orders')
@@ -45,6 +46,18 @@ async function handleOrderPaid(
     (params.locale ?? (orderRes.data.locale === 'en' ? 'en' : 'lt'));
 
   if (orderRes.data.status === 'paid') return;
+
+  // Verify the Stripe amount matches the order total to prevent amount-tampering.
+  if (stripeAmountCents != null && Number.isFinite(stripeAmountCents) && orderRes.data.total_cents > 0) {
+    if (stripeAmountCents !== orderRes.data.total_cents) {
+      console.error('[stripe-webhook] amount mismatch', {
+        orderId,
+        dbTotalCents: orderRes.data.total_cents,
+        stripeAmountCents,
+      });
+      throw new Error(`amount_mismatch: order=${orderRes.data.total_cents} stripe=${stripeAmountCents}`);
+    }
+  }
 
   const up = await supabase
     .from('orders')
@@ -270,9 +283,8 @@ Deno.serve(async (req: Request) => {
       for (const secret of secrets) {
         try {
           // Use raw bytes to avoid any subtle encoding/normalization changes.
-          // Increase tolerance because Stripe retries/resends can happen much later than 5 minutes.
-          // Idempotency is enforced via the stripe_events table.
-          event = await stripe.webhooks.constructEventAsync(rawBodyBytes, sig, secret, 60 * 60);
+          // Tolerance of 10 minutes covers Stripe retries; idempotency is enforced via stripe_events table.
+          event = await stripe.webhooks.constructEventAsync(rawBodyBytes, sig, secret, 600);
           break;
         } catch (e) {
           lastErr = e;
@@ -287,25 +299,39 @@ Deno.serve(async (req: Request) => {
 
     console.log('[stripe-webhook] event received', { id: event?.id, type: event?.type });
 
-    // Idempotency
-    const insert = await supabase
+    // Idempotency: check if event was already processed (guards against transient DB errors on insert).
+    const existing = await supabase
       .from('stripe_events')
-      .insert({ event_id: event.id, type: event.type })
-      .select('event_id')
+      .select('event_id,status')
+      .eq('event_id', event.id)
       .maybeSingle();
 
-    if (insert.error) {
-      // Ignore only true duplicates; anything else should fail loudly.
-      const msg = String(insert.error.message || 'insert_failed');
-      const code = (insert.error as any).code;
-      const isDuplicate = code === '23505' || msg.toLowerCase().includes('duplicate');
-      if (isDuplicate) {
+    if (existing.data) {
+      // Event already in DB — skip if already processed successfully.
+      if (existing.data.status === 'processed') {
         return new Response('ok', { status: 200, headers: corsHeaders });
       }
-      return new Response('stripe_events_insert_failed', { status: 500, headers: corsHeaders });
-    }
+      // Event exists but failed previously — allow reprocessing below.
+      insertedEventId = event.id;
+    } else {
+      const insert = await supabase
+        .from('stripe_events')
+        .insert({ event_id: event.id, type: event.type })
+        .select('event_id')
+        .maybeSingle();
 
-    insertedEventId = event.id;
+      if (insert.error) {
+        const msg = String(insert.error.message || 'insert_failed');
+        const code = (insert.error as any).code;
+        const isDuplicate = code === '23505' || msg.toLowerCase().includes('duplicate');
+        if (isDuplicate) {
+          return new Response('ok', { status: 200, headers: corsHeaders });
+        }
+        console.error('[stripe-webhook] stripe_events insert failed', insert.error);
+        return new Response('stripe_events_insert_failed', { status: 500, headers: corsHeaders });
+      }
+      insertedEventId = event.id;
+    }
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
@@ -323,6 +349,7 @@ Deno.serve(async (req: Request) => {
         paidAt,
         stripePaymentIntentId: session?.payment_intent || null,
         stripeCustomerId: session?.customer || null,
+        stripeAmountCents: typeof session?.amount_total === 'number' ? session.amount_total : null,
         locale,
       });
 
@@ -369,6 +396,7 @@ Deno.serve(async (req: Request) => {
         paidAt,
         stripePaymentIntentId: pi?.id || null,
         stripeCustomerId: (pi as any)?.customer || null,
+        stripeAmountCents: typeof pi?.amount === 'number' ? pi.amount : null,
         locale,
       });
 
