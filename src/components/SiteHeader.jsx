@@ -179,10 +179,10 @@ export default function SiteHeader() {
           className={`absolute inset-0 z-0 border-b border-black/10 shadow-[0_12px_45px_rgba(15,23,42,0.08)] pointer-events-none transition-[opacity,background-color] duration-700 ${scrolled ? 'opacity-0 bg-transparent' : 'opacity-100 bg-white'}`}
         />
         <div 
-          className={`!absolute inset-0 mx-auto transition-[max-width,opacity,border-radius] duration-700 pointer-events-none z-0 ${
+          className={`!absolute inset-0 mx-auto transition-[max-width,opacity,border-radius,box-shadow] duration-700 pointer-events-none z-0 glass-green backdrop-saturate-150 ${
             scrolled 
-              ? 'max-w-[calc(100%-3rem)] md:max-w-6xl opacity-100 !rounded-[2rem] glass-green backdrop-saturate-150 border border-white/30 shadow-[0_35px_90px_rgba(0,0,0,0.35)]' 
-              : 'max-w-full opacity-0 rounded-none border-transparent shadow-none'
+              ? 'max-w-[calc(100%-3rem)] md:max-w-6xl opacity-100 !rounded-[2rem] border-white/30 shadow-[0_35px_90px_rgba(0,0,0,0.35)]' 
+              : 'max-w-full opacity-0 !rounded-none border-transparent shadow-none'
           }`}
         />
 

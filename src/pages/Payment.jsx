@@ -103,10 +103,16 @@ function InnerPayment({ locale, orderId, paymentToken, clientSecret, totalCents,
   // ExpressCheckoutElement state — mounted always so onReady fires regardless of results.
   const [expressAvailable, setExpressAvailable] = useState(false);
   const [expressWallets, setExpressWallets] = useState(null);
+  const [expressChecked, setExpressChecked] = useState(false);
   // Fallback PaymentRequestButtonElement for browsers (e.g. Edge) where ECE doesn't
   // surface Google Pay / Apple Pay but the browser's native Payment Request API does.
   const [fallbackPR, setFallbackPR] = useState(null);
   const [fallbackWallet, setFallbackWallet] = useState(null);
+
+  // Google Pay direct API detection (fallback #2 for Edge and other Chromium browsers).
+  const [googlePayApiReady, setGooglePayApiReady] = useState(false);
+  const [googlePayApiChecked, setGooglePayApiChecked] = useState(false);
+  const [googlePayClient, setGooglePayClient] = useState(null);
 
   const returnUrl = `${window.location.origin}${successPath(locale)}`;
 
@@ -120,6 +126,7 @@ function InnerPayment({ locale, orderId, paymentToken, clientSecret, totalCents,
 
   // Called by ECE once it has determined which wallets are available (or none).
   const onExpressReady = ({ availablePaymentMethods }) => {
+    setExpressChecked(true);
     if (!availablePaymentMethods) return;
     setExpressWallets(availablePaymentMethods);
     // Only flag "available" when at least one method is actually usable —
@@ -127,7 +134,8 @@ function InnerPayment({ locale, orderId, paymentToken, clientSecret, totalCents,
     // (e.g. device has no Google Pay / Apple Pay but PayPal is available).
     const hasMethod = availablePaymentMethods.googlePay
       || availablePaymentMethods.applePay
-      || availablePaymentMethods.paypal;
+      || availablePaymentMethods.paypal
+      || availablePaymentMethods.revolutPay;
     if (hasMethod) setExpressAvailable(true);
   };
 
@@ -155,8 +163,8 @@ function InnerPayment({ locale, orderId, paymentToken, clientSecret, totalCents,
     }
   };
 
-  // Set up a Payment Request fallback for browsers (e.g. Edge) where ECE doesn't
-  // detect Google Pay but the native Payment Request API does.
+  // Set up Payment Request API for Apple Pay (native sheet) and as a fallback
+  // for Google Pay on browsers where the direct API doesn't work.
   useEffect(() => {
     if (!stripe || !clientSecret || !totalCents) return;
     if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') return;
@@ -172,7 +180,7 @@ function InnerPayment({ locale, orderId, paymentToken, clientSecret, totalCents,
     let cancelled = false;
     pr.canMakePayment().then((result) => {
       if (cancelled || !result) return;
-      const wallet = result.googlePay ? 'googlePay' : result.applePay ? 'applePay' : null;
+      const wallet = result.applePay ? 'applePay' : result.googlePay ? 'googlePay' : null;
       if (!wallet) return;
 
       pr.on('paymentmethod', async (ev) => {
@@ -218,6 +226,78 @@ function InnerPayment({ locale, orderId, paymentToken, clientSecret, totalCents,
     return () => { cancelled = true; };
   }, [stripe, clientSecret, totalCents, currency, t, orderId, paymentToken, returnUrl]);
 
+  // Google Pay API direct detection — works in Chrome, Edge, and other Chromium
+  // browsers. Skipped entirely on Apple devices (Safari/iOS) where it isn't
+  // supported and can cause blank-page crashes.
+  const isAppleDevice = /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent) && !/Chrome/i.test(navigator.userAgent);
+  useEffect(() => {
+    if (isAppleDevice) { setGooglePayApiChecked(true); return; }
+    let cancelled = false;
+
+    const check = async () => {
+      try {
+        // Load Google Pay JS API if not already present.
+        if (!window.google?.payments?.api?.PaymentsClient) {
+          await new Promise((resolve, reject) => {
+            const existing = document.querySelector('script[src*="pay.google.com/gp/p/js/pay.js"]');
+            if (existing) {
+              // Script tag exists — wait for the API to become available.
+              const wait = setInterval(() => {
+                if (window.google?.payments?.api?.PaymentsClient) { clearInterval(wait); resolve(); }
+              }, 100);
+              setTimeout(() => { clearInterval(wait); reject(new Error('timeout')); }, 8000);
+              return;
+            }
+            const s = document.createElement('script');
+            s.src = 'https://pay.google.com/gp/p/js/pay.js';
+            s.async = true;
+            s.onload = () => {
+              // After script load, the API may still need a tick to initialize.
+              const wait = setInterval(() => {
+                if (window.google?.payments?.api?.PaymentsClient) { clearInterval(wait); resolve(); }
+              }, 50);
+              setTimeout(() => { clearInterval(wait); reject(new Error('timeout after load')); }, 5000);
+            };
+            s.onerror = reject;
+            document.head.appendChild(s);
+          });
+        }
+        if (cancelled) return;
+
+        // Use TEST environment on non-production origins so isReadyToPay works during dev.
+        const isProd = window.location.hostname === 'kaliadziuk.lt' || window.location.hostname === 'www.kaliadziuk.lt';
+        const client = new window.google.payments.api.PaymentsClient({
+          environment: isProd ? 'PRODUCTION' : 'TEST',
+        });
+        const result = await client.isReadyToPay({
+          apiVersion: 2,
+          apiVersionMinor: 0,
+          allowedPaymentMethods: [{
+            type: 'CARD',
+            parameters: {
+              allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+              allowedCardNetworks: ['VISA', 'MASTERCARD', 'AMEX'],
+            },
+          }],
+        });
+        if (cancelled) return;
+        if (result.result) {
+          // For actual payments, always use PRODUCTION client.
+          const prodClient = isProd ? client : new window.google.payments.api.PaymentsClient({ environment: 'PRODUCTION' });
+          setGooglePayApiReady(true);
+          setGooglePayClient(prodClient);
+        }
+      } catch (e) {
+        console.warn('[GPay] detection failed:', e);
+      }
+      finally { if (!cancelled) setGooglePayApiChecked(true); }
+    };
+
+    check();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const onPay = async () => {
     setErrorPopup(null);
 
@@ -232,6 +312,7 @@ function InnerPayment({ locale, orderId, paymentToken, clientSecret, totalCents,
       const { error: confirmError } = await stripe.confirmPayment({
         elements,
         confirmParams: { return_url: returnUrl },
+        redirect: 'if_required',
       });
 
       if (confirmError) {
@@ -247,10 +328,165 @@ function InnerPayment({ locale, orderId, paymentToken, clientSecret, totalCents,
     }
   };
 
-  // showFallbackWallet: ECE didn't detect the wallet that the browser's native
-  // Payment Request API found (e.g. Google Pay on Edge, or Apple Pay on older Safari).
-  const showFallbackWallet = !!fallbackPR && !!fallbackWallet && !expressWallets?.[fallbackWallet];
-  const showExpressSection = expressAvailable || showFallbackWallet;
+  // showFallbackWallet: Payment Request API found Apple Pay. This is the primary
+  // way to show Apple Pay — avoids needing a second ECE instance which crashes Stripe.
+  const showApplePayPR = !!fallbackPR && fallbackWallet === 'applePay';
+  // Google Pay via Payment Request API (preferred — Stripe handles merchant registration).
+  const showGooglePayPR = !!fallbackPR && fallbackWallet === 'googlePay';
+
+  // Apple Pay detected via Payment Request API (preferred) or ECE detection.
+  const hasApplePay = showApplePayPR || !!expressWallets?.applePay;
+  // Google Pay detected via ECE (preferred — Stripe handles merchant registration),
+  // PR, or direct API (fallback — requires Google Pay Business Console registration).
+  const hasGooglePayECE = !!expressWallets?.googlePay;
+  const hasGooglePay = hasGooglePayECE || showGooglePayPR || googlePayApiReady;
+  // ECE detected PayPal.
+  const hasPayPalECE = !!expressWallets?.paypal;
+
+  // Show both wallets when the device supports them.
+  const showApplePay = hasApplePay;
+  const showGooglePay = hasGooglePay && !isAppleDevice;
+
+  // Show express section when any wallet OR always for Revolut/PayPal buttons.
+  const allChecked = expressChecked && googlePayApiChecked;
+  const showExpressSection = showGooglePay || showApplePay || hasPayPalECE || allChecked;
+
+  // Manual Revolut Pay attempt via Stripe's redirect-based flow.
+  // Revolut Pay is NOT supported by ExpressCheckoutElement, so we create
+  // a revolut_pay PaymentMethod and confirm the PaymentIntent with it.
+  const tryRevolutPay = async () => {
+    if (!stripe || !clientSecret) return;
+    setErrorPopup(null);
+    setBusy(true);
+    markCartToClearAfterSuccess(orderId);
+    try {
+      const { paymentMethod, error: pmError } = await stripe.createPaymentMethod({
+        type: 'revolut_pay',
+      });
+      if (pmError) {
+        unmarkCartToClearAfterSuccess();
+        openErrorPopup(locale === 'lt'
+          ? 'Revolut Pay šiuo metu neprieinamas. Bandykite kitą mokėjimo būdą.'
+          : 'Revolut Pay is currently unavailable. Please try another payment method.');
+        return;
+      }
+      const { error: confirmError } = await stripe.confirmPayment({
+        clientSecret,
+        confirmParams: {
+          payment_method: paymentMethod.id,
+          return_url: returnUrl,
+        },
+      });
+      if (confirmError) {
+        unmarkCartToClearAfterSuccess();
+        openErrorPopup(locale === 'lt'
+          ? 'Revolut Pay šiuo metu neprieinamas. Bandykite kitą mokėjimo būdą.'
+          : 'Revolut Pay is currently unavailable. Please try another payment method.');
+      }
+    } catch {
+      unmarkCartToClearAfterSuccess();
+      openErrorPopup(locale === 'lt'
+        ? 'Revolut Pay šiuo metu neprieinamas. Bandykite kitą mokėjimo būdą.'
+        : 'Revolut Pay is currently unavailable. Please try another payment method.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // Manual PayPal attempt via Stripe's redirect-based PayPal flow.
+  const tryPayPal = async () => {
+    if (!stripe || !clientSecret) return;
+    setErrorPopup(null);
+    setBusy(true);
+    markCartToClearAfterSuccess(orderId);
+    try {
+      const { error } = await stripe.confirmPayPalPayment(clientSecret, {
+        return_url: returnUrl,
+      });
+      if (error) {
+        unmarkCartToClearAfterSuccess();
+        openErrorPopup(locale === 'lt'
+          ? 'PayPal šiuo metu neprieinamas. Bandykite kitą mokėjimo būdą.'
+          : 'PayPal is currently unavailable. Please try another payment method.');
+      }
+    } catch {
+      unmarkCartToClearAfterSuccess();
+      openErrorPopup(locale === 'lt'
+        ? 'PayPal šiuo metu neprieinamas. Bandykite kitą mokėjimo būdą.'
+        : 'PayPal is currently unavailable. Please try another payment method.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // Google Pay via direct API — for Edge and browsers where ECE/PR don't detect it.
+  const tryGooglePayDirect = async () => {
+    if (!googlePayClient || !stripe || !clientSecret) return;
+    setErrorPopup(null);
+    setBusy(true);
+    markCartToClearAfterSuccess(orderId);
+    try {
+      const paymentData = await googlePayClient.loadPaymentData({
+        apiVersion: 2,
+        apiVersionMinor: 0,
+        merchantInfo: {
+          merchantName: 'Kaliadziuk',
+        },
+        allowedPaymentMethods: [{
+          type: 'CARD',
+          parameters: {
+            allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+            allowedCardNetworks: ['VISA', 'MASTERCARD', 'AMEX'],
+          },
+          tokenizationSpecification: {
+            type: 'PAYMENT_GATEWAY',
+            parameters: {
+              gateway: 'stripe',
+              'stripe:version': '2024-06-20',
+              'stripe:publishableKey': import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY,
+            },
+          },
+        }],
+        transactionInfo: {
+          totalPriceStatus: 'FINAL',
+          totalPrice: (totalCents / 100).toFixed(2),
+          currencyCode: (currency || 'eur').toUpperCase(),
+          countryCode: 'LT',
+        },
+      });
+
+      const token = JSON.parse(paymentData.paymentMethodData.tokenizationData.token);
+      const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: { card: { token: token.id } },
+      });
+      if (confirmError) {
+        unmarkCartToClearAfterSuccess();
+        openErrorPopup(confirmError);
+        return;
+      }
+      if (paymentIntent?.status === 'requires_action') {
+        const { error: actionError } = await stripe.confirmCardPayment(clientSecret);
+        if (actionError) { unmarkCartToClearAfterSuccess(); openErrorPopup(actionError); return; }
+      }
+      clearPaymentSession(paymentToken);
+      window.location.assign(returnUrl);
+    } catch (err) {
+      unmarkCartToClearAfterSuccess();
+      if (err?.statusCode === 'CANCELED') { setBusy(false); return; }
+      openErrorPopup(locale === 'lt'
+        ? 'Google Pay šiuo metu neprieinamas. Bandykite kitą mokėjimo būdą.'
+        : 'Google Pay is currently unavailable. Please try another payment method.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // Manual attempt for wallets that were already checked and not found.
+  const tryManualWallet = (walletName) => {
+    openErrorPopup(locale === 'lt'
+      ? `${walletName} neprieinamas šiame įrenginyje. Bandykite kitą mokėjimo būdą.`
+      : `${walletName} is not available on this device. Please try another payment method.`);
+  };
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16 space-y-6">
@@ -265,32 +501,92 @@ function InnerPayment({ locale, orderId, paymentToken, clientSecret, totalCents,
         <div className="text-2xl font-extrabold font-heading">{totalCents ? (totalCents / 100).toFixed(2).replace('.', ',') + ' €' : ''}</div>
       </div>
       
-      {/* ECE is always mounted so Stripe can detect available wallets.
-           A PaymentRequestButtonElement fallback handles Google Pay in Edge and
-           other Chromium browsers where ECE's detection doesn't fire. */}
-      <div className={showExpressSection ? 'rounded-2xl border border-black/10 p-5 space-y-3' : ''}>
-        {showExpressSection && (
-          <div className="font-heading font-extrabold">{t('payment.expressTitle')}</div>
-        )}
+      {/* ECE — always mounted for detection. Shows Google Pay natively via
+           Stripe (no separate Google Pay merchant registration needed).
+           Hidden on Apple devices and when Google Pay not available.
+           Apple Pay is handled separately via PaymentRequestButtonElement. */}
+      <div className={expressWallets?.googlePay && !isAppleDevice ? '' : 'hidden'}>
         <ExpressCheckoutElement
           onReady={onExpressReady}
           onConfirm={onExpressConfirm}
           options={{
             buttonHeight: 48,
-            buttonType: { applePay: 'buy', googlePay: 'buy', paypal: 'buynow' },
-            buttonTheme: { applePay: 'black', googlePay: 'black', paypal: 'gold' },
-            paymentMethods: { link: 'never', applePay: 'auto', googlePay: 'auto', paypal: 'auto' },
+            buttonType: { googlePay: 'buy' },
+            buttonTheme: { googlePay: 'black' },
+            paymentMethods: { link: 'never', applePay: 'never', googlePay: 'auto', paypal: 'never' },
+            paymentMethodOrder: ['googlePay'],
           }}
         />
-        {showFallbackWallet && (
-          <PaymentRequestButtonElement
-            options={{
-              paymentRequest: fallbackPR,
-              style: { paymentRequestButton: { theme: 'dark', height: '48px', type: 'default' } },
-            }}
-          />
-        )}
-        {showExpressSection && (
+      </div>
+
+      {showExpressSection && (
+        <div className="rounded-2xl border border-black/10 p-5 space-y-3">
+          <div className="font-heading font-extrabold">{t('payment.expressTitle')}</div>
+
+          {/* Google Pay via ECE is rendered above this section (always mounted). */}
+          {/* Google Pay — fallback via PR (only if ECE didn't detect it) */}
+          {showGooglePay && !hasGooglePayECE && showGooglePayPR && (
+            <PaymentRequestButtonElement
+              options={{
+                paymentRequest: fallbackPR,
+                style: { paymentRequestButton: { theme: 'dark', height: '48px', type: 'buy' } },
+              }}
+            />
+          )}
+          {/* Google Pay — direct API fallback (only if neither ECE nor PR detected it) */}
+          {showGooglePay && !hasGooglePayECE && !showGooglePayPR && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={tryGooglePayDirect}
+              className="flex items-center justify-center gap-3 w-full rounded-xl bg-black hover:bg-gray-800 px-4 py-3 font-semibold text-white transition-colors disabled:opacity-60"
+              style={{ height: 48 }}
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5 flex-shrink-0" fill="currentColor" aria-hidden="true">
+                <path d="M12.24 10.285V14.4h6.806c-.275 1.765-2.056 5.174-6.806 5.174-4.095 0-7.439-3.389-7.439-7.574s3.345-7.574 7.439-7.574c2.33 0 3.891.989 4.785 1.849l3.254-3.138C18.189 1.186 15.479 0 12.24 0c-6.635 0-12 5.365-12 12s5.365 12 12 12c6.926 0 11.52-4.869 11.52-11.726 0-.788-.085-1.39-.189-1.989H12.24z" />
+              </svg>
+              Google Pay
+            </button>
+          )}
+
+          {/* Apple Pay — via Payment Request API (native sheet, no second ECE) */}
+          {showApplePayPR && (
+            <PaymentRequestButtonElement
+              options={{
+                paymentRequest: fallbackPR,
+                style: { paymentRequestButton: { theme: 'dark', height: '48px', type: 'buy' } },
+              }}
+            />
+          )}
+
+          {/* Revolut Pay + PayPal — side by side */}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={tryRevolutPay}
+              className="flex items-center justify-center gap-2 rounded-xl bg-[#191C1F] hover:bg-[#2a2d31] px-3 py-3 font-semibold text-white transition-colors disabled:opacity-60 text-sm"
+              style={{ height: 48 }}
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4 flex-shrink-0" fill="currentColor" aria-hidden="true">
+                <path d="M13.74 2C17.73 2 20 4.07 20 7.2c0 2.14-1.26 4.07-3.27 5.12l3.6 7.68h-4.2l-3.12-6.96H9.6V22H5.8V2h7.94zM9.6 5.32v4.4h3.74c1.88 0 3.06-.94 3.06-2.22 0-1.28-1.18-2.18-3.06-2.18H9.6z" />
+              </svg>
+              Revolut Pay
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={tryPayPal}
+              className="flex items-center justify-center gap-2 rounded-xl bg-[#003087] hover:bg-[#002670] px-3 py-3 font-semibold text-white transition-colors disabled:opacity-60 text-sm"
+              style={{ height: 48 }}
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4 flex-shrink-0" fill="currentColor" aria-hidden="true">
+                <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 2.5A.764.764 0 0 1 5.7 1.875h6.79c2.256 0 3.861.57 4.76 1.692.39.487.637 1.023.753 1.65.12.651.102 1.426-.06 2.365l-.013.072v.635l.495.283a3.52 3.52 0 0 1 1.007.732c.375.433.624.988.74 1.648.12.681.104 1.495-.05 2.42-.176 1.06-.46 1.984-.844 2.746a5.61 5.61 0 0 1-1.336 1.73 5.07 5.07 0 0 1-1.897 1.008 8.4 8.4 0 0 1-2.38.316h-.564a1.7 1.7 0 0 0-1.682 1.434l-.043.218-.718 4.546-.033.148a.14.14 0 0 1-.044.094.133.133 0 0 1-.086.032z" />
+              </svg>
+              PayPal
+            </button>
+          </div>
+
           <div className="relative my-2">
             <div className="absolute inset-0 flex items-center" aria-hidden="true">
               <div className="w-full border-t border-black/10" />
@@ -301,13 +597,17 @@ function InnerPayment({ locale, orderId, paymentToken, clientSecret, totalCents,
               </span>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="rounded-2xl border border-black/10 p-5 space-y-4">
         <div className="font-heading font-extrabold">{t('payment.cardTitle')}</div>
         <div className="rounded-2xl border border-black/10 bg-white p-4">
-          <PaymentElement options={{ layout: 'tabs' }} />
+          <PaymentElement options={{
+            layout: 'tabs',
+            wallets: { applePay: 'never', googlePay: 'never' },
+            paymentMethodOrder: ['card'],
+          }} />
         </div>
 
         <button

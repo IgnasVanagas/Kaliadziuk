@@ -23,17 +23,17 @@ function buildCsp(env) {
   // Fallback: if no env vars are set (e.g. first checkout / CI without secrets),
   // block everything except same-origin so the page still loads safely.
   const connectSrc = supabaseOrigins.size
-    ? `'self' ${[...supabaseOrigins].join(' ')} https://api.stripe.com https://challenges.cloudflare.com https://www.google-analytics.com https://region1.google-analytics.com`
-    : "'self' https://api.stripe.com https://challenges.cloudflare.com https://www.google-analytics.com https://region1.google-analytics.com";
+    ? `'self' ${[...supabaseOrigins].join(' ')} https://api.stripe.com https://r.stripe.com https://challenges.cloudflare.com https://www.google-analytics.com https://region1.google-analytics.com https://pay.google.com https://google.com https://www.google.com`
+    : "'self' https://api.stripe.com https://r.stripe.com https://challenges.cloudflare.com https://www.google-analytics.com https://region1.google-analytics.com https://pay.google.com https://google.com https://www.google.com";
 
   return [
     "default-src 'self'",
-    "script-src 'self' https://challenges.cloudflare.com https://www.googletagmanager.com https://js.stripe.com",
+    "script-src 'self' https://challenges.cloudflare.com https://www.googletagmanager.com https://js.stripe.com https://pay.google.com",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https:",
     "font-src 'self'",
     `connect-src ${connectSrc}`,
-    'frame-src https://challenges.cloudflare.com https://js.stripe.com https://hooks.stripe.com',
+    'frame-src https://challenges.cloudflare.com https://js.stripe.com https://hooks.stripe.com https://pay.google.com',
     "base-uri 'self'",
     "form-action 'self'",
   ].join('; ') + ';';

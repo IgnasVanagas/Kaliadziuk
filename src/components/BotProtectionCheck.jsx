@@ -15,11 +15,12 @@ export default function BotProtectionCheck({
 
   const containerRef = useRef(null);
   const widgetIdRef = useRef(null);
-  // Track one automatic silent retry before surfacing an error to the user.
   const retriedRef = useRef(false);
   const [isScriptReady, setIsScriptReady] = useState(() => Boolean(window.turnstile));
   const [isVerifying, setIsVerifying] = useState(false);
   const [hasError, setHasError] = useState(false);
+  // Track when Cloudflare needs the user to interact (e.g. tap a challenge).
+  const [needsInteraction, setNeedsInteraction] = useState(false);
 
   useEffect(() => {
     if (!isEnabled) {
@@ -60,49 +61,52 @@ export default function BotProtectionCheck({
     if (!isEnabled || !isScriptReady || !containerRef.current || widgetIdRef.current !== null) return;
     if (!window.turnstile?.render) return;
 
+    setIsVerifying(true);
     widgetIdRef.current = window.turnstile.render(containerRef.current, {
       sitekey: siteKey,
-      // Only fire verification when .execute() is explicitly called (on user click).
-      execution: 'execute',
-      // Render the widget into the container only if Cloudflare needs user interaction
-      // (e.g. a CAPTCHA puzzle). Otherwise the container stays visually empty.
-      appearance: 'interaction-only',
+      execution: 'render',
+      // Use 'execute' appearance — Cloudflare won't render its own visible checkbox.
+      // The widget iframe stays truly invisible; our custom UI is the only thing shown.
+      appearance: 'execute',
+      size: 'compact',
+      language: locale === 'lt' ? 'lt' : 'en',
       callback: (token) => {
         retriedRef.current = false;
         setHasError(false);
         setIsVerifying(false);
+        setNeedsInteraction(false);
         onChange(String(token || '').trim());
       },
       'expired-callback': () => {
-        setIsVerifying(false);
+        setIsVerifying(true);
         onChange('');
+        if (widgetIdRef.current !== null && window.turnstile?.reset) {
+          window.turnstile.reset(widgetIdRef.current);
+        }
       },
       'error-callback': () => {
-        // Cloudflare sometimes emits a transient error on first attempt (e.g. a network
-        // hiccup). Silently reset + retry once before surfacing "Nepavyko" to the user.
         if (!retriedRef.current) {
           retriedRef.current = true;
           setHasError(false);
           if (widgetIdRef.current !== null && window.turnstile?.reset) {
             window.turnstile.reset(widgetIdRef.current);
           }
-          // Re-execute after the widget has had a tick to reset itself.
-          setTimeout(() => {
-            try {
-              if (widgetIdRef.current !== null && window.turnstile?.execute) {
-                window.turnstile.execute(widgetIdRef.current);
-              }
-            } catch { /* ignore */ }
-          }, 300);
           return;
         }
-        // Second failure — give up and show the error so the user can try again.
         setHasError(true);
         setIsVerifying(false);
         onChange('');
       },
+      'before-interactive-callback': () => {
+        // Cloudflare needs the user to interact (e.g. solve a challenge).
+        // Show the Turnstile frame so the user can see it.
+        setNeedsInteraction(true);
+      },
+      'after-interactive-callback': () => {
+        setNeedsInteraction(false);
+      },
     });
-  }, [isEnabled, isScriptReady, onChange, siteKey]);
+  }, [isEnabled, isScriptReady, onChange, siteKey, locale]);
 
   useEffect(() => {
     if (!isEnabled) return;
@@ -111,49 +115,30 @@ export default function BotProtectionCheck({
     }
     retriedRef.current = false;
     setHasError(false);
-    setIsVerifying(false);
+    setIsVerifying(true);
+    setNeedsInteraction(false);
     onChange('');
   }, [isEnabled, onChange, resetSignal]);
 
   const isChecked = !isEnabled || value === 'disabled' || Boolean(value);
   const isLoading = isEnabled && (!isScriptReady || isVerifying);
 
-  const runCheck = () => {
+  const retryCheck = () => {
     if (!isEnabled) return;
     if (isChecked) return;
-    if (isVerifying) return;
-    if (!window.turnstile?.execute || widgetIdRef.current === null) {
-      setHasError(true);
-      return;
-    }
-
+    if (!hasError) return;
     setHasError(false);
     setIsVerifying(true);
-    try {
-      window.turnstile.execute(widgetIdRef.current);
-    } catch {
-      setHasError(true);
-      setIsVerifying(false);
-      onChange('');
+    setNeedsInteraction(false);
+    retriedRef.current = false;
+    if (widgetIdRef.current !== null && window.turnstile?.reset) {
+      window.turnstile.reset(widgetIdRef.current);
     }
   };
 
   return (
     <div className={className}>
-      <label
-        className="flex items-center gap-3 text-sm text-black cursor-pointer group"
-        role="checkbox"
-        aria-checked={isChecked}
-        aria-label={locale === 'lt' ? 'Aš ne robotas' : "I'm not a robot"}
-        tabIndex={0}
-        onClick={runCheck}
-        onKeyDown={(event) => {
-          if (event.key === ' ' || event.key === 'Enter') {
-            event.preventDefault();
-            runCheck();
-          }
-        }}
-      >
+      <div className="flex items-center gap-3 text-sm text-black">
         <span className="relative flex h-5 w-5 items-center justify-center">
           <input
             id={checkId}
@@ -163,7 +148,7 @@ export default function BotProtectionCheck({
             className="peer sr-only"
           />
           <span
-            className="h-5 w-5 rounded-full border-2 border-slate-300 bg-white transition-all peer-checked:border-[#DCF41E] peer-checked:bg-[#DCF41E] peer-focus:ring-2 peer-focus:ring-[#DCF41E] peer-focus:ring-offset-2"
+            className="h-5 w-5 rounded-full border-2 border-slate-300 bg-white transition-all peer-checked:border-[#DCF41E] peer-checked:bg-[#DCF41E]"
           />
           {isLoading ? (
             <span className="pointer-events-none absolute -inset-1 rounded-full border-2 border-[#DCF41E]/25 border-t-[#acc300] animate-spin" />
@@ -180,19 +165,30 @@ export default function BotProtectionCheck({
             <polyline points="20 6 9 17 4 12" />
           </svg>
         </span>
-        <span>{locale === 'lt' ? 'Aš ne robotas' : "I'm not a robot"}</span>
-      </label>
+        <span>
+          {isLoading
+            ? (locale === 'lt' ? 'Tikrinama...' : 'Verifying...')
+            : isChecked
+              ? (locale === 'lt' ? 'Patvirtinta' : 'Verified')
+              : (locale === 'lt' ? 'Aš ne robotas' : "I'm not a robot")}
+        </span>
+      </div>
 
+      {/* Turnstile container — hidden by default; shown only when Cloudflare
+          needs an interactive challenge (e.g. on iPhones with suspicious traffic). */}
       <div
         ref={containerRef}
-        aria-hidden="true"
-        className="mt-1 min-h-0 [&>*]:mt-1"
+        className={needsInteraction ? 'mt-2' : 'h-0 overflow-hidden'}
       />
 
       {hasError ? (
-        <p className="mt-2 text-xs text-red-600">
-          {locale === 'lt' ? 'Nepavyko patikrinti. Pabandykite dar kartą.' : 'Verification failed. Please try again.'}
-        </p>
+        <button
+          type="button"
+          onClick={retryCheck}
+          className="mt-2 text-xs text-red-600 underline hover:text-red-800"
+        >
+          {locale === 'lt' ? 'Nepavyko patikrinti. Paspauskite bandyti dar kartą.' : 'Verification failed. Click to try again.'}
+        </button>
       ) : null}
     </div>
   );
