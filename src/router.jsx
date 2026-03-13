@@ -40,6 +40,8 @@ function LocaleShell() {
   const location = useLocation();
   const { i18n } = useTranslation();
 
+  const minimal = /^\/(lt\/svorio-metimo-programa|en\/weight-loss-program)(\/|$)/.test(location.pathname);
+
   useEffect(() => {
     const locale = getLocaleFromPathname(location.pathname);
     if (!locale) return;
@@ -56,7 +58,7 @@ function LocaleShell() {
     <>
       <CustomCursor />
       <CustomScrollbar />
-      <SiteHeader />
+      <SiteHeader minimal={minimal} />
       {/* spacer equal to header height to prevent content jump when header is fixed */}
       <div aria-hidden="true" className="h-16 md:h-20" />
       <Outlet />

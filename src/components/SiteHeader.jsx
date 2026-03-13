@@ -72,7 +72,7 @@ function swapLocalePath(pathname, nextLocale) {
   return newPath.endsWith('/') ? newPath : `${newPath}/`;
 }
 
-export default function SiteHeader() {
+export default function SiteHeader({ minimal = false }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
@@ -205,16 +205,16 @@ export default function SiteHeader() {
             </picture>
           </a>
 
-          <nav className="hidden items-center gap-8 text-sm font-medium md:flex">
+          {!minimal && <nav className="hidden items-center gap-8 text-sm font-medium md:flex">
             {navItems.map((item) => (
               <a key={item.href} href={item.href} className={desktopLinkClass}>
                 {item.label}
               </a>
             ))}
-          </nav>
+          </nav>}
 
-          <div className="hidden md:flex items-center gap-3">
-            <a
+          <div className={`${minimal ? 'flex' : 'hidden md:flex'} items-center gap-3`}>
+            {!minimal && <a
               href={user ? accountPath : loginPath}
               className="relative inline-grid h-10 w-10 shrink-0 place-items-center rounded-full border border-black/20"
               aria-label={user ? (locale === 'lt' ? 'Paskyra' : 'Account') : (locale === 'lt' ? 'Prisijungti' : 'Sign in')}
@@ -226,7 +226,7 @@ export default function SiteHeader() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                 <circle cx="12" cy="7" r="4" />
               </svg>
-            </a>
+            </a>}
 
             <a
               href={cartPath}
@@ -254,21 +254,27 @@ export default function SiteHeader() {
               <button type="button" onClick={() => switchTo('en')} className={`px-2 py-1 rounded-full text-xs font-semibold ${locale === 'en' ? 'bg-black text-white' : ''}`}>EN</button>
             </div>
 
-            <a href={`${homeBase}#programos`} className={desktopCtaClass}>
-              {locale === 'lt' ? 'Peržiūrėti planus' : 'View plans'}
-            </a>
+            {minimal ? (
+              <a href={locale === 'lt' ? '/lt/anketa' : '/en/questionnaire'} className={desktopCtaClass}>
+                {locale === 'lt' ? 'Gauti personalizuotą planą' : 'Get personalized plan'}
+              </a>
+            ) : (
+              <a href={locale === 'lt' ? '/lt/anketa' : '/en/questionnaire'} className={desktopCtaClass}>
+                {locale === 'lt' ? 'Gauti asmeninį pasiūlymą' : 'Get personal offer'}
+              </a>
+            )}
           </div>
 
-          <button type="button" onClick={() => setMobileOpen((c) => !c)} className={mobileToggleClass}>
+          {!minimal && <button type="button" onClick={() => setMobileOpen((c) => !c)} className={mobileToggleClass}>
             <span className="sr-only">Toggle menu</span>
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-          </button>
+          </button>}
         </div>
       </div>
 
-      <nav className={`${mobileOpen ? 'block' : 'hidden'} ${mobileMenuBaseClass} px-6 py-4 md:hidden transition-colors duration-300`}>
+      {!minimal && <nav className={`${mobileOpen ? 'block' : 'hidden'} ${mobileMenuBaseClass} px-6 py-4 md:hidden transition-colors duration-300`}>
         <div className="flex items-center justify-between mb-4">
           <a
             href={user ? accountPath : loginPath}
@@ -310,10 +316,10 @@ export default function SiteHeader() {
           ))}
         </div>
 
-        <a href={`${homeBase}#programos`} onClick={() => setMobileOpen(false)} className={mobileCtaClass}>
-          {locale === 'lt' ? 'Peržiūrėti planus' : 'View plans'}
+        <a href={locale === 'lt' ? '/lt/anketa' : '/en/questionnaire'} onClick={() => setMobileOpen(false)} className={mobileCtaClass}>
+          {locale === 'lt' ? 'Gauti asmeninį pasiūlymą' : 'Get personal offer'}
         </a>
-      </nav>
+      </nav>}
     </header>
 
     <CartDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />

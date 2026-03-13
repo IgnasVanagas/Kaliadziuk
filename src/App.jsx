@@ -135,12 +135,12 @@ const Hero = ({ stats, backgroundDesktop, backgroundMobile, title, subtitle, cta
     />
     </picture>
   <div className="relative z-20 mx-auto flex min-h-full w-full max-w-7xl flex-col items-start px-6 pt-60 pb-20 sm:pt-72 sm:pb-24 lg:pt-80 lg:pb-28">
-  <div className="max-w-4xl mx-auto text-center space-y-8" data-aos="fade-up">
+  <div className="max-w-4xl mx-auto text-center flex flex-col items-center" data-aos="fade-up">
         <h1 className="font-heading text-3xl font-extrabold leading-tight sm:text-4xl md:text-5xl lg:text-6xl drop-shadow-[0_6px_18px_rgba(0,0,0,0.6)]">
           {title}
         </h1>
         {subtitle ? (
-          <p className="text-base text-white/90 sm:text-lg">
+          <p className="mt-4 mb-14 text-lg text-white/70 sm:text-xl md:text-2xl drop-shadow-md">
             {subtitle}
           </p>
         ) : null}
@@ -148,14 +148,14 @@ const Hero = ({ stats, backgroundDesktop, backgroundMobile, title, subtitle, cta
           {!ctaLink || ctaLink.startsWith('#') ? (
             <a
               href={ctaLink || "#programos"}
-              className="inline-flex items-center justify-center rounded-full glass-green-surface px-6 py-3 text-xl font-extrabold text-black shadow-lg transition-transform duration-150 hover:-translate-y-1 sm:px-8 sm:py-4 sm:text-2xl"
+              className="inline-flex items-center justify-center rounded-full bg-[#DCF41E] px-8 py-4 text-xl font-extrabold text-black shadow-[0_0_25px_rgba(220,244,30,0.4)] transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-[0_0_40px_rgba(255,255,255,0.6)] sm:px-10 sm:py-5 sm:text-2xl"
             >
               {ctaLabel}
             </a>
           ) : (
             <Link
               to={ctaLink}
-              className="inline-flex items-center justify-center rounded-full glass-green-surface px-6 py-3 text-xl font-extrabold text-black shadow-lg transition-transform duration-150 hover:-translate-y-1 sm:px-8 sm:py-4 sm:text-2xl"
+              className="inline-flex items-center justify-center rounded-full bg-[#DCF41E] px-8 py-4 text-xl font-extrabold text-black shadow-[0_0_25px_rgba(220,244,30,0.4)] transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-[0_0_40px_rgba(255,255,255,0.6)] sm:px-10 sm:py-5 sm:text-2xl"
             >
               {ctaLabel}
             </Link>
@@ -241,6 +241,7 @@ const programsLt = [
     description:
       'Programa skirta tiems, kurie nori saugiai, tvariai ir be chaoso sumažinti svorį bei išsiugdyti sveikus įpročius.',
     price: '199€',
+    compareAtPrice: '299€',
     // Removed duplicate anchor props
     duration: '8–12 savaičių',
     hasDietician: true,
@@ -482,6 +483,7 @@ const programsEn = [
     description:
       'A structured program for those who want to lose weight safely, sustainably, and without chaos while building better long-term habits.',
     price: '199€',
+    compareAtPrice: '299€',
     duration: '8–12 weeks',
     hasDietician: true,
     image: fromUploads('brokolis.jpg'),
@@ -1928,16 +1930,25 @@ function App({ locale = 'lt' }) {
           backgroundMobile={heroImageMobile}
           title={
             activeLocale === 'lt'
-              ? 'Asmeninis treneris Vilniuje: raumenų auginimas ir svorio metimas'
+              ? 'Būk geresnis nei buvai vakar.'
               : 'Personal trainer in Vilnius: muscle gain and fat loss'
           }
-          subtitle={null}
+          subtitle={
+            activeLocale === 'lt'
+              ? (
+                  <>
+                    Tavo stipresnė versija prasideda šiandien.<br />
+                    Maži žingsniai. Dideli pokyčiai.
+                  </>
+                )
+              : null
+          }
           imageAlt={
             activeLocale === 'lt'
               ? 'Asmeninis treneris Vilniuje treniruoje'
               : 'Personal trainer in Vilnius during training'
           }
-          ctaLabel={activeLocale === 'lt' ? 'Gauti asmeninį pasiūlymą' : 'Get personal offer'}
+          ctaLabel={activeLocale === 'lt' ? 'Pradėk savo pokyčius' : 'Start your journey'}
           ctaLink={activeLocale === 'lt' ? '/lt/anketa' : '/en/questionnaire'}
         />
 
@@ -2135,8 +2146,15 @@ function App({ locale = 'lt' }) {
                         </div>
                       )}
                       <div className="flex flex-col gap-4 w-full items-center">
-                         <div className="text-3xl font-black text-slate-900 text-center">
-                            {plan.price}
+                         <div className="flex flex-col items-center text-center leading-none">
+                            {plan.compareAtPrice ? (
+                              <div className="text-lg font-black text-slate-400 line-through decoration-2 decoration-slate-400">
+                                {plan.compareAtPrice}
+                              </div>
+                            ) : null}
+                            <div className={`${plan.compareAtPrice ? 'mt-1' : ''} text-3xl font-black text-slate-900 text-center`}>
+                              {plan.price}
+                            </div>
                          </div>
                         <button
                           type="button"
@@ -2348,7 +2366,16 @@ function App({ locale = 'lt' }) {
                               isHighlightedColumn ? 'bg-[#DCF41E]/10 border-none' : 'bg-white'
                             }`}
                           >
-                            <div className="mb-2 font-bold text-black sm:text-lg">{plan.price}</div>
+                            <div className="mb-2 flex min-h-[2.5rem] flex-col items-center justify-end leading-none sm:min-h-[3rem]">
+                              <div
+                                className={`text-xs font-black text-slate-400 line-through decoration-2 decoration-slate-400 sm:text-sm ${
+                                  plan.compareAtPrice ? '' : 'invisible'
+                                }`}
+                              >
+                                {plan.compareAtPrice || '299€'}
+                              </div>
+                              <div className="mt-1 font-bold text-black sm:text-lg">{plan.price}</div>
+                            </div>
                             <button
                               type="button"
                               onClick={() => onBuyProgram(plan)}
@@ -2611,6 +2638,47 @@ function App({ locale = 'lt' }) {
             >
               {activeLocale === 'lt' ? 'Pradėti savo istoriją' : 'Start your story'}
             </a>
+          </div>
+
+          <div className="relative mx-auto mt-10 max-w-5xl px-6" data-aos="fade-up">
+            <div className="rounded-[2rem] border border-black/10 bg-[linear-gradient(135deg,#ffffff_0%,#edf3bf_100%)] p-6 text-slate-900 shadow-[0_20px_50px_rgba(0,0,0,0.08)] sm:p-8">
+              <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+                <div className="max-w-2xl space-y-3">
+                  <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-500">
+                    {activeLocale === 'lt' ? 'Visa programa' : 'Full program'}
+                  </p>
+                  <h3 className="font-heading text-3xl font-black uppercase leading-tight text-slate-900 sm:text-4xl">
+                    {activeLocale === 'lt' ? 'Visa programa — tik 199€.' : 'Full program — only 199€.'}
+                  </h3>
+                  <p className="text-base text-slate-700 sm:text-lg">
+                    {activeLocale === 'lt' ? 'Mažiau nei vienas asmeninis treneris.' : 'Less than one month with a personal trainer.'}
+                  </p>
+                </div>
+
+                <div className="flex items-end gap-5 sm:gap-8 lg:justify-end">
+                  <div className="text-left sm:text-right">
+                    <p className="text-2xl font-black text-slate-400 line-through decoration-2 decoration-slate-400 sm:text-3xl">299€</p>
+                  </div>
+                  <div className="text-left sm:text-right">
+                    <p className="mt-2 text-5xl font-black leading-none text-slate-900 sm:text-6xl">199€</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-slate-600 sm:text-base">
+                  {activeLocale === 'lt'
+                    ? 'Aiškus planas, mitybos gairės ir progreso stebėjimas vienoje programoje.'
+                    : 'A clear plan, nutrition guidance, and progress tracking in one program.'}
+                </p>
+                <Link
+                  to={activeLocale === 'lt' ? '/lt/anketa' : '/en/questionnaire'}
+                  className="inline-flex min-h-[52px] items-center justify-center rounded-full bg-slate-900 px-8 py-3 text-sm font-black uppercase tracking-[0.16em] text-white transition hover:-translate-y-0.5 hover:bg-black"
+                >
+                  {activeLocale === 'lt' ? 'Gauti asmeninį pasiūlymą' : 'Get personal offer'}
+                </Link>
+              </div>
+            </div>
           </div>
         </section>
 
